@@ -31,8 +31,7 @@ export function ChatInterface() {
     setIsLoading(true);
 
     try {
-      const chatHistory = messages.map(m => ({ role: m.role, content: m.content as string }));
-      const response = await aiCoachChatbot({ message: input, history: chatHistory });
+      const response = await aiCoachChatbot({ message: input });
       const assistantMessage: Message = { role: 'assistant', content: response.response };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {

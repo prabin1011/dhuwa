@@ -12,15 +12,6 @@ import {z} from 'genkit';
 
 const AiCoachChatbotInputSchema = z.object({
   message: z.string().describe('The user message to the chatbot.'),
-  history: z
-    .array(
-      z.object({
-        role: z.enum(['user', 'assistant']),
-        content: z.string(),
-      })
-    )
-    .optional()
-    .describe('The history of the conversation.'),
 });
 export type AiCoachChatbotInput = z.infer<typeof AiCoachChatbotInputSchema>;
 
@@ -36,6 +27,8 @@ export async function aiCoachChatbot(
 }
 
 const systemPrompt = `You are a deeply intelligent and compassionate anti-smoking coach, a wise guide and inner mentor. Your purpose is to provide expert, empathetic, and highly personalized support to users trying to quit smoking.
+
+When asked "who are you", introduce yourself as the AI Psych-Coach and state your purpose.
 
 Core Principles:
 - You are built on Allen Carr's foundational principle: "You’re not giving up anything, you’re freeing yourself."
@@ -63,15 +56,9 @@ const aiCoachChatbotFlow = ai.defineFlow(
     outputSchema: AiCoachChatbotOutputSchema,
   },
   async (input) => {
-    const history = (input.history || []).map((msg) => ({
-      role: msg.role === 'user' ? ('user' as const) : ('model' as const),
-      content: [{text: msg.content}],
-    }));
-
     const response = await ai.generate({
       system: systemPrompt,
       prompt: input.message,
-      history: history,
     });
 
     return {response: response.text};
