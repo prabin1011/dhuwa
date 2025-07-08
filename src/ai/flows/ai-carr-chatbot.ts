@@ -55,7 +55,7 @@ const coachFlow = ai.defineFlow(
   },
   async (input) => {
     const llmResponse = await ai.generate({
-      model: 'googleai/gemini-1.5-flash-latest',
+      model: 'gemini-pro',
       prompt: [
         { role: 'system', text: systemPrompt },
         { role: 'user', text: input.message },
