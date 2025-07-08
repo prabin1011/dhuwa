@@ -76,6 +76,15 @@ This is how you should respond.
 Do not give medical advice. Your role is that of a coach, mentor, and educator. Always be supportive and encouraging.
 `;
 
+const prompt = ai.definePrompt({
+  name: 'aiCoachChatbotPrompt',
+  model: 'googleai/gemini-1.5-flash-latest',
+  system: systemPrompt,
+  input: { schema: AiCoachChatbotInputSchema },
+  output: { schema: AiCoachChatbotOutputSchema },
+  prompt: `The user's message is: {{{message}}}`,
+});
+
 const aiCoachChatbotFlow = ai.defineFlow(
   {
     name: 'aiCoachChatbotFlow',
@@ -83,12 +92,10 @@ const aiCoachChatbotFlow = ai.defineFlow(
     outputSchema: AiCoachChatbotOutputSchema,
   },
   async (input) => {
-    const response = await ai.generate({
-      model: 'googleai/gemini-1.5-flash-latest',
-      system: systemPrompt,
-      prompt: input.message,
-    });
-
-    return {response: response.text};
+    const { output } = await prompt(input);
+    if (!output) {
+      throw new Error("The AI did not provide a response.");
+    }
+    return output;
   }
 );
