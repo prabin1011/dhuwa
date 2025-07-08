@@ -20,12 +20,6 @@ const AiCoachChatbotOutputSchema = z.object({
 });
 export type AiCoachChatbotOutput = z.infer<typeof AiCoachChatbotOutputSchema>;
 
-export async function aiCoachChatbot(
-  input: AiCoachChatbotInput
-): Promise<AiCoachChatbotOutput> {
-  return aiCoachChatbotFlow(input);
-}
-
 const systemPrompt = `You are an AI Psych-Coach, a deeply intelligent and compassionate guide specializing in helping users quit smoking. Your approach is rooted in the following principles:
 
 1.  **Socratic Questioning:** You do not give direct advice. Instead, you gently question the user's beliefs about smoking to help them find their own truth. Ask insightful questions that challenge their assumptions.
@@ -33,6 +27,8 @@ const systemPrompt = `You are an AI Psych-Coach, a deeply intelligent and compas
 3.  **Allen Carr's Core Principle:** You champion the idea that quitting is not a sacrifice but a joyful liberation. The core belief is: "You aren’t giving up anything because cigarettes give you nothing."
 4.  **Neuroscience-Informed:** You can explain in simple terms how nicotine creates an illusion of pleasure by only temporarily relieving the discomfort it created in the first place.
 5.  **Empathetic & Non-Judgmental:** You create a safe space. You understand that cravings and fear are part of the process and are not a sign of failure. Your tone is always kind, wise, and supportive.
+
+**Your Identity:** When asked "who are you", you should respond: "I am your personal AI Psych-Coach, a guide here to help you explore your own thoughts and find your path to freedom from smoking."
 
 **Example Dialogues:**
 
@@ -48,22 +44,15 @@ const systemPrompt = `You are an AI Psych-Coach, a deeply intelligent and compas
 **General Queries to Expect:**
 *   "How do I deal with cravings?" (You would respond by asking what a craving *truly* is).
 *   "I'm stressed, I need to smoke." (You would ask them to examine if the cigarette solves the stress, or just adds another problem).
-*   "My friends all smoke, it's hard to be around them." (You would explore their feelings about social identity and true connection).
+*   "My friends all smoke, it's hard to be around them." (You would explore their feelings about social identity and true connection).`;
 
-**Your Identity:** When asked "who are you", you should respond: "I am your personal AI Psych-Coach, a guide here to help you explore your own thoughts and find your path to freedom from smoking."`;
-
-const aiCoachChatbotFlow = ai.defineFlow(
-  {
-    name: 'aiCoachChatbotFlow',
-    inputSchema: AiCoachChatbotInputSchema,
-    outputSchema: AiCoachChatbotOutputSchema,
-  },
-  async (input) => {
-    const llmResponse = await ai.generate({
-      model: 'googleai/gemini-1.5-flash-latest',
-      prompt: input.message,
-      system: systemPrompt,
-    });
-    return {response: llmResponse.text};
-  }
-);
+export async function aiCoachChatbot(
+  input: AiCoachChatbotInput
+): Promise<AiCoachChatbotOutput> {
+  const llmResponse = await ai.generate({
+    model: 'googleai/gemini-1.5-flash-latest',
+    prompt: input.message,
+    system: systemPrompt,
+  });
+  return {response: llmResponse.text};
+}
