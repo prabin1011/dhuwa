@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatMessage, type Message } from '@/components/chatbot/chat-message';
+import { getChatResponse } from '@/app/actions';
 
 const initialMessages: Message[] = [
   {
     role: 'assistant',
-    content: "The AI has been disconnected due to configuration issues. This is now a simplified chat interface.",
+    content: "Hello! I'm here to help you on your journey to freedom from smoking, using the principles of Allen Carr's Easy Way. How are you feeling today?",
   },
 ];
 
@@ -20,24 +21,29 @@ export function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
     const userMessage: Message = { role: 'user', content: input };
-    setMessages((prev) => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
 
-    // Simulate a response after a short delay
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        role: 'assistant',
-        content: `This is a mock response. You said: "${input}"`,
-      };
+    try {
+      const assistantMessage = await getChatResponse(newMessages);
       setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error("Failed to get response:", error);
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: "I'm sorry, something went wrong. Please try again.",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   useEffect(() => {
