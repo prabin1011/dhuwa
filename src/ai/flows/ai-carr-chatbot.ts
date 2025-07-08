@@ -72,18 +72,8 @@ const aiCoachChatbotFlow = ai.defineFlow(
       system: systemPrompt,
       prompt: input.message,
       history: history,
-      output: {
-        format: 'json',
-        schema: AiCoachChatbotOutputSchema,
-      },
     });
 
-    const output = response.output;
-
-    if (!output) {
-      return {response: response.text};
-    }
-
-    return output;
+    return {response: response.text};
   }
 );
