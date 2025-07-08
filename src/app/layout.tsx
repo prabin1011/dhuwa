@@ -1,12 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { MainNav } from '@/components/main-nav';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'The Easy Way Out',
-  description: "A companion app to help you quit smoking, based on Allen Carr's principles.",
+  title: 'AI Coach',
+  description: "An AI coach to help you on your journey.",
 };
 
 export default function RootLayout({
@@ -25,10 +23,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <SidebarProvider>
-          <MainNav />
-          <SidebarInset>{children}</SidebarInset>
-        </SidebarProvider>
+        {children}
         <Toaster />
       </body>
     </html>

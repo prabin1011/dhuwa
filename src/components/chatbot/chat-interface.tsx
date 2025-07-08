@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatMessage, type Message } from '@/components/chatbot/chat-message';
-import { aiCarrChatbot } from '@/ai/flows/ai-carr-chatbot';
+import { aiCoachChatbot } from '@/ai/flows/ai-carr-chatbot';
 
 const initialMessages: Message[] = [
   {
     role: 'assistant',
-    content: "Hello! I'm here to help you on your journey to becoming a happy non-smoker. What's on your mind right now?",
+    content: "I am your personal AI Psych-Coach. I'm here to help you understand the journey of quitting and empower you to succeed. What's on your mind?",
   },
 ];
 
@@ -32,7 +32,7 @@ export function ChatInterface() {
 
     try {
       const chatHistory = messages.map(m => ({ role: m.role, content: m.content as string }));
-      const response = await aiCarrChatbot({ message: input, history: chatHistory });
+      const response = await aiCoachChatbot({ message: input, history: chatHistory });
       const assistantMessage: Message = { role: 'assistant', content: response.response };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
