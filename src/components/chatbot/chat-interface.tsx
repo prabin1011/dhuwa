@@ -6,12 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatMessage, type Message } from '@/components/chatbot/chat-message';
-import { aiCoachChatbot } from '@/ai/flows/ai-carr-chatbot';
 
 const initialMessages: Message[] = [
   {
     role: 'assistant',
-    content: "I am your personal AI Psych-Coach. I'm here to help you understand the journey of quitting and empower you to succeed. What's on your mind?",
+    content: "The AI has been disconnected due to configuration issues. This is now a simplified chat interface.",
   },
 ];
 
@@ -21,7 +20,7 @@ export function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
@@ -30,20 +29,15 @@ export function ChatInterface() {
     setInput('');
     setIsLoading(true);
 
-    try {
-      const response = await aiCoachChatbot({ message: input });
-      const assistantMessage: Message = { role: 'assistant', content: response.response };
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error('Error with AI chatbot:', error);
-      const errorMessage: Message = {
+    // Simulate a response after a short delay
+    setTimeout(() => {
+      const assistantMessage: Message = {
         role: 'assistant',
-        content: "I'm having a little trouble connecting right now. Please try again in a moment.",
+        content: `This is a mock response. You said: "${input}"`,
       };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
+      setMessages((prev) => [...prev, assistantMessage]);
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   useEffect(() => {
@@ -71,7 +65,7 @@ export function ChatInterface() {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Tell me what you're feeling..."
+            placeholder="Send a message..."
             disabled={isLoading}
             autoComplete="off"
           />
