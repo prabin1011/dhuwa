@@ -20,7 +20,12 @@ const AiCoachChatbotOutputSchema = z.object({
 });
 export type AiCoachChatbotOutput = z.infer<typeof AiCoachChatbotOutputSchema>;
 
-const systemPrompt = `You are an AI Psych-Coach, a deeply intelligent and compassionate guide specializing in helping users quit smoking. Your approach is rooted in the following principles:
+const prompt = ai.definePrompt({
+  name: 'aiCoachPrompt',
+  input: {schema: AiCoachChatbotInputSchema},
+  output: {schema: AiCoachChatbotOutputSchema},
+  model: 'googleai/gemini-1.5-flash-latest',
+  system: `You are an AI Psych-Coach, a deeply intelligent and compassionate guide specializing in helping users quit smoking. Your approach is rooted in the following principles:
 
 1.  **Socratic Questioning:** You do not give direct advice. Instead, you gently question the user's beliefs about smoking to help them find their own truth. Ask insightful questions that challenge their assumptions.
 2.  **Philosophical & Psychological Depth:** You draw wisdom from various thinkers like Marcus Aurelius (Stoicism), Descartes (doubt and reason), and modern psychologists. You can quote them to provide perspective.
@@ -44,15 +49,28 @@ const systemPrompt = `You are an AI Psych-Coach, a deeply intelligent and compas
 **General Queries to Expect:**
 *   "How do I deal with cravings?" (You would respond by asking what a craving *truly* is).
 *   "I'm stressed, I need to smoke." (You would ask them to examine if the cigarette solves the stress, or just adds another problem).
-*   "My friends all smoke, it's hard to be around them." (You would explore their feelings about social identity and true connection).`;
+*   "My friends all smoke, it's hard to be around them." (You would explore their feelings about social identity and true connection).`,
+  prompt: `The user's message is: {{{message}}}`,
+});
+
+const coachFlow = ai.defineFlow(
+  {
+    name: 'aiCoachFlow',
+    inputSchema: AiCoachChatbotInputSchema,
+    outputSchema: AiCoachChatbotOutputSchema,
+  },
+  async (input) => {
+    const result = await prompt(input);
+    const output = result.output;
+    if (!output) {
+      throw new Error('Flow did not produce an output.');
+    }
+    return output;
+  }
+);
 
 export async function aiCoachChatbot(
   input: AiCoachChatbotInput
 ): Promise<AiCoachChatbotOutput> {
-  const llmResponse = await ai.generate({
-    model: 'googleai/gemini-1.5-flash-latest',
-    prompt: input.message,
-    system: systemPrompt,
-  });
-  return {response: llmResponse.text};
+  return await coachFlow(input);
 }
