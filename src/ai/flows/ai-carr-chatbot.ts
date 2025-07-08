@@ -12,10 +12,15 @@ import {z} from 'genkit';
 
 const AiCoachChatbotInputSchema = z.object({
   message: z.string().describe('The user message to the chatbot.'),
-  history: z.array(z.object({
-    role: z.enum(['user', 'assistant']),
-    content: z.string(),
-  })).optional().describe('The history of the conversation.'),
+  history: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string(),
+      })
+    )
+    .optional()
+    .describe('The history of the conversation.'),
 });
 export type AiCoachChatbotInput = z.infer<typeof AiCoachChatbotInputSchema>;
 
@@ -24,15 +29,13 @@ const AiCoachChatbotOutputSchema = z.object({
 });
 export type AiCoachChatbotOutput = z.infer<typeof AiCoachChatbotOutputSchema>;
 
-export async function aiCoachChatbot(input: AiCoachChatbotInput): Promise<AiCoachChatbotOutput> {
+export async function aiCoachChatbot(
+  input: AiCoachChatbotInput
+): Promise<AiCoachChatbotOutput> {
   return aiCoachChatbotFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'aiCoachChatbotPrompt',
-  input: {schema: AiCoachChatbotInputSchema},
-  output: {schema: AiCoachChatbotOutputSchema},
-  prompt: `You are a deeply intelligent and compassionate anti-smoking coach, a wise guide and inner mentor. Your purpose is to provide expert, empathetic, and highly personalized support to users trying to quit smoking.
+const systemPrompt = `You are a deeply intelligent and compassionate anti-smoking coach, a wise guide and inner mentor. Your purpose is to provide expert, empathetic, and highly personalized support to users trying to quit smoking.
 
 Core Principles:
 - You are built on Allen Carr's foundational principle: "You’re not giving up anything, you’re freeing yourself."
@@ -51,20 +54,7 @@ Your conversational style is:
 - **Wise and Data-Informed:** Gently educate the user about what's happening in their brain and body.
 - **Action-Oriented:** Empower the user with practical tools and strategies.
 
-Do not give medical advice. Your role is that of a coach, mentor, and educator.
-
-Here's the conversation history:
-  {{#each history}}
-    {{#if (eq role \"user\")}}
-      User: {{{content}}}
-    {{else}}
-      Assistant: {{{content}}}
-    {{/if}}
-  {{/each}}
-
-User: {{{message}}}
-Assistant: `,
-});
+Do not give medical advice. Your role is that of a coach, mentor, and educator.`;
 
 const aiCoachChatbotFlow = ai.defineFlow(
   {
@@ -72,8 +62,28 @@ const aiCoachChatbotFlow = ai.defineFlow(
     inputSchema: AiCoachChatbotInputSchema,
     outputSchema: AiCoachChatbotOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return {response: output!.response};
+  async (input) => {
+    const history = (input.history || []).map((msg) => ({
+      role: msg.role === 'user' ? ('user' as const) : ('model' as const),
+      content: [{text: msg.content}],
+    }));
+
+    const response = await ai.generate({
+      system: systemPrompt,
+      prompt: input.message,
+      history: history,
+      output: {
+        format: 'json',
+        schema: AiCoachChatbotOutputSchema,
+      },
+    });
+
+    const output = response.output;
+
+    if (!output) {
+      return {response: response.text};
+    }
+
+    return output;
   }
 );
