@@ -1,14 +1,25 @@
 'use client';
 
-import { useUser } from '@/firebase';
+import { useUser, useDoc, useMemoFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Dashboard } from '@/components/dashboard/dashboard';
+import { Onboarding } from '@/components/onboarding/onboarding';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useFirestore } from '@/firebase/provider';
+import { doc } from 'firebase/firestore';
 
 export default function App() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const firestore = useFirestore();
+
+  const userProfileRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return doc(firestore, `users/${user.uid}/profile/main`);
+  }, [firestore, user]);
+
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc(userProfileRef);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -16,7 +27,9 @@ export default function App() {
     }
   }, [user, isUserLoading, router]);
 
-  if (isUserLoading || !user) {
+  const isLoading = isUserLoading || (user && isProfileLoading);
+
+  if (isLoading) {
     return (
       <div className="flex flex-col h-screen w-screen bg-background p-4 md:p-8 lg:p-12 gap-8">
         <div className="w-full max-w-7xl mx-auto">
@@ -39,9 +52,20 @@ export default function App() {
     );
   }
 
-  return (
-    <div className="h-screen w-screen bg-background">
-      <Dashboard />
-    </div>
-  );
+  // If user is logged in but has not completed onboarding
+  if (user && !userProfile) {
+    return <Onboarding />;
+  }
+
+  // If user is logged in and has completed onboarding
+  if (user && userProfile) {
+    return (
+      <div className="h-screen w-screen bg-background">
+        <Dashboard userProfile={userProfile} />
+      </div>
+    );
+  }
+  
+  // Fallback, should ideally not be reached if logic is correct
+  return null;
 }

@@ -27,6 +27,7 @@ export default function LoginPage() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const { toast } = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,6 +44,14 @@ export default function LoginPage() {
   }
 
   const handleAuthAction = async (action: 'login' | 'signup') => {
+    if (!email || !password) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Information',
+        description: 'Please enter both email and password.',
+      });
+      return;
+    }
     setIsSubmitting(true);
     try {
       if (action === 'login') {
@@ -68,7 +77,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await signInAnonymously(auth);
-      toast({ title: 'Success', description: 'Signed in anonymously.' });
+      toast({ title: 'Welcome!', description: 'You can explore the app as a guest.' });
       router.push('/');
     } catch (error: any) {
       console.error(error);
@@ -91,6 +100,25 @@ export default function LoginPage() {
                 The Easy Way Out
             </h1>
         </div>
+        <Card className="w-full max-w-sm mb-4">
+            <CardHeader className="text-center">
+                <CardTitle>Try the App Anonymously</CardTitle>
+                <CardDescription>
+                Your progress will be saved on this device. You can create an account later.
+                </CardDescription>
+            </CardHeader>
+            <CardFooter>
+                 <Button
+                    className="w-full"
+                    onClick={handleAnonymousSignIn}
+                    disabled={isSubmitting}
+                    variant="secondary"
+                >
+                    {isSubmitting ? 'Signing in...' : 'Continue as a Guest'}
+                </Button>
+            </CardFooter>
+        </Card>
+
       <Tabs defaultValue="login" className="w-full max-w-sm">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Login</TabsTrigger>
@@ -143,7 +171,7 @@ export default function LoginPage() {
             <CardHeader>
               <CardTitle>Sign Up</CardTitle>
               <CardDescription>
-                Create an account to save your progress.
+                Create an account to save your progress across devices.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -181,17 +209,6 @@ export default function LoginPage() {
           </Card>
         </TabsContent>
       </Tabs>
-      <div className="mt-4 text-center text-sm text-muted-foreground">
-        Or
-      </div>
-      <Button
-        variant="link"
-        onClick={handleAnonymousSignIn}
-        disabled={isSubmitting}
-        className="mt-2"
-      >
-        Continue as a Guest
-      </Button>
     </div>
   );
 }

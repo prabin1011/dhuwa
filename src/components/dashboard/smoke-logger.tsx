@@ -8,7 +8,11 @@ import { useToast } from "@/hooks/use-toast";
 import { collection, serverTimestamp } from "firebase/firestore";
 import { Plus } from "lucide-react";
 
-export function SmokeLogger() {
+interface SmokeLoggerProps {
+    habitName: string;
+}
+
+export function SmokeLogger({ habitName }: SmokeLoggerProps) {
   const { firestore, user } = useFirebase();
   const { toast } = useToast();
 
@@ -42,10 +46,10 @@ export function SmokeLogger() {
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-center p-10">
         <Button size="lg" className="h-24 w-full text-xl" onClick={handleLogSmoke}>
-          <Plus className="w-8 h-8 mr-4" /> I Just Smoked
+          <Plus className="w-8 h-8 mr-4" /> I Just Smoked a {habitName}
         </Button>
         <p className="text-muted-foreground text-sm mt-4">
-          Tap here to log a cigarette. Be honest with yourself.
+          Tap here to log each time. Be honest with yourself.
         </p>
       </CardContent>
     </Card>
