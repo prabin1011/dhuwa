@@ -96,11 +96,11 @@ export default function LoginPage() {
     <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-4">
         <div className='flex items-center gap-4 mb-8'>
             <Cigarette className='w-12 h-12 text-primary'/>
-            <h1 className="text-5xl font-bold tracking-tighter font-heading">
+            <h1 className="text-5xl font-bold tracking-tighter">
                 The Easy Way Out
             </h1>
         </div>
-        <Card className="w-full max-w-sm mb-4">
+        <Card className="w-full max-w-sm mb-4 bg-card">
             <CardHeader className="text-center">
                 <CardTitle>Try the App Anonymously</CardTitle>
                 <CardDescription>
@@ -125,7 +125,7 @@ export default function LoginPage() {
           <TabsTrigger value="signup">Sign Up</TabsTrigger>
         </TabsList>
         <TabsContent value="login">
-          <Card>
+          <Card className="bg-card">
             <CardHeader>
               <CardTitle>Login</CardTitle>
               <CardDescription>
@@ -167,7 +167,7 @@ export default function LoginPage() {
           </Card>
         </TabsContent>
         <TabsContent value="signup">
-          <Card>
+          <Card className="bg-card">
             <CardHeader>
               <CardTitle>Sign Up</CardTitle>
               <CardDescription>

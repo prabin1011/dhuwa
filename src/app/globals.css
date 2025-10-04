@@ -6,48 +6,48 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%; /* white */
-    --foreground: 0 0% 3.9%; /* black */
-    --card: 0 0% 100%; /* white */
-    --card-foreground: 0 0% 3.9%; /* black */
-    --popover: 0 0% 100%; /* white */
-    --popover-foreground: 0 0% 3.9%; /* black */
-    --primary: 0 0% 9%; /* near black */
-    --primary-foreground: 0 0% 98%; /* light gray */
-    --secondary: 0 0% 96.1%; /* light gray */
-    --secondary-foreground: 0 0% 9%; /* near black */
-    --muted: 0 0% 96.1%; /* light gray */
-    --muted-foreground: 0 0% 45.1%; /* medium gray */
-    --accent: 0 0% 96.1%; /* light gray */
-    --accent-foreground: 0 0% 9%; /* near black */
-    --destructive: 0 84.2% 60.2%;
+    --background: 220 20% 7%; /* Dark background */
+    --foreground: 0 0% 98%; /* White text */
+    --card: 220 20% 12%; /* Slightly lighter card background */
+    --card-foreground: 0 0% 98%;
+    --popover: 220 20% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 140 70% 50%; /* Green accent */
+    --primary-foreground: 220 20% 7%; /* Dark text on green button */
+    --secondary: 220 20% 15%; /* Lighter gray for secondary elements */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 220 20% 15%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 140 70% 50%; /* Green accent */
+    --accent-foreground: 220 20% 7%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 140 70% 60%;
     --radius: 0.8rem;
   }
 
   .dark {
-    --background: 0 0% 3.9%; /* black */
-    --foreground: 0 0% 98%; /* white */
-    --card: 0 0% 3.9%; /* black */
-    --card-foreground: 0 0% 98%; /* white */
-    --popover: 0 0% 3.9%; /* black */
-    --popover-foreground: 0 0% 98%; /* white */
-    --primary: 0 0% 98%; /* light gray */
-    --primary-foreground: 0 0% 9%; /* near black */
-    --secondary: 0 0% 14.9%; /* dark gray */
-    --secondary-foreground: 0 0% 98%; /* light gray */
-    --muted: 0 0% 14.9%; /* dark gray */
-    --muted-foreground: 0 0% 63.9%; /* medium gray */
-    --accent: 0 0% 14.9%; /* dark gray */
-    --accent-foreground: 0 0% 98%; /* light gray */
+    --background: 220 20% 7%; /* Dark background */
+    --foreground: 0 0% 98%; /* White text */
+    --card: 220 20% 12%; /* Slightly lighter card background */
+    --card-foreground: 0 0% 98%;
+    --popover: 220 20% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 140 70% 50%; /* Green accent */
+    --primary-foreground: 220 20% 7%; /* Dark text on green button */
+    --secondary: 220 20% 15%; /* Lighter gray for secondary elements */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 220 20% 15%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 140 70% 50%; /* Green accent */
+    --accent-foreground: 220 20% 7%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 140 70% 60%;
   }
 }
 
@@ -60,6 +60,7 @@
     font-family: 'PT Sans', sans-serif;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Belleza', sans-serif;
+    font-family: 'PT Sans', sans-serif;
+    font-weight: 700;
   }
 }
