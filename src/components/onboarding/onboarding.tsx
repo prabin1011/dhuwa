@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useFirebase } from '@/firebase';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { doc } from 'firebase/firestore';
@@ -170,7 +170,7 @@ const STEPS: Step[] = [
       {value: '7-9', label: '7–9 hours'},
       {value: 'more-9', label: 'More than 9 hours'},
   ]},
-  { id: 22, title: 'Health & Awareness', field: 'stressFrequency', question: '22. How often do you feel stressed?', type: 'radio', options: [
+  { id: 22, title: 'Health & Awareness', field: 'stressFrequency', question: 'How often do you feel stressed?', type: 'radio', options: [
       {value: 'very-often', label: 'Very often'},
       {value: 'sometimes', label: 'Sometimes'},
       {value: 'rarely', label: 'Rarely'},
@@ -233,7 +233,7 @@ const QuestionRadioGroup = ({ value, onValueChange, items, name }: { value: stri
             <Label key={item.value} htmlFor={`${name}-${item.value}`} className={cn("flex items-center space-x-3 rounded-md border-2 border-secondary bg-secondary/50 p-4 cursor-pointer hover:border-primary transition-colors", value === item.value && 'border-primary ring-2 ring-primary bg-primary/10')}>
                 <RadioGroupItem value={item.value} id={`${name}-${item.value}`} />
                 <div>
-                    <p className="font-semibold text-lg">{item.label}</p>
+                    <p className="font-medium text-base">{item.label}</p>
                     {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
                 </div>
             </Label>
@@ -339,7 +339,7 @@ export function Onboarding() {
    
     toast({
       title: 'Profile Saved!',
-      description: "You're all set up. Let's get started!",
+      description: "You're all set. Let's get started!",
     });
     setIsSubmitting(false);
     // Force a reload to go to the dashboard - this is a temporary fix
@@ -381,7 +381,7 @@ export function Onboarding() {
        </header>
 
        <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold max-w-lg mb-12">
+            <h1 className="text-2xl md:text-3xl font-bold max-w-lg mb-10">
                 {currentStepConfig.question}
             </h1>
             <div className="w-full max-w-md">
@@ -390,9 +390,9 @@ export function Onboarding() {
                        {(currentStepConfig.options || []).map(habit => (
                             <Label key={habit.value} htmlFor={`habit-${habit.value}`} className={cn("flex flex-col items-center justify-center gap-2 rounded-md border-2 border-secondary bg-secondary/50 p-6 cursor-pointer hover:border-primary transition-colors", formData.habits.includes(habit.value) && 'border-primary ring-2 ring-primary bg-primary/10')}>
                                  <Checkbox id={`habit-${habit.value}`} checked={formData.habits.includes(habit.value)} onCheckedChange={() => handleHabitChange(habit.value)} className="sr-only" />
-                                 {habit.value === 'Cigarettes' && <Cigarette className="w-10 h-10" />}
-                                 {habit.value === 'Weed' && <Leaf className="w-10 h-10" />}
-                                 <span className="font-semibold text-xl">{habit.label}</span>
+                                 {habit.value === 'Cigarettes' && <Cigarette className="w-8 h-8" />}
+                                 {habit.value === 'Weed' && <Leaf className="w-8 h-8" />}
+                                 <span className="font-medium text-base">{habit.label}</span>
                             </Label>
                        ))}
                     </div>
@@ -410,7 +410,7 @@ export function Onboarding() {
                  )}
                  {currentStepConfig.type === 'number' && (
                      <div className='flex flex-col items-center gap-8'>
-                        <div className="text-5xl font-bold">
+                        <div className="text-4xl font-bold">
                             <span className="text-muted-foreground">$</span>
                             {formData[currentStepConfig.field] || '0'}
                             <span className="animate-pulse">|</span>
@@ -419,10 +419,10 @@ export function Onboarding() {
                      </div>
                  )}
                  {currentStepConfig.type === 'summary' && (
-                    <div className="space-y-6 text-left max-w-md mx-auto">
-                        <h3 className="text-2xl font-bold text-center">Your Baseline</h3>
-                        <p className="text-muted-foreground text-center">You're all set. Hit finish to jump into your personalized dashboard and begin.</p>
-                        <div className="bg-secondary/50 rounded-lg p-4 grid grid-cols-2 gap-x-6 gap-y-3 text-lg">
+                    <div className="space-y-4 text-left max-w-md mx-auto">
+                        <h3 className="text-xl font-bold text-center">Your Baseline</h3>
+                        <p className="text-muted-foreground text-center text-sm">You're all set. Hit finish to jump into your personalized dashboard and begin.</p>
+                        <div className="bg-secondary/50 rounded-lg p-4 grid grid-cols-2 gap-x-4 gap-y-2 text-base">
                             <p><strong>Habits:</strong> {getSummaryValue('habits')}</p>
                             <p><strong>Goal:</strong> <span className="capitalize">{getSummaryValue('goal')}</span></p>
                             <p><strong>Daily Avg:</strong> {getSummaryValue('itemsPerDay')}</p>
