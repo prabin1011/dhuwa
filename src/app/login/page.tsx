@@ -45,6 +45,7 @@ export default function LoginPage() {
   }
 
   const handleAuthAction = async (action: 'login' | 'signup') => {
+    if (!auth) return;
     if (!email || !password) {
       toast({
         variant: 'destructive',
@@ -75,6 +76,7 @@ export default function LoginPage() {
   };
 
   const handleAnonymousSignIn = async () => {
+    if (!auth) return;
     setIsSubmitting(true);
     try {
       await signInAnonymously(auth);
@@ -97,7 +99,7 @@ export default function LoginPage() {
       <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-8 text-center">
         <div className="flex-1 flex flex-col justify-center items-center">
             <WelcomeIllustration className="w-64 h-64" />
-            <h1 className="text-3xl font-bold mt-8">Welcome to The Easy Way Out</h1>
+            <h1 className="text-3xl font-bold mt-8 font-heading">Welcome to The Easy Way Out</h1>
         </div>
         <div className="w-full max-w-sm space-y-4">
             <Button size="lg" className="w-full h-14 text-lg" onClick={handleAnonymousSignIn} disabled={isSubmitting}>
