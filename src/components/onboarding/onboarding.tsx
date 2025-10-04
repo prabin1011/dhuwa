@@ -53,7 +53,7 @@ type OnboardingData = {
 
 // Constants
 const STEPS = [
-    { id: 1, title: 'The Habit', fields: ['habits', 'frequency', 'started'] },
+    { id: 1, title: 'The Habit', fields: ['habits', 'frequency'] },
     { id: 2, title: 'The Cost', fields: ['packCost', 'itemsPerPack', 'singleCost', 'itemsPerDay'] },
     { id: 3, title: 'Your Goal', fields: ['goal', 'motivation', 'confidence'] },
     { id: 4, title: 'Routine & Timing', fields: ['cravingTime', 'breakDuration', 'usualPlace', 'usualCompany'] },
@@ -352,5 +352,3 @@ export function Onboarding() {
     </div>
   );
 }
-
-    
