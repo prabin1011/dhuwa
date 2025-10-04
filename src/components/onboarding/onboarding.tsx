@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Check, Cigarette, GlassWater, Leaf } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Cigarette, Leaf } from 'lucide-react';
 import { Progress } from '../ui/progress';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { cn } from '@/lib/utils';
@@ -218,18 +218,17 @@ export function Onboarding() {
             {currentStep === 1 && (
                 <div className="space-y-4">
                     <Label>1. What do you currently use? (Select all that apply)</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                       {['Cigarettes', 'Weed', 'Alcohol'].map(habit => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                       {['Cigarettes', 'Weed'].map(habit => (
                             <Label key={habit} htmlFor={`habit-${habit}`} className={cn("flex flex-col items-center justify-center gap-2 rounded-md border p-4 cursor-pointer hover:bg-accent/50", formData.habits.includes(habit) && 'border-primary ring-2 ring-primary')}>
                                  <Checkbox id={`habit-${habit}`} checked={formData.habits.includes(habit)} onCheckedChange={() => handleHabitChange(habit)} className="sr-only" />
                                  {habit === 'Cigarettes' && <Cigarette className="w-8 h-8" />}
                                  {habit === 'Weed' && <Leaf className="w-8 h-8" />}
-                                 {habit === 'Alcohol' && <GlassWater className="w-8 h-8" />}
                                  <span className="font-semibold">{habit}</span>
                             </Label>
                        ))}
                     </div>
-                    <Label>2. How often do you smoke or drink?</Label>
+                    <Label>2. How often do you smoke?</Label>
                     <QuestionRadioGroup name="frequency" value={formData.frequency} onValueChange={(v) => handleChange('frequency', v)} items={[
                         {value: 'daily', label: 'Every day'},
                         {value: 'few-times-week', label: 'A few times a week'},
@@ -273,7 +272,7 @@ export function Onboarding() {
             )}
             {currentStep === 4 && (
                  <div className="space-y-4">
-                    <Label>8. When do you usually smoke or drink the most?</Label>
+                    <Label>8. When do you usually smoke the most?</Label>
                      <QuestionRadioGroup name="cravingTime" value={formData.cravingTime} onValueChange={(v) => handleChange('cravingTime', v)} items={[
                         {value: 'morning', label: 'Morning'},
                         {value: 'afternoon', label: 'Afternoon'},
@@ -284,7 +283,7 @@ export function Onboarding() {
             )}
             {currentStep === 5 && (
                  <div className="space-y-4">
-                    <Label>9. What do you usually feel before smoking or drinking?</Label>
+                    <Label>9. What do you usually feel before smoking?</Label>
                      <QuestionRadioGroup name="moodBefore" value={formData.moodBefore} onValueChange={(v) => handleChange('moodBefore', v)} items={[
                         {value: 'stressed', label: 'Stressed'},
                         {value: 'bored', label: 'Bored'},

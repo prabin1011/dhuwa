@@ -12,6 +12,7 @@ import type { Timestamp } from "firebase/firestore";
 interface Urge {
     timestamp: Timestamp;
     notes?: string;
+    type?: string;
 }
 
 interface UrgeHistoryProps {
@@ -75,11 +76,12 @@ export function UrgeHistory({ urges, isLoading }: UrgeHistoryProps) {
                                         {groupedUrges[dateStr].map((urge) => (
                                             <li key={urge.id} className="flex justify-between items-center px-4 py-2 rounded-md hover:bg-muted/50">
                                                 <span className="text-sm">
-                                                    Logged a cigarette
+                                                    Logged a {urge.type || 'cigarette'}
                                                 </span>
                                                 <span className="text-xs text-muted-foreground">
                                                     {format(urge.timestamp.toDate(), "h:mm a")}
                                                 </span>
+
                                             </li>
                                         ))}
                                     </ul>
@@ -89,7 +91,7 @@ export function UrgeHistory({ urges, isLoading }: UrgeHistoryProps) {
                         </div>
                     ) : (
                         <div className="flex h-full items-center justify-center">
-                            <p className="text-muted-foreground">No cigarettes logged yet. Keep it up!</p>
+                            <p className="text-muted-foreground">No smokes logged yet. Keep it up!</p>
                         </div>
                     )}
                 </ScrollArea>

@@ -31,7 +31,7 @@
           "items": {
             "type": "string"
           },
-          "description": "The habits the user wants to track (Cigarettes, Weed, Alcohol)."
+          "description": "The habits the user wants to track (Cigarettes, Weed)."
         },
         "frequency": {
           "type": "string",
@@ -75,7 +75,7 @@
         },
         "breakDuration": {
           "type": "string",
-          "description": "Typical duration of a smoke/drink break."
+          "description": "Typical duration of a smoke break."
         },
         "usualPlace": {
           "type": "string",
@@ -145,6 +145,10 @@
         "notes": {
           "type": "string",
           "description": "Optional user-provided notes about the context of the urge (e.g., location, trigger)."
+        },
+        "type": {
+            "type": "string",
+            "description": "The type of habit logged (e.g. Cigarette, Weed)"
         }
       },
       "required": [

@@ -13,7 +13,7 @@ import { useMemo } from "react";
 import type { WithId } from "@/firebase";
 
 interface UserProfile {
-    habitName?: string;
+    habits?: string[];
     packCost?: number;
     itemsPerPack?: number;
 }
@@ -43,7 +43,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
   }, [urges]);
 
 
-  const cigarettesToday = sortedUrges?.filter(urge => 
+  const smokesToday = sortedUrges?.filter(urge => 
     urge.timestamp && differenceInHours(new Date(), urge.timestamp.toDate()) < 24
   ).length ?? 0;
   
@@ -65,8 +65,6 @@ export function Dashboard({ userProfile }: DashboardProps) {
     await auth.signOut();
   }
   
-  const habitName = userProfile.habitName || 'Cigarettes';
-
   return (
     <main className="flex min-h-screen flex-col items-center p-4 md:p-8 lg:p-12 bg-background">
       <div className="w-full max-w-4xl">
@@ -84,11 +82,11 @@ export function Dashboard({ userProfile }: DashboardProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="col-span-1 md:col-span-2">
-             <SmokeLogger habitName={habitName}/>
+             <SmokeLogger habits={userProfile.habits || ['Cigarette']}/>
           </div>
           <StatCard 
-            title={`${habitName} Today`}
-            value={isLoading ? '...' : cigarettesToday.toString()}
+            title={`Smokes Today`}
+            value={isLoading ? '...' : smokesToday.toString()}
             icon={<Cigarette className="w-6 h-6 text-muted-foreground" />}
           />
           <StatCard 
