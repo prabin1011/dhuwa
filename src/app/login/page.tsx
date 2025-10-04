@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Cigarette } from 'lucide-react';
+import { WelcomeIllustration } from '@/components/illustrations/welcome';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -32,6 +32,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showFullLogin, setShowFullLogin] = useState(false);
 
   useEffect(() => {
     if (!isUserLoading && user) {
@@ -91,34 +92,31 @@ export default function LoginPage() {
     }
   };
 
+  if (!showFullLogin) {
+    return (
+      <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-8 text-center">
+        <div className="flex-1 flex flex-col justify-center items-center">
+            <WelcomeIllustration className="w-64 h-64" />
+            <h1 className="text-3xl font-bold mt-8">Welcome to The Easy Way Out</h1>
+        </div>
+        <div className="w-full max-w-sm space-y-4">
+            <Button size="lg" className="w-full h-14 text-lg" onClick={handleAnonymousSignIn} disabled={isSubmitting}>
+                {isSubmitting ? 'Starting...' : 'Start'}
+            </Button>
+            <Button size="lg" variant="outline" className="w-full h-14 text-lg" onClick={() => setShowFullLogin(true)} disabled={isSubmitting}>
+                Sign In
+            </Button>
+        </div>
+      </div>
+    )
+  }
+
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-4">
-        <div className='flex items-center gap-4 mb-8'>
-            <Cigarette className='w-12 h-12 text-primary'/>
-            <h1 className="text-5xl font-bold tracking-tighter">
-                The Easy Way Out
-            </h1>
-        </div>
-        <Card className="w-full max-w-sm mb-4 bg-card">
-            <CardHeader className="text-center">
-                <CardTitle>Try the App Anonymously</CardTitle>
-                <CardDescription>
-                Your progress will be saved on this device. You can create an account later.
-                </CardDescription>
-            </CardHeader>
-            <CardFooter>
-                 <Button
-                    className="w-full"
-                    onClick={handleAnonymousSignIn}
-                    disabled={isSubmitting}
-                    variant="secondary"
-                >
-                    {isSubmitting ? 'Signing in...' : 'Continue as a Guest'}
-                </Button>
-            </CardFooter>
-        </Card>
-
+      <h1 className="text-4xl font-bold tracking-tighter mb-8 font-heading">
+          The Easy Way Out
+      </h1>
       <Tabs defaultValue="login" className="w-full max-w-sm">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Login</TabsTrigger>
@@ -209,6 +207,9 @@ export default function LoginPage() {
           </Card>
         </TabsContent>
       </Tabs>
+       <Button variant="link" className="mt-4" onClick={() => setShowFullLogin(false)}>
+        Back to Welcome
+      </Button>
     </div>
   );
 }
