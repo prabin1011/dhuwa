@@ -3,7 +3,6 @@
 import { SmokeLogger } from "@/components/dashboard/smoke-logger";
 import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
-import { differenceInHours, differenceInMinutes, formatDistanceToNow } from 'date-fns';
 import { useUser } from "@/firebase/provider";
 import { Button } from "../ui/button";
 import { UrgeHistory } from "./urge-history";
@@ -47,7 +46,9 @@ export function Dashboard({ userProfile }: DashboardProps) {
   const lastUrgeTime = sortedUrges?.[0]?.timestamp?.toDate();
   
   const handleSignOut = async () => {
-    await auth.signOut();
+    if (auth) {
+      await auth.signOut();
+    }
   }
   
   if (isLoading) {
