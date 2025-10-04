@@ -26,13 +26,20 @@
       "type": "object",
       "description": "Stores user-specific settings and preferences for the app.",
       "properties": {
-        "habitName": {
-          "type": "string",
-          "description": "The name of the habit the user is tracking (e.g., 'Cigarette', 'Vape')."
+        "habits": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The habits the user wants to track (Cigarettes, Weed, Alcohol)."
         },
-        "itemsPerDay": {
-          "type": "number",
-          "description": "The average number of items consumed per day (e.g., 10 cigarettes)."
+        "frequency": {
+          "type": "string",
+          "description": "How often the user partakes in the habit."
+        },
+        "started": {
+          "type": "string",
+          "description": "When the user started the habit."
         },
         "packCost": {
           "type": "number",
@@ -40,25 +47,90 @@
         },
         "itemsPerPack": {
           "type": "number",
-          "description": "The number of items in a single pack (e.g., 20 cigarettes)."
+          "description": "The number of items in a single pack."
+        },
+        "singleCost": {
+          "type": "number",
+          "description": "The cost of a single item if bought individually."
+        },
+        "itemsPerDay": {
+          "type": "string",
+          "description": "The average number of items consumed per day."
         },
         "goal": {
           "type": "string",
-          "description": "The user's primary goal.",
-          "enum": [
-            "quit",
-            "reduce",
-            "track"
-          ]
+          "description": "The user's primary goal (e.g., 'quit', 'reduce')."
+        },
+        "motivation": {
+          "type": "string",
+          "description": "The user's primary motivation."
+        },
+        "confidence": {
+          "type": "string",
+          "description": "The user's confidence in achieving their goal."
+        },
+        "cravingTime": {
+          "type": "string",
+          "description": "When the user's cravings are strongest."
+        },
+        "breakDuration": {
+          "type": "string",
+          "description": "Typical duration of a smoke/drink break."
+        },
+        "usualPlace": {
+          "type": "string",
+          "description": "Where the user usually engages in the habit."
+        },
+        "usualCompany": {
+          "type": "string",
+          "description": "Who the user is usually with."
+        },
+        "moodBefore": {
+          "type": "string",
+          "description": "Typical mood before the habit."
+        },
+        "mainTrigger": {
+          "type": "string",
+          "description": "The biggest reason for the habit."
+        },
+        "moodAfter": {
+          "type": "string",
+          "description": "Typical mood after the habit."
+        },
+        "cravingStrength": {
+          "type": "string",
+          "description": "The usual strength of cravings."
+        },
+        "healthEffects": {
+          "type": "string",
+          "description": "Any noticed health effects."
+        },
+        "exerciseFrequency": {
+          "type": "string",
+          "description": "How often the user exercises."
+        },
+        "sleepDuration": {
+          "type": "string",
+          "description": "Average nightly sleep duration."
+        },
+        "stressFrequency": {
+          "type": "string",
+          "description": "How often the user feels stressed."
+        },
+        "checkInTime": {
+          "type": "string",
+          "description": "Preferred time for check-ins."
+        },
+        "preferredTone": {
+          "type": "string",
+          "description": "Preferred AI support tone."
+        },
+        "reminders": {
+          "type": "string",
+          "description": "User's preference for motivational reminders."
         }
       },
-      "required": [
-        "habitName",
-        "itemsPerDay",
-        "packCost",
-        "itemsPerPack",
-        "goal"
-      ]
+      "required": []
     },
     "UrgeEntry": {
       "title": "UrgeEntry",
