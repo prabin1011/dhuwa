@@ -15,6 +15,7 @@ import type { WithId } from "@/firebase";
 interface UserProfile {
     habitName?: string;
     packCost?: number;
+    itemsPerPack?: number;
 }
 
 interface DashboardProps {

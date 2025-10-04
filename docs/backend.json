@@ -33,9 +33,13 @@
             "packCost": {
                 "type": "number",
                 "description": "The cost of a single pack of the item they are tracking."
+            },
+            "itemsPerPack": {
+                "type": "number",
+                "description": "The number of items in a single pack (e.g., 20 cigarettes)."
             }
         },
-        "required": ["habitName", "packCost"]
+        "required": ["habitName", "packCost", "itemsPerPack"]
     },
     "UrgeEntry": {
       "title": "UrgeEntry",

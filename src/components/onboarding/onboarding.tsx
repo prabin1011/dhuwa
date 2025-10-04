@@ -24,10 +24,13 @@ export function Onboarding() {
 
   const [habitName, setHabitName] = useState('Cigarette');
   const [packCost, setPackCost] = useState('');
+  const [itemsPerPack, setItemsPerPack] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCompleteOnboarding = async () => {
     const cost = parseFloat(packCost);
+    const items = parseInt(itemsPerPack, 10);
+
     if (!habitName.trim()) {
       toast({
         variant: 'destructive',
@@ -44,6 +47,14 @@ export function Onboarding() {
       });
       return;
     }
+     if (isNaN(items) || items <= 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid Amount',
+        description: 'Please enter a valid number for items per pack.',
+      });
+      return;
+    }
 
     if (!user || !firestore) {
       toast({
@@ -56,18 +67,16 @@ export function Onboarding() {
 
     setIsSubmitting(true);
     
-    // We use a fixed ID 'main' to treat this as a singleton document.
     const profileRef = doc(firestore, `users/${user.uid}/profile/main`);
 
     try {
-      // Using non-blocking set. The UI will update on the next render cycle via the main App component.
-       setDocumentNonBlocking(profileRef, { habitName, packCost: cost }, { merge: true });
+       setDocumentNonBlocking(profileRef, { habitName, packCost: cost, itemsPerPack: items }, { merge: true });
        
        toast({
         title: 'Profile Saved!',
         description: "You're all set up. Let's get started!",
       });
-      // No router.push needed, the parent component will handle the re-render
+
     } catch (error: any) {
         console.error("Onboarding error:", error);
         toast({
@@ -92,7 +101,7 @@ export function Onboarding() {
         <CardHeader>
           <CardTitle>Let's Get Started</CardTitle>
           <CardDescription>
-            Just a couple of questions to personalize your experience.
+            Just a few questions to personalize your experience.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -114,6 +123,17 @@ export function Onboarding() {
               placeholder="e.g., 15.50"
               value={packCost}
               onChange={(e) => setPackCost(e.target.value)}
+              disabled={isSubmitting}
+            />
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="itemsPerPack">How many items are in a pack?</Label>
+            <Input
+              id="itemsPerPack"
+              type="number"
+              placeholder="e.g., 20"
+              value={itemsPerPack}
+              onChange={(e) => setItemsPerPack(e.target.value)}
               disabled={isSubmitting}
             />
           </div>
