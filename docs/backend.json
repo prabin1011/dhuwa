@@ -30,6 +30,10 @@
                 "type": "string",
                 "description": "The name of the habit the user is tracking (e.g., 'Cigarette', 'Vape')."
             },
+            "itemsPerDay": {
+                "type": "number",
+                "description": "The average number of items consumed per day (e.g., 10 cigarettes)."
+            },
             "packCost": {
                 "type": "number",
                 "description": "The cost of a single pack of the item they are tracking."
@@ -37,9 +41,14 @@
             "itemsPerPack": {
                 "type": "number",
                 "description": "The number of items in a single pack (e.g., 20 cigarettes)."
+            },
+            "goal": {
+                "type": "string",
+                "description": "The user's primary goal.",
+                "enum": ["quit", "reduce", "track"]
             }
         },
-        "required": ["habitName", "packCost", "itemsPerPack"]
+        "required": ["habitName", "itemsPerDay", "packCost", "itemsPerPack", "goal"]
     },
     "UrgeEntry": {
       "title": "UrgeEntry",
