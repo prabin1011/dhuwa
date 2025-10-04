@@ -57,7 +57,10 @@ export function ChatInterface() {
 
 
   return (
-    <div className="relative flex h-full flex-col">
+    <div className="relative flex h-full flex-col rounded-lg border bg-card text-card-foreground shadow-sm">
+      <div className="p-6 font-semibold border-b">
+        AI Carr Chatbot
+      </div>
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="space-y-6 p-4 md:p-6">
           {messages.map((message, index) => (

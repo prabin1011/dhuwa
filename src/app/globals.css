@@ -1,42 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Belleza&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 93%;
+    --background: 0 0% 93%; /* #EDEDED */
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 164 46% 64%;
-    --primary-foreground: 164 50% 15%;
+    --primary: 163 46% 64%; /* #74D1BC */
+    --primary-foreground: 163 50% 15%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 15 68% 62%;
+    --accent: 15 68% 62%; /* #E07A5F */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 164 46% 64%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --ring: 163 46% 64%;
     --radius: 0.8rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 164 46% 64%;
-    --sidebar-primary-foreground: 164 50% 15%;
-    --sidebar-accent: 210 40% 96.1%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 164 46% 64%;
   }
 
   .dark {
@@ -46,8 +35,8 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 164 46% 64%;
-    --primary-foreground: 164 50% 15%;
+    --primary: 163 46% 64%;
+    --primary-foreground: 163 50% 15%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
@@ -58,20 +47,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 164 46% 64%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 164 46% 64%;
-    --sidebar-primary-foreground: 164 50% 15%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 164 46% 64%;
+    --ring: 163 46% 64%;
   }
 }
 
@@ -81,5 +57,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'PT Sans', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Belleza', sans-serif;
   }
 }

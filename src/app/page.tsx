@@ -1,9 +1,9 @@
-import { ChatInterface } from "@/components/chatbot/chat-interface";
+import { Dashboard } from "@/components/dashboard/dashboard";
 
 export default function App() {
   return (
     <div className="h-screen w-screen bg-background">
-      <ChatInterface />
+      <Dashboard />
     </div>
   );
 }
