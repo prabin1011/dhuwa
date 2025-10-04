@@ -1,0 +1,147 @@
+/**
+ * @fileoverview Firestore Security Rules for the 'Easy Way Out' application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for all user-specific data
+ * and allows public read access to inspirational content.
+ *
+ * Data Structure:
+ * - User accounts and associated data (smoking habits, urge entries, chat messages,
+ *   and daily tasks) are nested under the `/users/{userId}` collection path.
+ * - Inspirational content is stored in the top-level `/inspirationalContent` collection.
+ *
+ * Key Security Decisions:
+ * - User data is strictly controlled by the authenticated user.
+ * - Inspirational content is publicly readable but only writeable by an admin (currently not implemented, TODO).
+ * - Listing of user documents `/users` and subcollections is restricted to the owner.
+ *
+ * Denormalization for Authorization:
+ *  - Not required in this case, as path-based ownership `/users/{userId}/*` provides authorization independence.
+ *
+ * Structural Segregation:
+ *  - Public data (inspirational content) and private data (user-specific information) are stored
+ *    in separate top-level collections to simplify access control and improve query performance.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Checks if the request is made by a signed-in user.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the authenticated user ID matches the provided user ID.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the authenticated user is the owner of the existing document.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Rules for the /users/{userId} collection.
+     * @path /users/{userId}
+     * @allow (create) - An authenticated user can create their own user document if the userId matches their auth UID.
+     * @allow (get, update, delete) - An authenticated user can only access their own user document.
+     * @deny (create) - An unauthenticated user cannot create a user document.
+     * @deny (update, delete) - An authenticated user cannot modify another user's document.
+     * @principle Enforces document ownership for all operations.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // No listing of user documents.
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for the /users/{userId}/smokingHabits/{smokingHabitId} collection.
+     * @path /users/{userId}/smokingHabits/{smokingHabitId}
+     * @allow (create) - An authenticated user can create a smoking habit entry under their user document.
+     * @allow (get, list, update, delete) - An authenticated user can only access smoking habit entries under their user document.
+     * @deny (create) - An unauthenticated user cannot create a smoking habit entry.
+     * @deny (update, delete) - An authenticated user cannot modify another user's smoking habit entry.
+     * @principle Enforces document ownership for all operations.
+     */
+    match /users/{userId}/smokingHabits/{smokingHabitId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for the /users/{userId}/urgeEntries/{urgeEntryId} collection.
+     * @path /users/{userId}/urgeEntries/{urgeEntryId}
+     * @allow (create) - An authenticated user can create an urge entry under their user document.
+     * @allow (get, list, update, delete) - An authenticated user can only access urge entries under their user document.
+     * @deny (create) - An unauthenticated user cannot create an urge entry.
+     * @deny (update, delete) - An authenticated user cannot modify another user's urge entry.
+     * @principle Enforces document ownership for all operations.
+     */
+    match /users/{userId}/urgeEntries/{urgeEntryId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for the /users/{userId}/chatMessages/{chatMessageId} collection.
+     * @path /users/{userId}/chatMessages/{chatMessageId}
+     * @allow (create) - An authenticated user can create a chat message under their user document.
+     * @allow (get, list, update, delete) - An authenticated user can only access chat messages under their user document.
+     * @deny (create) - An unauthenticated user cannot create a chat message.
+     * @deny (update, delete) - An authenticated user cannot modify another user's chat message.
+     * @principle Enforces document ownership for all operations.
+     */
+    match /users/{userId}/chatMessages/{chatMessageId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for the /users/{userId}/dailyTasks/{dailyTaskId} collection.
+     * @path /users/{userId}/dailyTasks/{dailyTaskId}
+     * @allow (create) - An authenticated user can create a daily task under their user document.
+     * @allow (get, list, update, delete) - An authenticated user can only access daily tasks under their user document.
+     * @deny (create) - An unauthenticated user cannot create a daily task.
+     * @deny (update, delete) - An authenticated user cannot modify another user's daily task.
+     * @principle Enforces document ownership for all operations.
+     */
+    match /users/{userId}/dailyTasks/{dailyTaskId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for the /inspirationalContent/{inspirationalContentId} collection.
+     * @path /inspirationalContent/{inspirationalContentId}
+     * @allow (get, list) - All users can read inspirational content.
+     * @deny (create, update, delete) - Only admins can create, update, or delete inspirational content.
+     * @principle Allows public read access but restricts write access to authorized users (admins).
+     */
+    match /inspirationalContent/{inspirationalContentId} {
+      allow get, list: if true;
+      allow create, update, delete: if false; // TODO: Add admin role check once roles are defined.
+    }
+  }
+}
