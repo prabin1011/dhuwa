@@ -122,24 +122,15 @@ export function Onboarding() {
     
     const profileRef = doc(firestore, `users/${user.uid}/profile/main`);
 
-    try {
-       setDocumentNonBlocking(profileRef, profileData, { merge: true });
-       
-       toast({
-        title: 'Profile Saved!',
-        description: "You're all set up. Let's get started!",
-      });
+    setDocumentNonBlocking(profileRef, profileData, { merge: true });
+   
+    toast({
+      title: 'Profile Saved!',
+      description: "You're all set up. Let's get started!",
+    });
       // The main page will automatically show the dashboard now
-    } catch (error: any) {
-        console.error("Onboarding error:", error);
-        toast({
-            variant: "destructive",
-            title: "Something went wrong",
-            description: "Could not save your profile. Please try again."
-        })
-    } finally {
-        setIsSubmitting(false);
-    }
+    setIsSubmitting(false);
+
   };
 
   const progress = (currentStep / STEPS.length) * 100;
@@ -248,3 +239,5 @@ export function Onboarding() {
     </div>
   );
 }
+
+    
