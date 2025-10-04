@@ -7,7 +7,7 @@ import { differenceInHours, differenceInMinutes, formatDistanceToNow } from 'dat
 import { useUser } from "@/firebase/provider";
 import { Button } from "../ui/button";
 import { UrgeHistory } from "./urge-history";
-import { useMemo }_ from "react";
+import { useMemo } from "react";
 import type { WithId } from "@/firebase";
 import { RealTimeTimer } from "./real-time-timer";
 import { SavingsStats } from "./savings-stats";
