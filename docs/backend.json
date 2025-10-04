@@ -1,217 +1,43 @@
 {
   "entities": {
     "UserAccount": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserAccount",
       "type": "object",
       "description": "Stores user account information, excluding authentication credentials.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the user account."
-        },
         "email": {
           "type": "string",
           "description": "User's email address.",
           "format": "email"
         },
-        "registrationDate": {
+        "createdAt": {
           "type": "string",
-          "description": "Date and time when the user registered.",
+          "description": "Date and time when the user account was created.",
           "format": "date-time"
         }
       },
       "required": [
-        "id",
         "email",
-        "registrationDate"
-      ]
-    },
-    "SmokingHabit": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "SmokingHabit",
-      "type": "object",
-      "description": "Stores information about the user's smoking habits before and during the quitting process.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the smoking habit entry."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to UserAccount. (Relationship: UserAccount 1:N SmokingHabit)"
-        },
-        "cigarettesPerDay": {
-          "type": "number",
-          "description": "Number of cigarettes smoked per day."
-        },
-        "costPerPack": {
-          "type": "number",
-          "description": "Cost of one pack of cigarettes."
-        },
-        "currency": {
-          "type": "string",
-          "description": "Currency used for the cost per pack (e.g., USD, EUR)."
-        },
-        "startDate": {
-          "type": "string",
-          "description": "Date when the user started tracking their smoking habits.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "cigarettesPerDay",
-        "costPerPack",
-        "currency",
-        "startDate"
+        "createdAt"
       ]
     },
     "UrgeEntry": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UrgeEntry",
       "type": "object",
-      "description": "Stores individual entries of smoking urges experienced by the user.",
+      "description": "Represents a single instance of the user logging a smoking urge.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the urge entry."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to UserAccount. (Relationship: UserAccount 1:N UrgeEntry)"
-        },
         "timestamp": {
           "type": "string",
-          "description": "Date and time when the urge was experienced.",
+          "description": "The exact date and time the urge was logged.",
           "format": "date-time"
-        },
-        "location": {
-          "type": "string",
-          "description": "Location where the urge was experienced."
-        },
-        "trigger": {
-          "type": "string",
-          "description": "Description of the trigger that caused the urge."
-        },
-        "intensity": {
-          "type": "number",
-          "description": "Intensity of the urge on a scale (e.g., 1-10)."
         },
         "notes": {
           "type": "string",
-          "description": "Additional notes about the urge."
+          "description": "Optional user-provided notes about the context of the urge (e.g., location, trigger)."
         }
       },
       "required": [
-        "id",
-        "userId",
-        "timestamp",
-        "intensity"
-      ]
-    },
-    "ChatMessage": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ChatMessage",
-      "type": "object",
-      "description": "Stores individual chat messages exchanged between the user and the AI Carr chatbot.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the chat message."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to UserAccount. (Relationship: UserAccount 1:N ChatMessage)"
-        },
-        "timestamp": {
-          "type": "string",
-          "description": "Date and time when the message was sent.",
-          "format": "date-time"
-        },
-        "sender": {
-          "type": "string",
-          "description": "Indicates who sent the message ('user' or 'chatbot')."
-        },
-        "text": {
-          "type": "string",
-          "description": "Content of the chat message."
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "timestamp",
-        "sender",
-        "text"
-      ]
-    },
-    "DailyTask": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "DailyTask",
-      "type": "object",
-      "description": "Stores daily tasks assigned to the user.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the daily task."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to UserAccount. (Relationship: UserAccount 1:N DailyTask)"
-        },
-        "taskText": {
-          "type": "string",
-          "description": "Text of the daily task (e.g., an insight from Allen Carr's book)."
-        },
-        "dueDate": {
-          "type": "string",
-          "description": "Date when the task is due.",
-          "format": "date-time"
-        },
-        "isCompleted": {
-          "type": "boolean",
-          "description": "Indicates whether the task has been completed."
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "taskText",
-        "dueDate",
-        "isCompleted"
-      ]
-    },
-    "InspirationalContent": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "InspirationalContent",
-      "type": "object",
-      "description": "Stores inspirational content for the user.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the content."
-        },
-        "contentType": {
-          "type": "string",
-          "description": "The type of content, example: Motivational Quote, Success Story, Excerpt."
-        },
-        "content": {
-          "type": "string",
-          "description": "The content of the message."
-        },
-        "publishDate": {
-          "type": "string",
-          "description": "Date when the content was published.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "contentType",
-        "content",
-        "publishDate"
+        "timestamp"
       ]
     }
   },
@@ -222,120 +48,17 @@
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "UserAccount",
-          "schema": {
-            "$ref": "#/backend/entities/UserAccount"
-          },
-          "description": "Stores user account information. Top-level collection limited to user-specific data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            }
-          ]
-        }
+    "'/users/{userId}'": {
+      "schema": {
+        "$ref": "#/entities/UserAccount"
       },
-      {
-        "path": "/users/{userId}/smokingHabits/{smokingHabitId}",
-        "definition": {
-          "entityName": "SmokingHabit",
-          "schema": {
-            "$ref": "#/backend/entities/SmokingHabit"
-          },
-          "description": "Stores smoking habit information for a specific user.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "smokingHabitId",
-              "description": "The unique identifier for the smoking habit entry."
-            }
-          ]
-        }
+      "description": "Stores public profile information for each user."
+    },
+    "'/users/{userId}/urges/{urgeId}'": {
+      "schema": {
+        "$ref": "#/entities/UrgeEntry"
       },
-      {
-        "path": "/users/{userId}/urgeEntries/{urgeEntryId}",
-        "definition": {
-          "entityName": "UrgeEntry",
-          "schema": {
-            "$ref": "#/backend/entities/UrgeEntry"
-          },
-          "description": "Stores urge entries for a specific user.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "urgeEntryId",
-              "description": "The unique identifier for the urge entry."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/chatMessages/{chatMessageId}",
-        "definition": {
-          "entityName": "ChatMessage",
-          "schema": {
-            "$ref": "#/backend/entities/ChatMessage"
-          },
-          "description": "Stores chat messages for a specific user.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "chatMessageId",
-              "description": "The unique identifier for the chat message."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/dailyTasks/{dailyTaskId}",
-        "definition": {
-          "entityName": "DailyTask",
-          "schema": {
-            "$ref": "#/backend/entities/DailyTask"
-          },
-          "description": "Stores daily tasks for a specific user.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "dailyTaskId",
-              "description": "The unique identifier for the daily task."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/inspirationalContent/{inspirationalContentId}",
-        "definition": {
-          "entityName": "InspirationalContent",
-          "schema": {
-            "$ref": "#/backend/entities/InspirationalContent"
-          },
-          "description": "Stores inspirational content accessible to all users.",
-          "params": [
-            {
-              "name": "inspirationalContentId",
-              "description": "The unique identifier for the inspirational content."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "This Firestore structure prioritizes authorization independence and efficient data retrieval for the 'Easy Way Out' application. User-specific data (smoking habits, urge entries, chat messages, and daily tasks) are stored under user-specific paths, ensuring only the authenticated user can access their data. Inspirational content is stored in a separate collection with public read access.  Denormalization isn't strictly required here as path-based ownership `/users/{userId}/*` provides authorization independence. This approach eliminates the need for `get()` calls in security rules and supports atomic operations. The structure supports the QAPs by segregating user data and inspirational content, enabling secure list operations for each."
+      "description": "A collection of all smoking urges logged by a specific user."
+    }
   }
 }

@@ -2,12 +2,37 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useFirebase } from "@/firebase";
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { useToast } from "@/hooks/use-toast";
+import { collection, serverTimestamp } from "firebase/firestore";
 import { Plus } from "lucide-react";
 
 export function SmokeLogger() {
+  const { firestore, user } = useFirebase();
+  const { toast } = useToast();
+
   const handleLogSmoke = () => {
-    // We will add firebase logic here later
-    console.log("Logged a smoke at", new Date());
+    if (!user || !firestore) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "You must be logged in to track your habits.",
+      });
+      return;
+    }
+    
+    const urgesCollection = collection(firestore, 'users', user.uid, 'urges');
+    
+    addDocumentNonBlocking(urgesCollection, {
+      timestamp: serverTimestamp(),
+      notes: "" 
+    });
+
+    toast({
+      title: "Logged!",
+      description: "A moment of awareness has been recorded.",
+    });
   };
 
   return (
