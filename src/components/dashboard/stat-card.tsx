@@ -3,11 +3,12 @@ import type { ReactNode } from "react";
 
 interface StatCardProps {
   title: string;
-  value: string;
-  icon: ReactNode;
+  value: string | number;
+  description?: string;
+  icon?: ReactNode;
 }
 
-export function StatCard({ title, value, icon }: StatCardProps) {
+export function StatCard({ title, value, description, icon }: StatCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -15,7 +16,8 @@ export function StatCard({ title, value, icon }: StatCardProps) {
         {icon}
       </CardHeader>
       <CardContent>
-        <div className="text-4xl font-bold">{value}</div>
+        <div className="text-2xl font-bold">{value}</div>
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </CardContent>
     </Card>
   );

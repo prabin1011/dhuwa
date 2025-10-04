@@ -1,12 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFirebase } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
 import { collection, serverTimestamp } from "firebase/firestore";
-import { Plus } from "lucide-react";
+import { Cigarette, Leaf, Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -50,15 +49,13 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
     });
   };
 
+  const Icon = selectedHabit === 'Weed' ? Leaf : Cigarette;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Track Your Habits</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center justify-center p-10 gap-4">
-        {habits.length > 1 && (
+    <div className="flex items-center gap-2">
+       {habits.length > 1 && (
             <Select value={selectedHabit} onValueChange={setSelectedHabit}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-auto flex-shrink-0">
                 <SelectValue placeholder="Select habit" />
               </SelectTrigger>
               <SelectContent>
@@ -68,13 +65,10 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
               </SelectContent>
             </Select>
         )}
-        <Button size="lg" className="h-24 w-full text-xl" onClick={handleLogSmoke}>
-          <Plus className="w-8 h-8 mr-4" /> I Just Smoked
+        <Button size="lg" className="w-full" onClick={handleLogSmoke}>
+            <Icon className="w-5 h-5 mr-2" />
+            Tap to add a cigarette
         </Button>
-        <p className="text-muted-foreground text-sm mt-2">
-          Tap here to log each time. Be honest with yourself.
-        </p>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
