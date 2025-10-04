@@ -53,8 +53,8 @@ type OnboardingData = {
 
 // Constants
 const STEPS = [
-    { id: 1, title: 'The Habit', fields: ['habits', 'frequency'] },
-    { id: 2, title: 'The Cost', fields: ['packCost', 'itemsPerPack', 'singleCost', 'itemsPerDay'] },
+    { id: 1, title: 'The Habit', fields: ['habits', 'frequency', 'started'] },
+    { id: 2, title: 'The Cost', fields: ['packCost', 'itemsPerPack', 'itemsPerDay'], optionalFields: ['singleCost'] },
     { id: 3, title: 'Your Goal', fields: ['goal', 'motivation', 'confidence'] },
     { id: 4, title: 'Routine & Timing', fields: ['cravingTime', 'breakDuration', 'usualPlace', 'usualCompany'] },
     { id: 5, title: 'Moods & Triggers', fields: ['moodBefore', 'mainTrigger', 'moodAfter', 'cravingStrength'] },
@@ -126,8 +126,10 @@ export function Onboarding() {
   }
 
   const validateStep = () => {
-    const currentFields = STEPS.find(s => s.id === currentStep)?.fields as (keyof OnboardingData)[] | undefined;
-    if (!currentFields) return true;
+    const stepConfig = STEPS.find(s => s.id === currentStep);
+    if (!stepConfig || !stepConfig.fields) return true;
+
+    const currentFields = stepConfig.fields as (keyof OnboardingData)[];
 
     for (const field of currentFields) {
         const value = formData[field];
