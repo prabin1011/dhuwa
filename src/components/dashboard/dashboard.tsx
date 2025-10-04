@@ -9,6 +9,7 @@ import { Cigarette, Timer } from "lucide-react";
 import { differenceInHours, differenceInMinutes, formatDistanceToNow } from 'date-fns';
 import { useUser } from "@/firebase/provider";
 import { Button } from "../ui/button";
+import { UrgeHistory } from "./urge-history";
 
 export function Dashboard() {
   const { firestore, auth } = useFirebase();
@@ -16,24 +17,36 @@ export function Dashboard() {
 
   const urgesQuery = useMemoFirebase(() => {
     if (!user) return null;
+    // Order by timestamp in descending order to get the latest one first
     return collection(firestore, 'users', user.uid, 'urges');
   }, [firestore, user]);
 
+  // Pass the query to useCollection. Note: The data will be unsorted here unless you add an orderBy to the query.
+  // For simplicity, we will sort on the client side.
   const { data: urges, isLoading } = useCollection(urgesQuery);
 
-  const cigarettesToday = urges?.filter(urge => 
+  // Sort urges client-side to ensure correct order for calculations
+  const sortedUrges = useMemo(() => {
+    if (!urges) return [];
+    return [...urges].sort((a, b) => b.timestamp.toDate().getTime() - a.timestamp.toDate().getTime());
+  }, [urges]);
+
+
+  const cigarettesToday = sortedUrges?.filter(urge => 
     urge.timestamp && differenceInHours(new Date(), urge.timestamp.toDate()) < 24
   ).length ?? 0;
   
-  const lastUrgeTime = urges?.[urges.length - 1]?.timestamp?.toDate();
+  const lastUrgeTime = sortedUrges?.[0]?.timestamp?.toDate();
   
   let timeSinceLast = "N/A";
   if (lastUrgeTime) {
     const minutes = differenceInMinutes(new Date(), lastUrgeTime);
-    if (minutes < 60) {
-      timeSinceLast = `${minutes}m`;
+    if (minutes < 1) {
+      timeSinceLast = "Just now";
+    } else if (minutes < 60) {
+      timeSinceLast = `${minutes}m ago`;
     } else {
-      timeSinceLast = formatDistanceToNow(lastUrgeTime, { addSuffix: false });
+      timeSinceLast = formatDistanceToNow(lastUrgeTime, { addSuffix: true });
     }
   }
 
@@ -42,7 +55,7 @@ export function Dashboard() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-4 md:p-8 lg:p-12">
+    <main className="flex min-h-screen flex-col items-center p-4 md:p-8 lg:p-12 bg-background">
       <div className="w-full max-w-7xl">
         <header className="mb-8 flex justify-between items-center">
           <div>
@@ -71,9 +84,10 @@ export function Dashboard() {
                 icon={<Timer className="w-6 h-6 text-muted-foreground" />}
               />
             </div>
+            <UrgeHistory urges={sortedUrges} isLoading={isLoading} />
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 h-full">
              <ChatInterface />
           </div>
         </div>
