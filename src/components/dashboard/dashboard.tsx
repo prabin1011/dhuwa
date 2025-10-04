@@ -10,6 +10,7 @@ import { differenceInHours, differenceInMinutes, formatDistanceToNow } from 'dat
 import { useUser } from "@/firebase/provider";
 import { Button } from "../ui/button";
 import { UrgeHistory } from "./urge-history";
+import { useMemo } from "react";
 
 export function Dashboard() {
   const { firestore, auth } = useFirebase();
