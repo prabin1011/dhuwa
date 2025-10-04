@@ -29,7 +29,10 @@ export function Dashboard() {
   // Sort urges client-side to ensure correct order for calculations
   const sortedUrges = useMemo(() => {
     if (!urges) return [];
-    return [...urges].sort((a, b) => b.timestamp.toDate().getTime() - a.timestamp.toDate().getTime());
+    // Filter out urges without a timestamp before sorting
+    return urges
+      .filter(urge => urge.timestamp) 
+      .sort((a, b) => b.timestamp.toDate().getTime() - a.timestamp.toDate().getTime());
   }, [urges]);
 
 

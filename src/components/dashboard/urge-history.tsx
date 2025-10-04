@@ -34,11 +34,14 @@ export function UrgeHistory({ urges, isLoading }: UrgeHistoryProps) {
 
     const groupedUrges = useMemo(() => {
         return urges.reduce((acc, urge) => {
-            const dateStr = format(urge.timestamp.toDate(), "yyyy-MM-dd");
-            if (!acc[dateStr]) {
-                acc[dateStr] = [];
+            // Defensively check if timestamp exists before processing
+            if (urge.timestamp) {
+                const dateStr = format(urge.timestamp.toDate(), "yyyy-MM-dd");
+                if (!acc[dateStr]) {
+                    acc[dateStr] = [];
+                }
+                acc[dateStr].push(urge);
             }
-            acc[dateStr].push(urge);
             return acc;
         }, {} as GroupedUrges);
     }, [urges]);
