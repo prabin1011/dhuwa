@@ -1,31 +1,34 @@
 /**
- * @fileoverview Firestore Security Rules for Quit Tracker App
+ * @file Firebase Security Rules for SmokeLess Prototyping.
  *
- * Core Philosophy: This ruleset enforces a strict user-ownership model. Each user has a dedicated data tree under `/users/{userId}` which only they can access.
+ * @core_philosophy This ruleset enforces a strict user-ownership model. Each user can only access their own data.
+ * All write operations are restricted to authenticated users. The rules prioritize security and data privacy,
+ * but avoid complex data validation to facilitate rapid prototyping.
  *
- * Data Structure:
- * - `/users/{userId}`: User account information. Only the user can read or write their own account data.
- * - `/users/{userId}/profile/main`: User profile settings.  Only the user can read or write their own profile.
- * - `/users/{userId}/urges/{urgeId}`: Collection of user-logged urges. Only the user can read, create, update, or delete urges they own.
+ * @data_structure The data is organized under the `/users/{userId}` path. Each user has a profile document
+ * and a collection of urge entries.
  *
- * Key Security Decisions:
- * - Users can only access their own data.
- * - Listing of all users is disallowed.
- *
- * Denormalization for Authorization:  The rules rely on the `request.auth.uid` matching the `userId` in the path to establish ownership.
+ * @key_security_decisions
+ * - Users can only list their own urges.
+ * - Users can only read and write their own profile.
+ * - No administrative roles are defined. All users are treated equally.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to the user account document.
-     * @path /users/{userId}
-     * @allow (create) User with matching ID can create their account.
-     * @allow (get, update, delete) User with matching ID can get, update, and delete their account.
-     * @deny (create) User cannot create an account with a mismatched ID.
-     * @deny (get, update, delete) User cannot get, update, or delete another user's account.
-     * @principle Enforces document ownership for all operations.
+     * @description Grants access to user documents.
+     * @path /databases/{database}/documents/users/{userId}
+     * @allow (create) Authenticated user can create their own user document.
+     * @deny (create) Authenticated user cannot create another user's document.
+     * @allow (get) Authenticated user can read their own user document.
+     * @deny (get) Authenticated user cannot read another user's document.
+     * @allow (update) Authenticated user can update their own user document.
+     * @deny (update) Authenticated user cannot update another user's document.
+     * @allow (delete) Authenticated user can delete their own user document.
+     * @deny (delete) Authenticated user cannot delete another user's document.
+     * @principle Enforces document ownership for all operations on user documents.
      */
     match /users/{userId} {
       function isSignedIn() {
@@ -44,11 +47,17 @@ service cloud.firestore {
     }
 
     /**
-     * @description Controls access to the user's profile document.
-     * @path /users/{userId}/profile/main
-     * @allow (get, create, update, delete) User with matching ID can access their profile.
-     * @deny (get, create, update, delete) User cannot access another user's profile.
-     * @principle Restricts access to a user's own data tree.
+     * @description Grants access to user profile documents.
+     * @path /databases/{database}/documents/users/{userId}/profile/main
+     * @allow (create) Authenticated user can create their own profile.
+     * @deny (create) Authenticated user cannot create another user's profile.
+     * @allow (get) Authenticated user can read their own profile.
+     * @deny (get) Authenticated user cannot read another user's profile.
+     * @allow (update) Authenticated user can update their own profile.
+     * @deny (update) Authenticated user cannot update another user's profile.
+     * @allow (delete) Authenticated user can delete their own profile.
+     * @deny (delete) Authenticated user cannot delete another user's profile.
+     * @principle Enforces document ownership for all operations on user profile documents.
      */
     match /users/{userId}/profile/main {
       function isSignedIn() {
@@ -67,11 +76,17 @@ service cloud.firestore {
     }
 
     /**
-     * @description Controls access to the user's urge entries.
-     * @path /users/{userId}/urges/{urgeId}
-     * @allow (get, list, create, update, delete) User with matching ID can manage their own urges.
-     * @deny (get, list, create, update, delete) User cannot manage another user's urges.
-     * @principle Restricts access to a user's own data tree.
+     * @description Grants access to user urges collection.
+     * @path /databases/{database}/documents/users/{userId}/urges/{urgeId}
+     * @allow (create) Authenticated user can create urges in their own collection.
+     * @deny (create) Authenticated user cannot create urges in another user's collection.
+     * @allow (get) Authenticated user can read urges from their own collection.
+     * @deny (get) Authenticated user cannot read urges from another user's collection.
+     * @allow (update) Authenticated user can update urges from their own collection.
+     * @deny (update) Authenticated user cannot update urges from another user's collection.
+     * @allow (delete) Authenticated user can delete urges from their own collection.
+     * @deny (delete) Authenticated user cannot delete urges from another user's collection.
+     * @principle Enforces document ownership for all operations on user urges collection.
      */
     match /users/{userId}/urges/{urgeId} {
       function isSignedIn() {
@@ -83,7 +98,7 @@ service cloud.firestore {
       }
 
       allow get: if isSignedIn() && isOwner(userId);
-      allow list: if false;
+      allow list: if isOwner(userId);
       allow create: if isSignedIn() && isOwner(userId);
       allow update: if isSignedIn() && isOwner(userId);
       allow delete: if isSignedIn() && isOwner(userId);
