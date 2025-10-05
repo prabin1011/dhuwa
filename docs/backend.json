@@ -1,5 +1,4 @@
 {
-  "schemaVersion": "2025-10-05-01",
   "entities": {
     "UserAccount": {
       "title": "UserAccount",
@@ -212,7 +211,7 @@
         "schema": {
             "$ref": "#/entities/SmokingMoment"
         },
-        "description": "A collection of user-defined smoking moments/plans. (v2)"
+        "description": "A collection of user-defined smoking moments/plans."
     }
   }
 }
