@@ -9,6 +9,8 @@ import type { WithId } from '@/firebase';
 import { differenceInHours, formatDistanceToNowStrict, subHours } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
+import { alanCarrQuotes } from '@/lib/quotes';
+import { Button } from '../ui/button';
 
 interface UserProfile {
     goal?: string;
@@ -29,76 +31,73 @@ interface DailyInsightProps {
 
 export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightProps) {
     const [insight, setInsight] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Set a random quote on initial load
+    useEffect(() => {
+        const randomQuote = alanCarrQuotes[Math.floor(Math.random() * alanCarrQuotes.length)];
+        setInsight(randomQuote);
+    }, []);
 
     const timeSinceLastUrge = lastUrgeTime ? formatDistanceToNowStrict(lastUrgeTime) : 'a long time';
 
-    useEffect(() => {
-        const generateInsight = async () => {
-            setIsLoading(true);
-            try {
-                // Filter urges for the last 48 hours
-                const twoDaysAgo = subHours(new Date(), 48);
-                const recentUrges = urges
-                    .filter(urge => urge.timestamp && (urge.timestamp as unknown as Date) > twoDaysAgo)
-                    .map(urge => ({
-                        id: urge.id,
-                        timestamp: (urge.timestamp as unknown as Date).toISOString(), // Correctly convert Date to ISO string
-                        mood: urge.mood
-                    }));
-                
-                const input: DailyInsightInput = {
-                    userProfile: {
-                        goal: userProfile.goal || 'not set',
-                        motivation: userProfile.motivation || 'not set',
-                        preferredTone: userProfile.preferredTone || 'friendly',
-                    },
-                    recentUrges,
-                    timeSinceLastUrge,
-                };
-                
-                const result = await getDailyInsight(input);
-                setInsight(result);
-            } catch (error) {
-                console.error("Failed to get daily insight:", error);
-                setInsight("Keep focused on your goal. You can do this!"); // Fallback message
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    const handleAnalyze = async () => {
+        setIsLoading(true);
+        try {
+            // Filter urges for the last 48 hours
+            const twoDaysAgo = subHours(new Date(), 48);
+            const recentUrges = urges
+                .filter(urge => urge.timestamp && (urge.timestamp as unknown as Date) > twoDaysAgo)
+                .map(urge => ({
+                    id: urge.id,
+                    timestamp: (urge.timestamp as unknown as Date).toISOString(), // Correctly convert Date to ISO string
+                    mood: urge.mood
+                }));
+            
+            const input: DailyInsightInput = {
+                userProfile: {
+                    goal: userProfile.goal || 'not set',
+                    motivation: userProfile.motivation || 'not set',
+                    preferredTone: userProfile.preferredTone || 'friendly',
+                },
+                recentUrges,
+                timeSinceLastUrge,
+            };
+            
+            const result = await getDailyInsight(input);
+            setInsight(result);
+        } catch (error) {
+            console.error("Failed to get daily insight:", error);
+            setInsight("Couldn't analyze your day, but remember: you can do this!"); // Fallback message
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-        generateInsight();
-        
-    }, [urges, userProfile, timeSinceLastUrge]); // urges is a stable dependency, but its content changes
-
-
-    if (isLoading) {
-        return (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-primary" />
-                        AI Daily Insight
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2">
-                   <Skeleton className="h-4 w-full" />
-                   <Skeleton className="h-4 w-3/4" />
-                </CardContent>
-            </Card>
-        )
-    }
 
     return (
         <Card className="bg-primary/10 border-primary/40">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-primary">
-                    <Sparkles className="w-5 h-5" />
-                    Daily Insight
+                <CardTitle className="flex items-center justify-between text-primary">
+                    <div className="flex items-center gap-2">
+                        <Sparkles className="w-5 h-5" />
+                        Daily Insight
+                    </div>
+                    <Button size="sm" variant="ghost" className="text-primary hover:bg-primary/20 hover:text-primary" onClick={handleAnalyze} disabled={isLoading}>
+                        <Sparkles className="w-4 h-4 mr-2"/>
+                        Analyze My Day
+                    </Button>
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-sm text-primary-foreground/90">{insight}</p>
+                {isLoading ? (
+                    <div className="flex flex-col gap-2">
+                        <Skeleton className="h-4 w-full bg-primary/20" />
+                        <Skeleton className="h-4 w-3/4 bg-primary/20" />
+                    </div>
+                ) : (
+                     <p className="text-sm text-primary-foreground/90 italic">"{insight}"</p>
+                )}
             </CardContent>
         </Card>
     );
