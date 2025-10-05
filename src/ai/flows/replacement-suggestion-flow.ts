@@ -8,17 +8,12 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
-// Define Zod schemas for input and output
-export const ReplacementSuggestionInputSchema = z.object({
+// Define Zod schemas for input and output. These are NOT exported.
+const ReplacementSuggestionInputSchema = z.object({
   habit: z.string().describe('The habit the user is trying to replace, e.g., "smoking".'),
   breakDuration: z.string().describe('The typical duration of the break, e.g., "5-10 minutes".'),
 });
 export type ReplacementSuggestionInput = z.infer<typeof ReplacementSuggestionInputSchema>;
-
-// Main exported function
-export async function getReplacementSuggestion(input: ReplacementSuggestionInput): Promise<string> {
-  return replacementSuggestionFlow(input);
-}
 
 // Genkit Prompt
 const suggestionPrompt = ai.definePrompt(
@@ -53,3 +48,8 @@ const replacementSuggestionFlow = ai.defineFlow(
     return llmResponse.text;
   }
 );
+
+// This is the only function exported from the file.
+export async function getReplacementSuggestion(input: ReplacementSuggestionInput): Promise<string> {
+  return replacementSuggestionFlow(input);
+}
