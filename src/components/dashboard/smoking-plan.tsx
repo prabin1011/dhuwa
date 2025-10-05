@@ -1,37 +1,40 @@
-
 'use client';
 
 import { useMemo, useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
-import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { useFirebase } from "@/firebase";
+import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import type { WithId } from "@/firebase";
-import { addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Clock, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "../ui/skeleton";
 
 interface SmokingMoment {
+    id: string;
     time: string;
     label: string;
 }
 
-export function SmokingPlan() {
+interface UserProfile {
+    moments?: SmokingMoment[];
+}
+
+interface SmokingPlanProps {
+    userProfile: WithId<UserProfile>;
+}
+
+export function SmokingPlan({ userProfile }: SmokingPlanProps) {
     const { firestore, user } = useFirebase();
     const { toast } = useToast();
 
     const [newMomentTime, setNewMomentTime] = useState('');
     const [newMomentLabel, setNewMomentLabel] = useState('');
 
-    const momentsQuery = useMemoFirebase(() => {
-        if (!user || !firestore) return null;
-        const momentsCollection = collection(firestore, 'users', user.uid, 'moments');
-        return query(momentsCollection, orderBy('time'));
-    }, [firestore, user]);
-
-    const { data: moments, isLoading } = useCollection<SmokingMoment>(momentsQuery);
+    const sortedMoments = useMemo(() => {
+        if (!userProfile.moments) return [];
+        return [...userProfile.moments].sort((a, b) => a.time.localeCompare(b.time));
+    }, [userProfile.moments]);
 
     const handleAddMoment = async () => {
         if (!newMomentTime || !newMomentLabel) {
@@ -44,13 +47,16 @@ export function SmokingPlan() {
         }
         if (!user || !firestore) return;
 
-        const momentsCollection = collection(firestore, 'users', user.uid, 'moments');
-        
+        const profileRef = doc(firestore, 'users', user.uid, 'profile', 'main');
+        const newMoment: SmokingMoment = {
+            id: crypto.randomUUID(),
+            time: newMomentTime,
+            label: newMomentLabel,
+        };
+
         try {
-            await addDocumentNonBlocking(momentsCollection, {
-                time: newMomentTime,
-                label: newMomentLabel,
-                createdAt: serverTimestamp(),
+            await updateDoc(profileRef, {
+                moments: arrayUnion(newMoment)
             });
             toast({
                 title: "Moment Added!",
@@ -67,12 +73,13 @@ export function SmokingPlan() {
         }
     };
 
-    const handleDeleteMoment = async (momentId: string) => {
+    const handleDeleteMoment = async (momentToDelete: SmokingMoment) => {
         if (!user || !firestore) return;
-        const momentRef = collection(firestore, 'users', user.uid, 'moments');
-        const docRef = doc(momentRef, momentId);
+        const profileRef = doc(firestore, 'users', user.uid, 'profile', 'main');
         try {
-            await deleteDocumentNonBlocking(docRef);
+            await updateDoc(profileRef, {
+                moments: arrayRemove(momentToDelete)
+            });
             toast({
                 title: "Moment Removed",
                 description: "The moment has been removed from your plan.",
@@ -95,13 +102,8 @@ export function SmokingPlan() {
             <CardContent>
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        {isLoading ? (
-                            <>
-                                <Skeleton className="h-10 w-full" />
-                                <Skeleton className="h-10 w-full" />
-                            </>
-                        ) : moments && moments.length > 0 ? (
-                            moments.map((moment: WithId<SmokingMoment>) => (
+                        {sortedMoments.length > 0 ? (
+                            sortedMoments.map((moment) => (
                                 <div key={moment.id} className="flex items-center justify-between bg-secondary/30 p-2 rounded-md">
                                     <div className="flex items-center gap-2">
                                         <Clock className="w-4 h-4 text-muted-foreground" />
@@ -109,7 +111,7 @@ export function SmokingPlan() {
                                         <span className="text-sm text-muted-foreground">-</span>
                                         <span className="text-sm">{moment.label}</span>
                                     </div>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteMoment(moment.id)}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteMoment(moment)}>
                                         <Trash2 className="w-4 h-4" />
                                     </Button>
                                 </div>

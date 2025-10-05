@@ -125,6 +125,13 @@
         "reminders": {
           "type": "string",
           "description": "User's preference for motivational reminders."
+        },
+        "moments": {
+          "type": "array",
+          "description": "User-defined smoking moments/plans.",
+          "items": {
+            "$ref": "#/entities/SmokingMoment"
+          }
         }
       },
       "required": ["createdAt"]
@@ -157,6 +164,10 @@
       "type": "object",
       "description": "A user-defined time and label for a recurring smoking habit.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "A unique identifier for the moment."
+        },
         "time": {
           "type": "string",
           "description": "The time of the planned smoke, in HH:mm format (e.g., '09:00')."
@@ -164,14 +175,9 @@
         "label": {
           "type": "string",
           "description": "A short description for the moment (e.g., 'Morning coffee')."
-        },
-        "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The timestamp when the moment was created. This is used to ensure old moments can be cleaned up."
         }
       },
-      "required": ["time", "label", "createdAt"]
+      "required": ["id", "time", "label"]
     }
   },
   "auth": {
@@ -198,12 +204,6 @@
         "$ref": "#/entities/UrgeEntry"
       },
       "description": "A collection of all smoking urges logged by a specific user."
-    },
-    "'/users/{userId}/moments/{momentId}'": {
-        "schema": {
-            "$ref": "#/entities/SmokingMoment"
-        },
-        "description": "A collection of user-defined smoking moments/plans. (v2)"
     }
   }
 }
