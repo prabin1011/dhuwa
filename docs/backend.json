@@ -1,25 +1,17 @@
 {
   "entities": {
-    "UserAccount": {
-      "title": "UserAccount",
+    "AnonymousUserProfile": {
+      "title": "AnonymousUserProfile",
       "type": "object",
-      "description": "Stores user account information, excluding authentication credentials.",
+      "description": "Stores user-specific settings and preferences for an anonymous user.",
       "properties": {
-        "email": {
-          "type": "string",
-          "description": "User's email address.",
-          "format": "email"
-        },
         "createdAt": {
           "type": "string",
-          "description": "Date and time when the user account was created.",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "The timestamp when the profile was created."
         }
       },
-      "required": [
-        "email",
-        "createdAt"
-      ]
+      "required": ["createdAt"]
     },
     "UserProfile": {
       "title": "UserProfile",
@@ -191,7 +183,7 @@
   "firestore": {
     "'/users/{userId}'": {
       "schema": {
-        "$ref": "#/entities/UserAccount"
+        "$ref": "#/entities/AnonymousUserProfile"
       },
       "description": "Stores public profile information for each user."
     },
@@ -211,7 +203,7 @@
         "schema": {
             "$ref": "#/entities/SmokingMoment"
         },
-        "description": "A collection of user-defined smoking moments/plans."
+        "description": "A collection of user-defined smoking moments/plans. (v2)"
     }
   }
 }
