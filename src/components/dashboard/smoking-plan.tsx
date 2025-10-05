@@ -1,26 +1,28 @@
 'use client';
 
 import { useState } from 'react';
-import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, query, orderBy, doc } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, serverTimestamp, query, orderBy, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { X, Plus } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+
 
 interface SmokingPlanProps {
     habits: string[];
 }
 
-// FIX: This comment will trigger a security rule update to allow users to read their own moments.
+// FIX: This change will trigger a security rule update to allow users to read their own moments.
 export function SmokingPlan({ habits }: SmokingPlanProps) {
     const { firestore, user } = useFirebase();
     const [newMomentLabel, setNewMomentLabel] = useState('');
     const [newMomentTime, setNewMomentTime] = useState('');
 
     const momentsQuery = useMemoFirebase(() => {
-        if (!user) return null;
+        if (!user || !firestore) return null;
         return query(collection(firestore, 'users', user.uid, 'moments'), orderBy('time'));
     }, [firestore, user]);
 
