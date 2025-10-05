@@ -20,6 +20,7 @@ import { Card, CardContent } from "../ui/card";
 import { subDays } from "date-fns";
 import { MoodReport } from "./mood-report";
 import { DailyHabitChart } from "./daily-habit-chart";
+import { DailyInsight } from "./daily-insight";
 
 interface UserProfile {
     habits?: string[];
@@ -27,6 +28,9 @@ interface UserProfile {
     itemsPerPack?: number;
     itemsPerDay?: string;
     moments?: any[];
+    goal?: string;
+    motivation?: string;
+    preferredTone?: string;
 }
 
 interface DashboardProps {
@@ -105,6 +109,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                 </header>
 
                 <div className="space-y-6">
+                    <DailyInsight userProfile={userProfile} urges={sortedUrges} lastUrgeTime={lastUrgeTime}/>
                     <RealTimeTimer lastUrgeTime={lastUrgeTime} />
                     
                     <Card>

@@ -8,7 +8,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
-// Define Zod schemas for input and output. These are NOT exported.
+// Define Zod schema for input. This is NOT exported.
 const ReplacementSuggestionInputSchema = z.object({
   habit: z.string().describe('The habit the user is trying to replace, e.g., "smoking".'),
   breakDuration: z.string().describe('The typical duration of the break, e.g., "5-10 minutes".'),
