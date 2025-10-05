@@ -7,3 +7,11 @@ export const firebaseConfig = {
   "messagingSenderId": "856277572255",
   "vapidKey": "YOUR_VAPID_KEY"
 };
+
+// This function is for the service worker and should only include serializable config.
+export function getFirebaseConfig() {
+  if (!firebaseConfig.apiKey) {
+    throw new Error('Missing Firebase API Key');
+  }
+  return firebaseConfig;
+}

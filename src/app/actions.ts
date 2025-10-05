@@ -3,13 +3,18 @@
 import * as admin from 'firebase-admin';
 
 // Initialize Firebase Admin SDK if not already initialized
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
+function initializeAdmin() {
+    if (admin.apps.length === 0) {
+        admin.initializeApp({
+            credential: admin.credential.applicationDefault(),
+        });
+    }
 }
 
+
 export async function sendTestNotification(uid: string) {
+  initializeAdmin();
+
   if (!uid) {
     throw new Error('User ID is required to send a notification.');
   }

@@ -5,6 +5,26 @@ import { getMessaging, getToken } from 'firebase/messaging';
 import { useFirebase } from '@/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
+// This function now just registers the static service worker
+async function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            // The path is now relative to the root of the site.
+            const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+                scope: '/' 
+            });
+            console.log('Service Worker registration successful with scope: ', registration.scope);
+            return registration;
+        } catch (err) {
+            console.error('Service Worker registration failed: ', err);
+            return null;
+        }
+    }
+    console.warn('Service workers are not supported in this browser.');
+    return null;
+}
+
+
 export const useNotifications = () => {
   const { firebaseApp, firestore, user } = useFirebase();
 
@@ -16,7 +36,7 @@ export const useNotifications = () => {
 
     if (!firebaseApp || !firestore || !user) return;
 
-    const requestPermission = async () => {
+    const requestPermissionAndToken = async () => {
       try {
         const messaging = getMessaging(firebaseApp);
         const permission = await Notification.requestPermission();
@@ -46,7 +66,12 @@ export const useNotifications = () => {
       }
     };
 
-    requestPermission();
+    // Register SW and then get token
+    registerServiceWorker().then(registration => {
+      if (registration) {
+        requestPermissionAndToken();
+      }
+    });
 
   }, [firebaseApp, firestore, user]);
 };

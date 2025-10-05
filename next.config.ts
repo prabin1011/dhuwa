@@ -18,6 +18,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/firebase-messaging-sw.js',
+        destination: '/_next/static/firebase-messaging-sw.js',
+      },
+    ]
+  },
 };
 
 export default nextConfig;

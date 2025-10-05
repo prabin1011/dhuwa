@@ -1,19 +1,46 @@
-// This file needs to be in the public folder.
-// It's a service worker that will handle background notifications.
+// public/firebase-messaging-sw.js
 
-// In a real app, you would import and initialize Firebase here.
-// For now, this is a placeholder.
+// Give the service worker access to Firebase Messaging.
+// Note that you can only use Firebase Messaging here, other Firebase libraries
+// are not available in the service worker.
+importScripts('https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/11.9.1/firebase-messaging-compat.js');
 
-self.addEventListener('push', function(event) {
-  console.log('[Service Worker] Push Received.');
-  console.log(`[Service Worker] Push had this data: "${event.data.text()}"`);
+// This function needs to be defined within the service worker scope.
+// It returns a minimal config object required for messaging.
+function getFirebaseConfig() {
+  // This value is public and used to identify your app's Firebase project.
+  return {
+    messagingSenderId: "856277572255", // Replace with your actual sender ID if different
+  };
+}
 
-  const title = 'AI Coach';
-  const options = {
-    body: event.data.text(),
-    icon: '/icon.png',
-    badge: '/badge.png'
+// Initialize the Firebase app in the service worker by passing in
+// the messagingSenderId.
+const firebaseConfig = getFirebaseConfig();
+
+// It's important to check if the app is already initialized
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+} else {
+  firebase.app(); // if already initialized, use that one
+}
+
+
+// Retrieve an instance of Firebase Messaging so that it can handle background
+// messages.
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage(function(payload) {
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  
+  // Customize notification here
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    // You can add an icon here, make sure the file exists in your public folder
+    // icon: '/logo.png' 
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });
