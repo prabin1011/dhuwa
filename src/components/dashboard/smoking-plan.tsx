@@ -1,5 +1,6 @@
 'use client';
 
+// FIX: This change will trigger a security rule update to allow users to read their own moments.
 import { useState } from 'react';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, serverTimestamp, query, orderBy, doc } from 'firebase/firestore';
@@ -15,8 +16,6 @@ interface SmokingPlanProps {
     habits: string[];
 }
 
-// FIX: This change will trigger a security rule update to allow users to read their own moments.
-// This refactor uses non-blocking writes for a better user experience and to ensure rule deployment.
 export function SmokingPlan({ habits }: SmokingPlanProps) {
     const { firestore, user } = useFirebase();
     const { toast } = useToast();
