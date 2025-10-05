@@ -38,7 +38,7 @@ interface DailyInsightProps {
     lastUrgeTime?: Date;
 }
 
-export function DailyInsight({ userProfile, urges }: DailyInsightProps) {
+export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightProps) {
     const [insight, setInsight] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
