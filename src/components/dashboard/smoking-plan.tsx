@@ -68,15 +68,15 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
             throw e; // re-throw to handle in calling function
         }
     }
-
+    
     const handleMomentStatusUpdate = async (momentId: string, smoked: boolean) => {
         const updatedMoments = userProfile.moments?.map(m => {
             if (m.id === momentId) {
                 const newCompleted = { ...(m.completed || {}), [todayStr]: smoked };
-                // If smoked, remove any replacement activity for today
                 const newReplacement = { ...(m.replacementActivity || {}) };
-                if(smoked) delete newReplacement[todayStr];
-
+                if (smoked) {
+                    delete newReplacement[todayStr]; // Remove replacement if they smoked
+                }
                 return { ...m, completed: newCompleted, replacementActivity: newReplacement };
             }
             return m;
@@ -84,22 +84,35 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
 
         try {
             await updateMoments(updatedMoments);
-            if (smoked) {
-                toast({ title: "Moment Logged", description: "You've logged a smoke." });
-            } else {
-                toast({ title: "Great job!", description: "You've marked a moment as skipped!" });
-                handleGenerateSuggestion(momentId);
+            toast({
+                title: smoked ? "Moment Logged" : "Status updated",
+                description: smoked ? "You've logged a smoke." : "You've undone the smoke log.",
+            });
+            // Clear any open input fields for this moment
+            if (replacementInput?.momentId === momentId) {
+                setReplacementInput(null);
             }
         } catch (e) {
-            // Error is already toasted in updateMoments
+            // Error is already toasted
         }
     };
+
+
+    const handleStartReplacement = (momentId: string) => {
+        setReplacementInput({ momentId, value: '' });
+        // Optionally generate a suggestion when user decides to replace
+        handleGenerateSuggestion(momentId);
+    }
     
     const handleSaveReplacement = async (momentId: string) => {
-        if (!replacementInput || replacementInput.momentId !== momentId || !replacementInput.value) return;
+        if (!replacementInput || replacementInput.momentId !== momentId || !replacementInput.value) {
+            toast({ variant: 'destructive', title: "Input required", description: "Please describe your replacement activity."});
+            return;
+        }
 
         const updatedMoments = userProfile.moments?.map(m => {
             if (m.id === momentId) {
+                 // Mark as skipped (false) and add the replacement text
                  const newCompleted = { ...(m.completed || {}), [todayStr]: false };
                  const newReplacement = { ...(m.replacementActivity || {}), [todayStr]: replacementInput.value };
                  return { ...m, completed: newCompleted, replacementActivity: newReplacement };
@@ -110,7 +123,8 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
         try {
              await updateMoments(updatedMoments);
              toast({ title: "Replacement Logged!", description: "Awesome choice!" });
-             setReplacementInput(null);
+             setReplacementInput(null); // Close input on success
+             setSuggestion(null); // Clear suggestion
         } catch (e) {
             // Error handled in updateMoments
         }
@@ -128,7 +142,7 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
             setSuggestion({ momentId, text: result });
         } catch (error) {
             console.error("Failed to get suggestion", error);
-            setSuggestion({ momentId, text: "Try stretching or drinking a glass of water." });
+            setSuggestion(null); // Clear suggestion on error
         } finally {
             setIsGenerating(false);
         }
@@ -196,60 +210,62 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
                                 <div className="space-y-3">
                                     {sortedMoments.length > 0 ? (
                                         sortedMoments.map((moment) => {
-                                            const isCompleted = moment.completed?.[todayStr]; // Can be true, false, or undefined
-                                            const replacement = moment.replacementActivity?.[todayStr];
-                                            const isProcessed = isCompleted === true || isCompleted === false;
+                                            const status = moment.completed?.[todayStr]; // true, false, or undefined
+                                            const replacementText = moment.replacementActivity?.[todayStr];
+                                            const isProcessed = status !== undefined;
 
                                             return (
-                                                <div key={moment.id} className="p-3 rounded-md bg-secondary/30">
+                                                <div key={moment.id} className="p-3 rounded-md bg-secondary/30 text-left">
                                                     <div className="flex items-center justify-between">
-                                                        <Label htmlFor={`moment-${moment.id}`} className="flex flex-col">
+                                                        <div className="flex flex-col">
                                                             <div className="flex items-center gap-2">
                                                                  <span className={`font-mono text-sm ${isProcessed ? 'line-through text-muted-foreground' : ''}`}>{moment.time}</span>
-                                                                <span className={`text-sm ${isProcessed ? 'line-through text-muted-foreground' : ''}`}>{moment.label}</span>
+                                                                <span className={`text-sm font-medium ${isProcessed ? 'line-through text-muted-foreground' : ''}`}>{moment.label}</span>
                                                             </div>
-                                                        </Label>
+                                                            {replacementText && (
+                                                                <div className="mt-2 text-xs pl-1">Replaced with: <span className="font-semibold text-foreground">{replacementText}</span></div>
+                                                            )}
+                                                        </div>
                                                         <div className="flex items-center gap-1">
-                                                            {!isProcessed && (
+                                                            {!isProcessed ? (
                                                                 <>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleMomentStatusUpdate(moment.id, true)}>
-                                                                        <Cigarette className="w-4 h-4 text-red-400" />
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:bg-red-400/10 hover:text-red-400" onClick={() => handleMomentStatusUpdate(moment.id, true)}>
+                                                                        <Cigarette className="w-4 h-4" />
                                                                     </Button>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setReplacementInput({ momentId: moment.id, value: ''})}>
-                                                                        <Replace className="w-4 h-4 text-green-400" />
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-green-400 hover:bg-green-400/10 hover:text-green-400" onClick={() => handleStartReplacement(moment.id)}>
+                                                                        <Replace className="w-4 h-4" />
                                                                     </Button>
                                                                 </>
-                                                            )}
-                                                            {isProcessed && (
-                                                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleMomentStatusUpdate(moment.id, !isCompleted)}>
-                                                                    {isCompleted ? <Check className="w-4 h-4 text-green-400"/> : <X className="w-4 h-4 text-red-400"/>}
+                                                            ) : (
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleMomentStatusUpdate(moment.id, !status)}>
+                                                                    {status === true 
+                                                                        ? <Check className="w-4 h-4 text-green-400"/> 
+                                                                        : <X className="w-4 h-4 text-red-400" />}
                                                                 </Button>
                                                             )}
-                                                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteMoment(moment.id)}>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted" onClick={() => handleDeleteMoment(moment.id)}>
                                                                 <Trash2 className="w-4 h-4" />
                                                             </Button>
                                                         </div>
                                                     </div>
-                                                    {replacement && (
-                                                        <div className="mt-2 text-xs text-left text-muted-foreground pl-1">Replaced with: <span className="font-medium text-foreground">{replacement}</span></div>
-                                                    )}
+                                                    
                                                     {replacementInput?.momentId === moment.id && (
                                                          <div className="mt-2 space-y-2">
+                                                            {suggestion?.momentId === moment.id && (
+                                                                <div className="p-2 bg-primary/10 rounded-md text-sm">
+                                                                    <p className="font-bold flex items-center gap-2 text-primary/80"><Sparkles className="w-4 h-4"/>Suggestion</p>
+                                                                    <p className="mt-1 pl-1 text-primary/90">{isGenerating ? <span className="animate-pulse">Thinking...</span> : suggestion.text}</p>
+                                                                </div>
+                                                            )}
                                                             <Input 
                                                                 placeholder="What did you do instead?" 
                                                                 value={replacementInput.value} 
                                                                 onChange={(e) => setReplacementInput({ ...replacementInput, value: e.target.value })}
                                                             />
                                                              <div className="flex gap-2">
-                                                                <Button size="sm" onClick={() => handleSaveReplacement(moment.id)}>Save</Button>
+                                                                <Button size="sm" onClick={() => handleSaveReplacement(moment.id)}>Save Replacement</Button>
                                                                 <Button size="sm" variant="ghost" onClick={() => setReplacementInput(null)}>Cancel</Button>
                                                             </div>
-                                                         </div>
-                                                    )}
-                                                    {suggestion?.momentId === moment.id && !replacement && (
-                                                         <div className="mt-2 p-3 bg-primary/10 rounded-md text-sm text-left">
-                                                             <p className="font-bold flex items-center gap-2"><Sparkles className="w-4 h-4 text-primary"/>Instead, you could...</p>
-                                                             <p className="mt-1 pl-1">{isGenerating ? <span className="animate-pulse">Thinking of something...</span> : suggestion.text}</p>
                                                          </div>
                                                     )}
                                                 </div>
@@ -288,3 +304,5 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
         </Accordion>
     );
 }
+
+    
