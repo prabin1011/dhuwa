@@ -14,10 +14,19 @@ const UrgeSchema = z.object({
     mood: z.string().optional(),
 });
 
+const MomentSchema = z.object({
+    id: z.string(),
+    time: z.string(),
+    label: z.string(),
+    replacementActivity: z.record(z.string()).optional().describe("A map of dates to replacement activities."),
+});
+
 const UserProfileSchema = z.object({
     goal: z.string().optional().describe("User's primary goal (e.g., 'quit', 'reduce')."),
     motivation: z.string().optional().describe("User's primary motivation."),
     preferredTone: z.string().optional().describe("Preferred AI support tone (e.g., 'friendly', 'coach')."),
+    itemsPerDay: z.string().optional().describe("User's average consumption."),
+    moments: z.array(MomentSchema).optional().describe("User's planned smoking moments."),
 });
 
 // Define Zod schema for input. This is NOT exported.
@@ -34,9 +43,9 @@ const insightPrompt = ai.definePrompt(
     name: 'dailyInsightPrompt',
     input: { schema: DailyInsightInputSchema },
     output: { format: 'text' },
-    prompt: `You are an AI quit-smoking coach. Your tone should be {{userProfile.preferredTone}}.
+    prompt: `You are an expert AI quit-smoking coach. Your tone should be {{userProfile.preferredTone}}.
 
-    Your goal is to provide a single, short, insightful, and encouraging message to the user based on their real-time activity.
+    Your goal is to provide a single, short, insightful, and encouraging message (1-3 sentences) to the user based on their real-time activity and profile.
     The user's primary goal is to {{userProfile.goal}} and their main motivation is {{userProfile.motivation}}.
 
     Here is their recent data:
@@ -45,20 +54,19 @@ const insightPrompt = ai.definePrompt(
     {{#if recentUrges.length}}
     - Recent moods when smoking: {{#each recentUrges}}{{this.mood}}{{#unless @last}}, {{/unless}}{{/each}}
     {{/if}}
+    {{#if userProfile.moments}}
+    - They have {{userProfile.moments.length}} planned smoking moments.
+    - Today's replacements logged: {{#each userProfile.moments}}{{#if this.replacementActivity}} {{this.replacementActivity}} {{/if}}{{/each}}
+    {{/if}}
 
-    Analyze the data and provide ONE of the following types of messages:
-    1.  If they have a significant smoke-free streak (e.g., more than 12 hours), CELEBRATE their milestone. Connect it to their motivation (e.g., "That's 12 hours of letting your lungs heal!").
-    2.  If you see a clear pattern (e.g., always smoking when 'stressed', multiple smokes in a short period), IDENTIFY the pattern and offer a gentle, forward-looking observation. (e.g., "I notice 'stress' is a trigger. What's one small thing we can do differently next time?").
-    3.  If they are struggling (many recent urges, or more than usual), offer ENCOURAGEMENT and a gentle warning. Frame it positively. (e.g., "Today feels tough, but each urge you overcome makes you stronger. Remember, each cigarette impacts your health goals.").
-    4.  Otherwise, provide a general MOTIVATIONAL message related to their primary goal.
+    Analyze all the data provided and provide ONE of the following types of messages:
+    1.  If they have a significant smoke-free streak (e.g., more than 12 hours), CELEBRATE their milestone. Connect it to their motivation (e.g., "That's 12 hours of letting your lungs heal for your health goal!").
+    2.  If you see a clear pattern (e.g., always smoking when 'stressed', multiple smokes in a short period), IDENTIFY the pattern and offer a gentle, forward-looking observation. (e.g., "I notice 'stress' is a common trigger. What's one small thing we can do differently next time stress appears?").
+    3.  If the user has logged replacement activities, PRAISE their effort specifically. (e.g., "Great job replacing your morning coffee smoke with reading! That's a huge win.").
+    4.  If they are struggling (many recent urges, or more than their average of {{userProfile.itemsPerDay}}), offer ENCOURAGEMENT and a gentle warning. Frame it positively. (e.g., "It seems like a tough day. Remember, each urge you overcome makes you stronger. Inhaling more nicotine than usual can set back your health goals, but you can get back on track.").
+    5.  Otherwise, provide a general MOTIVATIONAL message related to their primary goal or a general wellness tip. (e.g., "Remember your goal to save money. Every cigarette skipped is a deposit in your future fund.")
 
-    Keep the message to 1-2 sentences. Be concise, impactful, and act as a companion. Do not ask a question unless it's a gentle prompt for reflection.
-    
-    Example of celebrating: "Over 12 hours smoke-free! You're doing great for your health goal. Keep this momentum going."
-    Example of identifying a pattern: "I notice a couple of smokes happened close together. Seems like a tough moment. Let's aim for a slightly longer gap next time."
-    Example of encouragement/warning: "The urges are frequent right now, but you're still in the game. Each cigarette you skip is a win for your wallet and your lungs."
-    
-    Your response should be a single string of text. Do not add any preamble.`,
+    Keep the message to 1-3 sentences. Be concise, impactful, and act as a companion. Your response should be a single string of text. Do not add any preamble.`,
   }
 );
 

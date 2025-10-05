@@ -2,20 +2,29 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Lightbulb, Sparkles } from 'lucide-react';
+import { Lightbulb } from 'lucide-react';
 import { getDailyInsight } from '@/ai/flows/daily-insight-flow';
 import type { DailyInsightInput } from '@/ai/flows/daily-insight-flow';
 import type { WithId } from '@/firebase';
-import { differenceInHours, formatDistanceToNowStrict, subHours } from 'date-fns';
+import { differenceInHours, formatDistanceToNowStrict, subHours, format, isSameDay } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 import { alanCarrQuotes } from '@/lib/quotes';
 import { Button } from '../ui/button';
 
+interface SmokingMoment {
+    id: string;
+    time: string;
+    label: string;
+    completed: Record<string, boolean>;
+    replacementActivity?: Record<string, string>;
+}
 interface UserProfile {
     goal?: string;
     motivation?: string;
     preferredTone?: string;
+    itemsPerDay?: string;
+    moments?: SmokingMoment[];
 }
 
 interface Urge {
@@ -54,11 +63,20 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
                     mood: urge.mood
                 }));
             
+            const todayStr = format(new Date(), 'yyyy-MM-dd');
+            const todayMoments = userProfile.moments?.map(m => ({
+                ...m,
+                replacementActivity: m.replacementActivity?.[todayStr] ? { [todayStr]: m.replacementActivity[todayStr] } : undefined,
+            })).filter(m => m.replacementActivity);
+
+
             const input: DailyInsightInput = {
                 userProfile: {
                     goal: userProfile.goal || 'not set',
                     motivation: userProfile.motivation || 'not set',
                     preferredTone: userProfile.preferredTone || 'friendly',
+                    itemsPerDay: userProfile.itemsPerDay || 'unknown',
+                    moments: todayMoments,
                 },
                 recentUrges,
                 timeSinceLastUrge,
@@ -68,7 +86,7 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
             setInsight(result);
         } catch (error) {
             console.error("Failed to get daily insight:", error);
-            setInsight("Couldn't analyze your day, but remember: you can do this!"); // Fallback message
+            setInsight("Couldn't analyze your day. Make sure you've logged some activity first!"); // Fallback message
         } finally {
             setIsLoading(false);
         }
@@ -80,11 +98,10 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
             <CardHeader>
                 <CardTitle className="flex items-center justify-between text-primary">
                     <div className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5" />
+                        <Lightbulb className="w-5 h-5" />
                         Daily Insight
                     </div>
                     <Button size="sm" variant="ghost" className="text-primary hover:bg-primary/20 hover:text-primary" onClick={handleAnalyze} disabled={isLoading}>
-                        <Sparkles className="w-4 h-4 mr-2"/>
                         Analyze My Day
                     </Button>
                 </CardTitle>
