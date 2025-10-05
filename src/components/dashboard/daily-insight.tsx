@@ -52,10 +52,6 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
         }
     }, [initialQuoteSet]);
 
-    const timeSinceLastUrge = lastUrgeTime 
-        ? formatDistanceToNow(lastUrgeTime, { addSuffix: true }) 
-        : 'a long time';
-
     const handleAnalyze = async () => {
         setIsLoading(true);
         try {
@@ -67,6 +63,10 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
                     timestamp: urge.timestamp.toDate().toISOString(),
                     mood: urge.mood
                 }));
+
+            const timeSinceLastUrge = lastUrgeTime 
+                ? formatDistanceToNow(lastUrgeTime, { addSuffix: true }) 
+                : 'a long time';
             
             const input: DailyInsightInput = {
                 userProfile: {
