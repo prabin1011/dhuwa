@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Progress } from "../ui/progress";
-import { format, startOfWeek, startOfMonth, startOfYear, isWithinInterval, parseISO } from "date-fns";
+import { format, startOfWeek, startOfMonth, isWithinInterval, parseISO, endOfWeek, endOfMonth, endOfDay } from "date-fns";
 
 interface SmokingMoment {
     id: string;
@@ -18,47 +18,10 @@ interface UserProfile {
 
 interface ProgressTrackerProps {
     userProfile: UserProfile;
+    selectedDate: Date;
 }
 
-const calculateProgress = (moments: SmokingMoment[], interval: { start: Date, end: Date }) => {
-    let totalMomentsInInterval = 0;
-    let skippedMomentsInInterval = 0;
-
-    // Iterate through each day in the interval
-    for (let day = interval.start; day <= interval.end; day.setDate(day.getDate() + 1)) {
-        const dateStr = format(day, 'yyyy-MM-dd');
-        
-        moments.forEach(moment => {
-            if (moment.completed) {
-                // If a moment has an entry for this date, it was a "plannable" moment
-                 if (moment.completed.hasOwnProperty(dateStr)) {
-                    totalMomentsInInterval++;
-                    // If the entry is false, it was skipped (a success)
-                    if (moment.completed[dateStr] === false) {
-                        skippedMomentsInInterval++;
-                    }
-                }
-            }
-        });
-    }
-    
-    // Reset day to the end of interval to not affect other calculations
-    day.setDate(interval.end.getDate());
-
-
-    if (totalMomentsInInterval === 0) return { percentage: 0, label: "No data" };
-    
-    const percentage = (skippedMomentsInInterval / totalMomentsInInterval) * 100;
-    
-    return {
-        percentage,
-        label: `${skippedMomentsInInterval} / ${totalMomentsInInterval} skipped`
-    };
-};
-
-
-export function ProgressTracker({ userProfile }: ProgressTrackerProps) {
-
+export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerProps) {
     const moments = userProfile.moments || [];
     
     const progressData = useMemo(() => {
@@ -70,31 +33,32 @@ export function ProgressTracker({ userProfile }: ProgressTrackerProps) {
             };
         }
 
-        const now = new Date();
-        const todayStr = format(now, 'yyyy-MM-dd');
-
+        const dateStr = format(selectedDate, 'yyyy-MM-dd');
+        
         const dailyPlanned = moments.length;
-        const dailySkipped = moments.filter(m => m.completed?.[todayStr] === false).length;
-        const dailySmoked = moments.filter(m => m.completed?.[todayStr] === true).length;
+        const dailySkipped = moments.filter(m => m.completed?.[dateStr] === false).length;
+        const dailySmoked = moments.filter(m => m.completed?.[dateStr] === true).length;
         const dailyTotalTracked = dailySkipped + dailySmoked;
         const dailyPercentage = dailyTotalTracked > 0 ? (dailySkipped / dailyTotalTracked) * 100 : 0;
         
-        const weeklyStart = startOfWeek(now);
-        const monthlyStart = startOfMonth(now);
+        const weeklyStart = startOfWeek(selectedDate);
+        const weeklyEnd = endOfWeek(selectedDate);
+        const monthlyStart = startOfMonth(selectedDate);
+        const monthlyEnd = endOfMonth(selectedDate);
 
         const weeklyMomentsTracked = moments.reduce((acc, m) => {
-            return acc + Object.keys(m.completed || {}).filter(dateStr => isWithinInterval(parseISO(dateStr), {start: weeklyStart, end: now})).length
+            return acc + Object.keys(m.completed || {}).filter(d => isWithinInterval(parseISO(d), {start: weeklyStart, end: weeklyEnd})).length
         }, 0);
         const weeklyMomentsSkipped = moments.reduce((acc, m) => {
-             return acc + Object.keys(m.completed || {}).filter(dateStr => isWithinInterval(parseISO(dateStr), {start: weeklyStart, end: now}) && m.completed[dateStr] === false).length
+             return acc + Object.keys(m.completed || {}).filter(d => isWithinInterval(parseISO(d), {start: weeklyStart, end: weeklyEnd}) && m.completed[d] === false).length
         }, 0);
         const weeklyPercentage = weeklyMomentsTracked > 0 ? (weeklyMomentsSkipped / weeklyMomentsTracked) * 100 : 0;
 
         const monthlyMomentsTracked = moments.reduce((acc, m) => {
-            return acc + Object.keys(m.completed || {}).filter(dateStr => isWithinInterval(parseISO(dateStr), {start: monthlyStart, end: now})).length
+            return acc + Object.keys(m.completed || {}).filter(d => isWithinInterval(parseISO(d), {start: monthlyStart, end: monthlyEnd})).length
         }, 0);
         const monthlyMomentsSkipped = moments.reduce((acc, m) => {
-             return acc + Object.keys(m.completed || {}).filter(dateStr => isWithinInterval(parseISO(dateStr), {start: monthlyStart, end: now}) && m.completed[dateStr] === false).length
+             return acc + Object.keys(m.completed || {}).filter(d => isWithinInterval(parseISO(d), {start: monthlyStart, end: monthlyEnd}) && m.completed[d] === false).length
         }, 0);
         const monthlyPercentage = monthlyMomentsTracked > 0 ? (monthlyMomentsSkipped / monthlyMomentsTracked) * 100 : 0;
 
@@ -102,7 +66,7 @@ export function ProgressTracker({ userProfile }: ProgressTrackerProps) {
         return {
             daily: {
                 percentage: dailyPercentage,
-                label: `${dailySkipped}/${dailyTotalTracked} skipped today`
+                label: `${dailySkipped}/${dailyTotalTracked} skipped on ${format(selectedDate, 'MMM d')}`
             },
             weekly: {
                 percentage: weeklyPercentage,
@@ -114,7 +78,7 @@ export function ProgressTracker({ userProfile }: ProgressTrackerProps) {
             }
         };
 
-    }, [moments]);
+    }, [moments, selectedDate]);
 
     return (
         <Card>

@@ -6,7 +6,7 @@ import { collection, doc, getDoc } from "firebase/firestore";
 import { useUser } from "@/firebase/provider";
 import { Button } from "../ui/button";
 import { UrgeHistory } from "./urge-history";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { WithId } from "@/firebase";
 import { RealTimeTimer } from "./real-time-timer";
 import { SavingsStats } from "./savings-stats";
@@ -15,6 +15,9 @@ import { Skeleton } from "../ui/skeleton";
 import { SmokingPlan } from "./smoking-plan";
 import { ProgressTracker } from "./progress-tracker";
 import { ReplacementReport } from "./replacement-report";
+import { Calendar } from "@/components/ui/calendar"
+import { Card, CardContent } from "../ui/card";
+import { subDays } from "date-fns";
 
 interface UserProfile {
     habits?: string[];
@@ -32,6 +35,8 @@ interface DashboardProps {
 export function Dashboard({ userProfile }: DashboardProps) {
   const { firestore, auth } = useFirebase();
   const { user } = useUser();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+
 
   const urgesQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -99,10 +104,23 @@ export function Dashboard({ userProfile }: DashboardProps) {
 
                 <div className="space-y-6">
                     <RealTimeTimer lastUrgeTime={lastUrgeTime} />
-                    <SavingsStats urges={sortedUrges} userProfile={userProfile} />
-                    <SmokingPlan userProfile={userProfile} />
-                    <ProgressTracker userProfile={userProfile} />
-                    <ReplacementReport userProfile={userProfile} />
+                    
+                    <Card>
+                        <CardContent className="p-0">
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={setSelectedDate}
+                                className="p-0"
+                                disabled={(date) => date > new Date() || date < subDays(new Date(), 365)}
+                            />
+                        </CardContent>
+                    </Card>
+
+                    <SavingsStats urges={sortedUrges} userProfile={userProfile} selectedDate={selectedDate} />
+                    <SmokingPlan userProfile={userProfile} selectedDate={selectedDate || new Date()} />
+                    <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
+                    <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <HourlyChart urges={sortedUrges} />
                     <UrgeHistory urges={sortedUrges} isLoading={isLoading} />
                 </div>

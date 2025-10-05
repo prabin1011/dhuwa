@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { ScrollArea } from "../ui/scroll-area";
-import { format, parseISO, isToday, isYesterday } from "date-fns";
+import { format, parseISO, isToday, isYesterday, isSameDay } from "date-fns";
 
 interface SmokingMoment {
     id: string;
@@ -19,6 +19,7 @@ interface UserProfile {
 
 interface ReplacementReportProps {
     userProfile: UserProfile;
+    selectedDate: Date;
 }
 
 interface ReplacementLog {
@@ -35,7 +36,7 @@ const getGroupTitle = (dateStr: string) => {
     return format(date, "eeee, MMMM d");
 };
 
-export function ReplacementReport({ userProfile }: ReplacementReportProps) {
+export function ReplacementReport({ userProfile, selectedDate }: ReplacementReportProps) {
     const replacementLogs = useMemo(() => {
         const logs: ReplacementLog[] = [];
         const moments = userProfile.moments || [];
@@ -68,6 +69,9 @@ export function ReplacementReport({ userProfile }: ReplacementReportProps) {
     }, [replacementLogs]);
 
     const sortedGroupKeys = Object.keys(groupedLogs);
+    
+    const logsForSelectedDate = groupedLogs[format(selectedDate, 'yyyy-MM-dd')] || [];
+
 
     return (
         <Card>
@@ -77,22 +81,24 @@ export function ReplacementReport({ userProfile }: ReplacementReportProps) {
             </CardHeader>
             <CardContent>
                 <ScrollArea className="h-48 w-full">
-                     {sortedGroupKeys.length > 0 ? (
+                     {logsForSelectedDate.length > 0 ? (
                         <div className="space-y-4">
-                            {sortedGroupKeys.map((dateStr) => (
-                                <div key={dateStr}>
-                                    <h3 className="text-sm font-medium text-muted-foreground px-1 mb-2">
-                                        {getGroupTitle(dateStr)}
-                                    </h3>
-                                    <ul className="space-y-2">
-                                        {groupedLogs[dateStr].map((log, index) => (
-                                            <li key={`${log.date}-${log.time}-${index}`} className="text-sm px-1">
-                                                <span className="font-mono text-xs text-muted-foreground">{log.time}</span> &rarr; <span className="font-semibold">{log.activity}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
+                            <div>
+                                <h3 className="text-sm font-medium text-muted-foreground px-1 mb-2">
+                                    {getGroupTitle(format(selectedDate, 'yyyy-MM-dd'))}
+                                </h3>
+                                <ul className="space-y-2">
+                                    {logsForSelectedDate.map((log, index) => (
+                                        <li key={`${log.date}-${log.time}-${index}`} className="text-sm px-1">
+                                            <span className="font-mono text-xs text-muted-foreground">{log.time}</span> &rarr; <span className="font-semibold">{log.activity}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    ) : sortedGroupKeys.length > 0 && !logsForSelectedDate.length ? (
+                         <div className="flex h-full items-center justify-center">
+                            <p className="text-muted-foreground text-sm text-center">No replacements logged for this day. <br/> Other logs available.</p>
                         </div>
                     ) : (
                         <div className="flex h-full items-center justify-center">

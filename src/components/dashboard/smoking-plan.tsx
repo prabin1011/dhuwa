@@ -9,7 +9,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import type { WithId } from "@/firebase";
 import { Check, Cigarette, Plus, Replace, Sparkles, Trash2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, isFuture, isToday } from "date-fns";
 import { Label } from "../ui/label";
 import { getReplacementSuggestion } from "@/ai/flows/replacement-suggestion-flow";
 import {
@@ -18,6 +18,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { cn } from "@/lib/utils";
 
 
 interface SmokingMoment {
@@ -35,9 +36,10 @@ interface UserProfile {
 
 interface SmokingPlanProps {
     userProfile: WithId<UserProfile>;
+    selectedDate: Date;
 }
 
-export function SmokingPlan({ userProfile }: SmokingPlanProps) {
+export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
     const { firestore, user } = useFirebase();
     const { toast } = useToast();
 
@@ -47,7 +49,8 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
     const [isGenerating, setIsGenerating] = useState(false);
     const [replacementInput, setReplacementInput] = useState<{ momentId: string; value: string } | null>(null);
 
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const isDateInFuture = isFuture(selectedDate) && !isToday(selectedDate);
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
     const sortedMoments = useMemo(() => {
         if (!userProfile.moments) return [];
@@ -72,10 +75,10 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
     const handleMomentStatusUpdate = async (momentId: string, smoked: boolean) => {
         const updatedMoments = userProfile.moments?.map(m => {
             if (m.id === momentId) {
-                const newCompleted = { ...(m.completed || {}), [todayStr]: smoked };
+                const newCompleted = { ...(m.completed || {}), [dateStr]: smoked };
                 const newReplacement = { ...(m.replacementActivity || {}) };
                 if (smoked) {
-                    delete newReplacement[todayStr]; // Remove replacement if they smoked
+                    delete newReplacement[dateStr]; // Remove replacement if they smoked
                 }
                 return { ...m, completed: newCompleted, replacementActivity: newReplacement };
             }
@@ -86,7 +89,7 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
             await updateMoments(updatedMoments);
             toast({
                 title: smoked ? "Moment Logged" : "Status updated",
-                description: smoked ? "You've logged a smoke." : "You've undone the smoke log.",
+                description: smoked ? `You've logged a smoke for ${format(selectedDate, 'MMM d')}.` : "You've undone the smoke log.",
             });
             // Clear any open input fields for this moment
             if (replacementInput?.momentId === momentId) {
@@ -100,7 +103,6 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
 
     const handleStartReplacement = (momentId: string) => {
         setReplacementInput({ momentId, value: '' });
-        // Optionally generate a suggestion when user decides to replace
         handleGenerateSuggestion(momentId);
     }
     
@@ -112,9 +114,8 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
 
         const updatedMoments = userProfile.moments?.map(m => {
             if (m.id === momentId) {
-                 // Mark as skipped (false) and add the replacement text
-                 const newCompleted = { ...(m.completed || {}), [todayStr]: false };
-                 const newReplacement = { ...(m.replacementActivity || {}), [todayStr]: replacementInput.value };
+                 const newCompleted = { ...(m.completed || {}), [dateStr]: false };
+                 const newReplacement = { ...(m.replacementActivity || {}), [dateStr]: replacementInput.value };
                  return { ...m, completed: newCompleted, replacementActivity: newReplacement };
             }
             return m;
@@ -122,7 +123,7 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
         
         try {
              await updateMoments(updatedMoments);
-             toast({ title: "Replacement Logged!", description: "Awesome choice!" });
+             toast({ title: "Replacement Logged!", description: `Awesome choice for ${format(selectedDate, 'MMM d')}!` });
              setReplacementInput(null); // Close input on success
              setSuggestion(null); // Clear suggestion
         } catch (e) {
@@ -163,7 +164,8 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
             id: crypto.randomUUID(),
             time: newMomentTime,
             label: newMomentLabel,
-            completed: {}
+            completed: {},
+            replacementActivity: {}
         };
         
         const newMomentsArray = [...(userProfile.moments || []), newMoment];
@@ -200,8 +202,8 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
                 <Card>
                     <AccordionTrigger className="p-6">
                         <div className="flex flex-col items-start text-left">
-                             <CardTitle>Today's Smoking Plan</CardTitle>
-                             <CardDescription>Log whether you smoked, or replaced the habit.</CardDescription>
+                             <CardTitle>{isToday(selectedDate) ? "Today's" : format(selectedDate, 'MMMM d')} Plan</CardTitle>
+                             <CardDescription>Log smokes or replacements for your planned moments.</CardDescription>
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>
@@ -210,8 +212,8 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
                                 <div className="space-y-3">
                                     {sortedMoments.length > 0 ? (
                                         sortedMoments.map((moment) => {
-                                            const status = moment.completed?.[todayStr]; // true, false, or undefined
-                                            const replacementText = moment.replacementActivity?.[todayStr];
+                                            const status = moment.completed?.[dateStr]; // true, false, or undefined
+                                            const replacementText = moment.replacementActivity?.[dateStr];
                                             const isProcessed = status !== undefined;
 
                                             return (
@@ -219,15 +221,15 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex flex-col">
                                                             <div className="flex items-center gap-2">
-                                                                 <span className={`font-mono text-sm ${isProcessed ? 'line-through text-muted-foreground' : ''}`}>{moment.time}</span>
-                                                                <span className={`text-sm font-medium ${isProcessed ? 'line-through text-muted-foreground' : ''}`}>{moment.label}</span>
+                                                                 <span className={cn('font-mono text-sm', isProcessed && 'line-through text-muted-foreground')}>{moment.time}</span>
+                                                                <span className={cn('text-sm font-medium', isProcessed && 'line-through text-muted-foreground')}>{moment.label}</span>
                                                             </div>
                                                             {replacementText && (
                                                                 <div className="mt-2 text-xs pl-1">Replaced with: <span className="font-semibold text-foreground">{replacementText}</span></div>
                                                             )}
                                                         </div>
                                                         <div className="flex items-center gap-1">
-                                                            {!isProcessed ? (
+                                                            {!isDateInFuture && !isProcessed ? (
                                                                 <>
                                                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:bg-red-400/10 hover:text-red-400" onClick={() => handleMomentStatusUpdate(moment.id, true)}>
                                                                         <Cigarette className="w-4 h-4" />
@@ -236,16 +238,18 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
                                                                         <Replace className="w-4 h-4" />
                                                                     </Button>
                                                                 </>
-                                                            ) : (
+                                                            ) : !isDateInFuture && (
                                                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleMomentStatusUpdate(moment.id, !status)}>
                                                                     {status === true 
-                                                                        ? <Check className="w-4 h-4 text-green-400"/> 
-                                                                        : <X className="w-4 h-4 text-red-400" />}
+                                                                        ? <Cigarette className="w-4 h-4 text-red-400"/> 
+                                                                        : <Check className="w-4 h-4 text-green-400" />}
                                                                 </Button>
                                                             )}
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted" onClick={() => handleDeleteMoment(moment.id)}>
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </Button>
+                                                            {isToday(selectedDate) && (
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted" onClick={() => handleDeleteMoment(moment.id)}>
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </Button>
+                                                            )}
                                                         </div>
                                                     </div>
                                                     
@@ -276,26 +280,28 @@ export function SmokingPlan({ userProfile }: SmokingPlanProps) {
                                     )}
                                 </div>
 
-                                <div className="flex items-center gap-2 pt-4 border-t">
-                                    <Input
-                                        type="time"
-                                        value={newMomentTime}
-                                        onChange={(e) => setNewMomentTime(e.target.value)}
-                                        className="w-28"
-                                        aria-label="Time"
-                                    />
-                                    <Input
-                                        type="text"
-                                        placeholder="e.g., Morning coffee"
-                                        value={newMomentLabel}
-                                        onChange={(e) => setNewMomentLabel(e.target.value)}
-                                        className="flex-1"
-                                        aria-label="Label"
-                                    />
-                                    <Button onClick={handleAddMoment} size="icon" aria-label="Add moment">
-                                        <Plus className="w-4 h-4" />
-                                    </Button>
-                                </div>
+                                {isToday(selectedDate) && (
+                                    <div className="flex items-center gap-2 pt-4 border-t">
+                                        <Input
+                                            type="time"
+                                            value={newMomentTime}
+                                            onChange={(e) => setNewMomentTime(e.target.value)}
+                                            className="w-28"
+                                            aria-label="Time"
+                                        />
+                                        <Input
+                                            type="text"
+                                            placeholder="e.g., Morning coffee"
+                                            value={newMomentLabel}
+                                            onChange={(e) => setNewMomentLabel(e.target.value)}
+                                            className="flex-1"
+                                            aria-label="Label"
+                                        />
+                                        <Button onClick={handleAddMoment} size="icon" aria-label="Add moment">
+                                            <Plus className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </AccordionContent>

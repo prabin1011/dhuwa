@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { differenceInCalendarDays, differenceInCalendarWeeks, differenceInCalendarMonths, isSameDay } from 'date-fns';
+import { differenceInCalendarWeeks, differenceInCalendarMonths, isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 
@@ -20,6 +20,7 @@ interface UserProfile {
 interface SavingsStatsProps {
     urges: WithId<Urge>[];
     userProfile: UserProfile;
+    selectedDate: Date | undefined;
 }
 
 const StatDisplay = ({ label, value, money }: { label: string, value: number, money: string }) => (
@@ -30,7 +31,7 @@ const StatDisplay = ({ label, value, money }: { label: string, value: number, mo
     </div>
 );
 
-export function SavingsStats({ urges, userProfile }: SavingsStatsProps) {
+export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsProps) {
 
     const costPerItem = useMemo(() => {
         const { packCost = 0, itemsPerPack = 1 } = userProfile;
@@ -39,11 +40,17 @@ export function SavingsStats({ urges, userProfile }: SavingsStatsProps) {
     }, [userProfile]);
 
     const stats = useMemo(() => {
-        const now = new Date();
+        const date = selectedDate || new Date();
         
-        const dailyUrges = urges.filter(urge => isSameDay(urge.timestamp.toDate(), now));
-        const weeklyUrges = urges.filter(urge => differenceInCalendarWeeks(now, urge.timestamp.toDate()) === 0);
-        const monthlyUrges = urges.filter(urge => differenceInCalendarMonths(now, urge.timestamp.toDate()) === 0);
+        const dailyUrges = urges.filter(urge => isSameDay(urge.timestamp.toDate(), date));
+
+        const weeklyStart = startOfWeek(date);
+        const weeklyEnd = endOfWeek(date);
+        const weeklyUrges = urges.filter(urge => isWithinInterval(urge.timestamp.toDate(), { start: weeklyStart, end: weeklyEnd }));
+
+        const monthlyStart = startOfMonth(date);
+        const monthlyEnd = endOfMonth(date);
+        const monthlyUrges = urges.filter(urge => isWithinInterval(urge.timestamp.toDate(), { start: monthlyStart, end: monthlyEnd }));
         
         const formatMoney = (amount: number) => `$${amount.toFixed(2)}`;
 
@@ -61,7 +68,7 @@ export function SavingsStats({ urges, userProfile }: SavingsStatsProps) {
                 money: formatMoney(monthlyUrges.length * costPerItem),
             }
         }
-    }, [urges, costPerItem]);
+    }, [urges, costPerItem, selectedDate]);
 
 
     return (
