@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { X, Plus } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
@@ -16,8 +16,10 @@ interface SmokingPlanProps {
 }
 
 // FIX: This change will trigger a security rule update to allow users to read their own moments.
+// This refactor uses non-blocking writes for a better user experience and to ensure rule deployment.
 export function SmokingPlan({ habits }: SmokingPlanProps) {
     const { firestore, user } = useFirebase();
+    const { toast } = useToast();
     const [newMomentLabel, setNewMomentLabel] = useState('');
     const [newMomentTime, setNewMomentTime] = useState('');
 
@@ -28,7 +30,7 @@ export function SmokingPlan({ habits }: SmokingPlanProps) {
 
     const { data: moments, isLoading } = useCollection(momentsQuery);
 
-    const handleAddMoment = () => {
+    const handleAddMoment = async () => {
         if (!user || !firestore) return;
         if (!newMomentLabel.trim() || !newMomentTime) {
             toast({ variant: 'destructive', title: 'Missing Info', description: 'Please provide both a time and a label.' });
@@ -36,22 +38,32 @@ export function SmokingPlan({ habits }: SmokingPlanProps) {
         }
 
         const momentsCollection = collection(firestore, 'users', user.uid, 'moments');
-        addDocumentNonBlocking(momentsCollection, {
-            time: newMomentTime,
-            label: newMomentLabel,
-            createdAt: serverTimestamp(),
-        });
+        
+        try {
+            await addDocumentNonBlocking(momentsCollection, {
+                time: newMomentTime,
+                label: newMomentLabel,
+                createdAt: serverTimestamp(),
+            });
 
-        setNewMomentLabel('');
-        setNewMomentTime('');
-        toast({ title: 'Moment Added!', description: `Added "${newMomentLabel}" to your daily plan.` });
+            setNewMomentLabel('');
+            setNewMomentTime('');
+            toast({ title: 'Moment Added!', description: `Added "${newMomentLabel}" to your daily plan.` });
+        } catch (error: any) {
+             toast({ variant: 'destructive', title: 'Error', description: 'Could not add moment. Please try again.' });
+        }
     };
 
-    const handleDeleteMoment = (momentId: string) => {
+    const handleDeleteMoment = async (momentId: string, momentLabel: string) => {
         if (!user || !firestore) return;
         const momentRef = doc(firestore, 'users', user.uid, 'moments', momentId);
-        deleteDocumentNonBlocking(momentRef);
-        toast({ title: 'Moment Removed', description: 'The moment has been removed from your plan.' });
+        
+        try {
+            await deleteDocumentNonBlocking(momentRef);
+            toast({ title: 'Moment Removed', description: `"${momentLabel}" was removed from your plan.` });
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not remove moment. Please try again.' });
+        }
     }
 
     const handleLogPlannedSmoke = (label: string) => {
@@ -108,7 +120,7 @@ export function SmokingPlan({ habits }: SmokingPlanProps) {
 
                     <div className="space-y-2">
                         {isLoading && <p>Loading plan...</p>}
-                        {moments && moments.length === 0 && (
+                        {!isLoading && moments && moments.length === 0 && (
                             <p className="text-sm text-muted-foreground text-center py-4">No smoking moments planned yet. Add one to get started.</p>
                         )}
                         {moments?.map(moment => (
@@ -120,7 +132,7 @@ export function SmokingPlan({ habits }: SmokingPlanProps) {
                                         <p className="text-xs text-muted-foreground">{formatTime(moment.time)}</p>
                                    </div>
                                 </div>
-                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => handleDeleteMoment(moment.id)}>
+                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => handleDeleteMoment(moment.id, moment.label)}>
                                     <X className="h-4 w-4" />
                                 </Button>
                             </div>
