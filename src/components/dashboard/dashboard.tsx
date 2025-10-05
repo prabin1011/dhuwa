@@ -124,7 +124,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <MoodReport urges={sortedUrges} selectedDate={selectedDate || new Date()} />
                     <HourlyChart urges={sortedUrges} />
-                    <UrgeHistory urges={sortedUrges} isLoading={isLoading} />
+                    <UrgeHistory urges={sortedUrges} isLoading={isLoading} userProfile={userProfile} />
                 </div>
             </div>
         </main>

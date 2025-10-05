@@ -13,7 +13,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { MoodSummary } from "./mood-summary";
 
 interface Urge {
     timestamp: Timestamp;
@@ -22,9 +21,15 @@ interface Urge {
     mood?: string;
 }
 
+interface UserProfile {
+    packCost?: number;
+    itemsPerPack?: number;
+}
+
 interface UrgeHistoryProps {
     urges: WithId<Urge>[];
     isLoading: boolean;
+    userProfile: UserProfile;
 }
 
 interface GroupedUrges {
@@ -38,7 +43,13 @@ const getGroupTitle = (dateStr: string) => {
     return format(date, "eeee, MMMM d");
 };
 
-export function UrgeHistory({ urges, isLoading }: UrgeHistoryProps) {
+export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps) {
+
+    const costPerItem = useMemo(() => {
+        const { packCost = 0, itemsPerPack = 1 } = userProfile;
+        if (itemsPerPack === 0) return 0;
+        return packCost / itemsPerPack;
+    }, [userProfile]);
 
     const groupedUrges = useMemo(() => {
         return urges.reduce((acc, urge) => {
@@ -57,6 +68,8 @@ export function UrgeHistory({ urges, isLoading }: UrgeHistoryProps) {
         return Object.keys(groupedUrges).sort((a, b) => b.localeCompare(a));
     }, [groupedUrges]);
 
+    const formatMoney = (amount: number) => `$${amount.toFixed(2)}`;
+
     return (
         <Card>
             <CardHeader>
@@ -73,19 +86,21 @@ export function UrgeHistory({ urges, isLoading }: UrgeHistoryProps) {
                         </div>
                     ) : sortedGroupKeys.length > 0 ? (
                         <Accordion type="multiple" className="space-y-2">
-                            {sortedGroupKeys.map((dateStr) => (
+                            {sortedGroupKeys.map((dateStr) => {
+                                const dailySmokes = groupedUrges[dateStr].length;
+                                const dailyCost = dailySmokes * costPerItem;
+
+                                return (
                                 <AccordionItem key={dateStr} value={dateStr} className="border bg-secondary/30 rounded-md px-4">
                                      <AccordionTrigger className="py-3 hover:no-underline">
-                                        <div className="flex flex-col items-start text-left w-full">
-                                            <div className="flex justify-between w-full">
-                                                <h3 className="font-semibold text-sm">
-                                                    {getGroupTitle(dateStr)}
-                                                </h3>
-                                                <p className="text-sm font-medium pr-2">
-                                                    {groupedUrges[dateStr].length} {groupedUrges[dateStr].length > 1 ? 'smokes' : 'smoke'}
-                                                </p>
+                                        <div className="flex justify-between items-center w-full pr-2">
+                                            <h3 className="font-semibold text-sm">
+                                                {getGroupTitle(dateStr)}
+                                            </h3>
+                                            <div className="flex items-center gap-4 text-sm">
+                                                <span className="font-medium">{dailySmokes} {dailySmokes > 1 ? 'smokes' : 'smoke'}</span>
+                                                <span className="font-semibold text-primary">{formatMoney(dailyCost)}</span>
                                             </div>
-                                             <MoodSummary urges={groupedUrges[dateStr]} />
                                         </div>
                                     </AccordionTrigger>
                                     <AccordionContent className="pb-2">
@@ -104,7 +119,7 @@ export function UrgeHistory({ urges, isLoading }: UrgeHistoryProps) {
                                         </ul>
                                     </AccordionContent>
                                 </AccordionItem>
-                            ))}
+                            )})}
                         </Accordion>
                     ) : (
                         <div className="flex h-full items-center justify-center">
