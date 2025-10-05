@@ -60,7 +60,7 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
                 .filter(urge => urge.timestamp && urge.timestamp.toDate() > twoDaysAgo)
                 .map(urge => ({
                     id: urge.id,
-                    timestamp: urge.timestamp.toDate().toISOString(),
+                    timestamp: urge.timestamp.toDate().toISOString(), // CORRECTED: Convert Date to ISO string
                     mood: urge.mood
                 }));
 
