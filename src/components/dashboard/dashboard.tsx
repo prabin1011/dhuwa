@@ -18,6 +18,7 @@ import { ReplacementReport } from "./replacement-report";
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent } from "../ui/card";
 import { subDays } from "date-fns";
+import { MoodReport } from "./mood-report";
 
 interface UserProfile {
     habits?: string[];
@@ -121,6 +122,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     <SmokingPlan userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />
+                    <MoodReport urges={sortedUrges} selectedDate={selectedDate || new Date()} />
                     <HourlyChart urges={sortedUrges} />
                     <UrgeHistory urges={sortedUrges} isLoading={isLoading} />
                 </div>
