@@ -33,7 +33,7 @@ const UserProfileSchema = z.object({
 const DailyInsightInputSchema = z.object({
   userProfile: UserProfileSchema,
   recentUrges: z.array(UrgeSchema).describe("An array of smoke urges logged in the last 48 hours."),
-  timeSinceLastUrge: z.string().describe("A human-readable string for how long it's been since the last smoke (e.g., '14 hours', '3 days')."),
+  timeSinceLastUrge: z.string().describe("A human-readable string for how long it's been since the last smoke (e.g., '14 hours ago', '3 days ago')."),
 });
 export type DailyInsightInput = z.infer<typeof DailyInsightInputSchema>;
 
@@ -60,7 +60,7 @@ const insightPrompt = ai.definePrompt(
     {{/if}}
 
     Analyze all the data provided and provide ONE of the following types of messages:
-    1.  If they have a significant smoke-free streak (e.g., more than 12 hours), CELEBRATE their milestone. Connect it to their motivation (e.g., "That's 12 hours of letting your lungs heal for your health goal!").
+    1.  If they have a significant smoke-free streak (e.g., more than 12 hours), CELEBRATE their milestone. Connect it to their motivation (e.g., "It's been over 12 hours since your last smoke! That's 12 hours of letting your lungs heal for your health goal!").
     2.  If you see a clear pattern (e.g., always smoking when 'stressed', multiple smokes in a short period), IDENTIFY the pattern and offer a gentle, forward-looking observation. (e.g., "I notice 'stress' is a common trigger. What's one small thing we can do differently next time stress appears?").
     3.  If the user has logged replacement activities, PRAISE their effort specifically. (e.g., "Great job replacing your morning coffee smoke with reading! That's a huge win.").
     4.  If they are struggling (many recent urges, or more than their average of {{userProfile.itemsPerDay}}), offer ENCOURAGEMENT and a gentle warning. Frame it positively. (e.g., "It seems like a tough day. Remember, each urge you overcome makes you stronger. Inhaling more nicotine than usual can set back your health goals, but you can get back on track.").

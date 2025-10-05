@@ -6,7 +6,7 @@ import { Lightbulb } from 'lucide-react';
 import { getDailyInsight } from '@/ai/flows/daily-insight-flow';
 import type { DailyInsightInput } from '@/ai/flows/daily-insight-flow';
 import type { WithId } from '@/firebase';
-import { subHours, format } from 'date-fns';
+import { subHours, formatDistanceToNow } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 import { alanCarrQuotes } from '@/lib/quotes';
@@ -48,8 +48,8 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
         setInsight(randomQuote);
     }, []);
 
-    const timeSinceLastUrge = userProfile.moments?.length ? 
-        (lastUrgeTime ? format(lastUrgeTime, 'PPpp') : 'a long time') 
+    const timeSinceLastUrge = lastUrgeTime 
+        ? formatDistanceToNow(lastUrgeTime, { addSuffix: true }) 
         : 'a long time';
 
     const handleAnalyze = async () => {
@@ -57,14 +57,14 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
         try {
             const twoDaysAgo = subHours(new Date(), 48);
             const recentUrges = urges
-                .filter(urge => urge.timestamp && (urge.timestamp as unknown as Date) > twoDaysAgo)
+                .filter(urge => urge.timestamp && urge.timestamp.toDate() > twoDaysAgo)
                 .map(urge => ({
                     id: urge.id,
-                    timestamp: (urge.timestamp as unknown as Date).toISOString(),
+                    timestamp: urge.timestamp.toDate().toISOString(),
                     mood: urge.mood
                 }));
             
-            const todayStr = format(new Date(), 'yyyy-MM-dd');
+            const todayStr = new Date().toISOString().split('T')[0];
             const todayMoments = userProfile.moments?.map(m => {
                 const replacement = m.replacementActivity?.[todayStr];
                 return {
