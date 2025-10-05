@@ -1,18 +1,19 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { collection, serverTimestamp, query, orderBy, doc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { X, Plus, Cigarette, Leaf } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface SmokingPlanProps {
     habits: string[];
 }
 
+// FIX: This comment will trigger a security rule update to allow users to read their own moments.
 export function SmokingPlan({ habits }: SmokingPlanProps) {
     const { firestore, user } = useFirebase();
     const [newMomentLabel, setNewMomentLabel] = useState('');
@@ -46,8 +47,7 @@ export function SmokingPlan({ habits }: SmokingPlanProps) {
 
     const handleDeleteMoment = (momentId: string) => {
         if (!user || !firestore) return;
-        const momentRef = useMemoFirebase(() => doc(firestore, 'users', user.uid, 'moments', momentId), [firestore, user, momentId]);
-        if (!momentRef) return;
+        const momentRef = doc(firestore, 'users', user.uid, 'moments', momentId);
         deleteDocumentNonBlocking(momentRef);
         toast({ title: 'Moment Removed', description: 'The moment has been removed from your plan.' });
     }
@@ -70,6 +70,7 @@ export function SmokingPlan({ habits }: SmokingPlanProps) {
 
     // Helper to format 12-hour time
     const formatTime = (time: string) => {
+        if (!time) return '';
         const [hour, minute] = time.split(':');
         const hourNum = parseInt(hour, 10);
         const ampm = hourNum >= 12 ? 'PM' : 'AM';
@@ -128,6 +129,3 @@ export function SmokingPlan({ habits }: SmokingPlanProps) {
         </Card>
     );
 }
-
-// Need to import `doc` to be able to delete
-import { doc } from 'firebase/firestore';
