@@ -2,7 +2,7 @@
 
 import { SmokeLogger } from "@/components/dashboard/smoke-logger";
 import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { collection, doc, getDoc } from "firebase/firestore";
 import { useUser } from "@/firebase/provider";
 import { Button } from "../ui/button";
 import { UrgeHistory } from "./urge-history";
@@ -89,7 +89,25 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     Welcome, {user?.isAnonymous ? "Guest" : user?.email}.
                     </p>
                 </div>
-                <Button onClick={handleSignOut} variant="outline" size="sm">Sign Out</Button>
+                <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        if (!user || !firestore) return;
+                        try {
+                          const testSnap = await getDoc(doc(firestore, 'users', user.uid)); // same subtree
+                          console.log('READ OK?', testSnap.exists());
+                          alert('Read OK - rules & project align.');
+                        } catch (e:any) {
+                          alert('Read failed: ' + (e?.code ?? e?.message));
+                        }
+                      }}
+                    >
+                      Test Read
+                    </Button>
+                    <Button onClick={handleSignOut} variant="outline" size="sm">Sign Out</Button>
+                </div>
                 </header>
 
                 <div className="space-y-6">

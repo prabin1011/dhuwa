@@ -207,7 +207,7 @@
         "schema": {
             "$ref": "#/entities/SmokingMoment"
         },
-        "description": "A collection of user-defined smoking moments/plans."
+        "description": "A collection of user-defined smoking moments/plans. (v2)"
     }
   }
 }
