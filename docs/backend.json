@@ -132,6 +132,13 @@
           "items": {
             "$ref": "#/entities/SmokingMoment"
           }
+        },
+        "fcmTokens": {
+          "type": "array",
+          "description": "Firebase Cloud Messaging tokens for push notifications.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": ["createdAt"]

@@ -6,7 +6,7 @@ import { collection, doc, getDoc } from "firebase/firestore";
 import { useUser } from "@/firebase/provider";
 import { Button } from "../ui/button";
 import { UrgeHistory } from "./urge-history";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { WithId } from "@/firebase";
 import { RealTimeTimer } from "./real-time-timer";
 import { SavingsStats } from "./savings-stats";
@@ -21,6 +21,7 @@ import { subDays } from "date-fns";
 import { MoodReport } from "./mood-report";
 import { DailyHabitChart } from "./daily-habit-chart";
 import { DailyInsight } from "./daily-insight";
+import { useNotifications } from "@/hooks/use-notifications";
 
 interface UserProfile {
     habits?: string[];
@@ -42,6 +43,9 @@ export function Dashboard({ userProfile }: DashboardProps) {
   const { firestore, auth } = useFirebase();
   const { user } = useUser();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  
+  // Initialize notifications
+  useNotifications();
 
 
   const urgesQuery = useMemoFirebase(() => {
