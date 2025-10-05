@@ -83,6 +83,10 @@ const dailyInsightFlow = ai.defineFlow(
     const sanitizedInput = {
         ...input,
         recentUrges: input.recentUrges.slice(0, 10),
+        userProfile: {
+            ...input.userProfile,
+            moments: input.userProfile.moments || [], // Ensure moments is an array
+        }
     };
     const llmResponse = await insightPrompt(sanitizedInput);
     return llmResponse.text;
