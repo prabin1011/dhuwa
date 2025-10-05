@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { getMessaging, getToken } from 'firebase/messaging';
 import { useFirebase } from '@/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { useToast } from './use-toast';
 
-// This function now just registers the static service worker
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            // The path is now relative to the root of the site.
             const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
                 scope: '/' 
             });
@@ -24,54 +23,58 @@ async function registerServiceWorker() {
     return null;
 }
 
-
 export const useNotifications = () => {
   const { firebaseApp, firestore, user } = useFirebase();
+  const { toast } = useToast();
 
-  useEffect(() => {
+  const requestPermissionAndToken = useCallback(async () => {
     if (typeof window === 'undefined' || !('Notification' in window)) {
-        console.log("This browser does not support desktop notification");
-        return;
+        toast({ variant: 'destructive', title: 'Unsupported', description: 'This browser does not support notifications.' });
+        return null;
+    }
+    if (!firebaseApp || !firestore || !user) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Cannot set up notifications without being logged in.' });
+        return null;
+    }
+    
+    // Ensure the service worker is registered.
+    const registration = await registerServiceWorker();
+    if (!registration) {
+        toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not register notification service worker.' });
+        return null;
     }
 
-    if (!firebaseApp || !firestore || !user) return;
+    try {
+      const messaging = getMessaging(firebaseApp);
+      const permission = await Notification.requestPermission();
 
-    const requestPermissionAndToken = async () => {
-      try {
-        const messaging = getMessaging(firebaseApp);
-        const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        const currentToken = await getToken(messaging, {
+          vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY,
+        });
 
-        if (permission === 'granted') {
-          console.log('Notification permission granted.');
-          // Get token
-          const currentToken = await getToken(messaging, {
-            vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY,
+        if (currentToken) {
+          console.log('FCM Token:', currentToken);
+          const userProfileRef = doc(firestore, `users/${user.uid}/profile/main`);
+          await updateDoc(userProfileRef, {
+            fcmTokens: arrayUnion(currentToken)
           });
-
-          if (currentToken) {
-            console.log('FCM Token:', currentToken);
-            // Save the token to the user's profile
-            const userProfileRef = doc(firestore, `users/${user.uid}/profile/main`);
-            await updateDoc(userProfileRef, {
-              fcmTokens: arrayUnion(currentToken)
-            });
-          } else {
-            console.log('No registration token available. Request permission to generate one.');
-          }
+          toast({ title: 'Notifications Enabled!', description: "You're all set to receive messages." });
+          return currentToken;
         } else {
-          console.log('Unable to get permission to notify.');
+          toast({ variant: 'destructive', title: 'Token Error', description: 'Could not get notification token.' });
+          return null;
         }
-      } catch (error) {
-        console.error('An error occurred while setting up notifications:', error);
+      } else {
+        toast({ variant: 'destructive', title: 'Permission Denied', description: 'You will not receive notifications.' });
+        return null;
       }
-    };
+    } catch (error) {
+      console.error('An error occurred while setting up notifications:', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'An unexpected error occurred during setup.' });
+      return null;
+    }
+  }, [firebaseApp, firestore, user, toast]);
 
-    // Register SW and then get token
-    registerServiceWorker().then(registration => {
-      if (registration) {
-        requestPermissionAndToken();
-      }
-    });
-
-  }, [firebaseApp, firestore, user]);
+  return { requestPermissionAndToken };
 };

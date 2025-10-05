@@ -1,6 +1,7 @@
 'use server';
 
 import * as admin from 'firebase-admin';
+import { alanCarrQuotes } from '@/lib/quotes';
 
 // Initialize Firebase Admin SDK if not already initialized
 function initializeAdmin() {
@@ -33,13 +34,15 @@ export async function sendTestNotification(uid: string) {
 
     if (!tokens || tokens.length === 0) {
       console.log('User does not have any FCM tokens.');
-      return { success: false, message: 'User has no notification tokens.' };
+      return { success: false, message: 'User has no notification tokens. Please grant permission first.' };
     }
+
+    const randomQuote = alanCarrQuotes[Math.floor(Math.random() * alanCarrQuotes.length)];
 
     const message = {
       notification: {
-        title: 'Hello from your AI Coach!',
-        body: 'This is a test notification to confirm everything is working.',
+        title: 'A thought for your journey',
+        body: randomQuote,
       },
       tokens: tokens,
     };

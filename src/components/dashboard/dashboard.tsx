@@ -2,11 +2,11 @@
 
 import { SmokeLogger } from "@/components/dashboard/smoke-logger";
 import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, doc, getDoc } from "firebase/firestore";
+import { collection } from "firebase/firestore";
 import { useUser } from "@/firebase/provider";
 import { Button } from "../ui/button";
 import { UrgeHistory } from "./urge-history";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import type { WithId } from "@/firebase";
 import { RealTimeTimer } from "./real-time-timer";
 import { SavingsStats } from "./savings-stats";
@@ -48,8 +48,8 @@ export function Dashboard({ userProfile }: DashboardProps) {
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   
-  // Initialize notifications
-  useNotifications();
+  // Initialize notifications hook
+  const { requestPermissionAndToken } = useNotifications();
 
 
   const urgesQuery = useMemoFirebase(() => {
@@ -76,9 +76,18 @@ export function Dashboard({ userProfile }: DashboardProps) {
 
   const handleSendTestNotification = async () => {
     if (!user) return;
+    
+    // First, request permission and get the token
+    const token = await requestPermissionAndToken();
+    if (!token) {
+        // The requestPermissionAndToken function already shows a toast on failure/denial
+        return;
+    }
+
+    // If permission is granted and we have a token, then try to send the notification
     const result = await sendTestNotification(user.uid);
     if (result.success) {
-      toast({ title: 'Notification Sent!', description: result.message });
+      toast({ title: 'Notification Sent!', description: 'Check your device for a message.' });
     } else {
       toast({ variant: 'destructive', title: 'Notification Failed', description: result.message });
     }

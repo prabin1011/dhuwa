@@ -55,7 +55,7 @@ const insightPrompt = ai.definePrompt(
     {{#if recentUrges.length}}
     - Recent moods when smoking: {{#each recentUrges}}{{this.mood}}{{#unless @last}}, {{/unless}}{{/each}}
     {{/if}}
-    {{#if userProfile.moments}}
+    {{#if userProfile.moments.length}}
     - They have {{userProfile.moments.length}} planned smoking moments.
     {{/if}}
 
