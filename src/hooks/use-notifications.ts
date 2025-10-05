@@ -9,6 +9,11 @@ export const useNotifications = () => {
   const { firebaseApp, firestore, user } = useFirebase();
 
   useEffect(() => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+        console.log("This browser does not support desktop notification");
+        return;
+    }
+
     if (!firebaseApp || !firestore || !user) return;
 
     const requestPermission = async () => {

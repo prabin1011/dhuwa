@@ -22,6 +22,9 @@ import { MoodReport } from "./mood-report";
 import { DailyHabitChart } from "./daily-habit-chart";
 import { DailyInsight } from "./daily-insight";
 import { useNotifications } from "@/hooks/use-notifications";
+import { sendTestNotification } from "@/app/actions";
+import { useToast } from "@/hooks/use-toast";
+
 
 interface UserProfile {
     habits?: string[];
@@ -42,6 +45,7 @@ interface DashboardProps {
 export function Dashboard({ userProfile }: DashboardProps) {
   const { firestore, auth } = useFirebase();
   const { user } = useUser();
+  const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   
   // Initialize notifications
@@ -69,6 +73,16 @@ export function Dashboard({ userProfile }: DashboardProps) {
       await auth.signOut();
     }
   }
+
+  const handleSendTestNotification = async () => {
+    if (!user) return;
+    const result = await sendTestNotification(user.uid);
+    if (result.success) {
+      toast({ title: 'Notification Sent!', description: result.message });
+    } else {
+      toast({ variant: 'destructive', title: 'Notification Failed', description: result.message });
+    }
+  };
   
   if (isLoading) {
     return (
@@ -108,6 +122,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     </p>
                 </div>
                 <div className="flex gap-2">
+                    <Button onClick={handleSendTestNotification} variant="outline" size="sm">Test Notif</Button>
                     <Button onClick={handleSignOut} variant="outline" size="sm">Sign Out</Button>
                 </div>
                 </header>
