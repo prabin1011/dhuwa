@@ -113,7 +113,6 @@ export function Dashboard({ userProfile }: DashboardProps) {
                 <div className="space-y-6">
                     <RealTimeTimer lastUrgeTime={lastUrgeTime} />
                     <SavingsStats urges={sortedUrges} userProfile={userProfile} />
-                    <SmokingPlan habits={userProfile.habits || ['Cigarette']} />
                     <HourlyChart urges={sortedUrges} />
                     <UrgeHistory urges={sortedUrges} isLoading={isLoading} />
                 </div>
