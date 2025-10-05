@@ -68,12 +68,8 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
         };
 
         generateInsight();
-        // Regenerate insight if the number of urges changes, but debounce to avoid too many calls
-        const timeoutId = setTimeout(generateInsight, 1000);
-
-        return () => clearTimeout(timeoutId);
-
-    }, [urges.length, userProfile, timeSinceLastUrge]); // Re-run when urge count changes
+        
+    }, [urges.length, userProfile, timeSinceLastUrge]); // Re-run when urge count changes to be real-time
 
 
     if (isLoading) {
