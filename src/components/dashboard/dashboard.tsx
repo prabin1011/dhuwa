@@ -12,8 +12,6 @@ import { RealTimeTimer } from "./real-time-timer";
 import { SavingsStats } from "./savings-stats";
 import { HourlyChart } from "./hourly-chart";
 import { Skeleton } from "../ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Chatbot } from "../chatbot/chatbot";
 
 interface UserProfile {
     habits?: string[];
@@ -93,24 +91,12 @@ export function Dashboard({ userProfile }: DashboardProps) {
                 <Button onClick={handleSignOut} variant="outline" size="sm">Sign Out</Button>
                 </header>
 
-                 <Tabs defaultValue="dashboard">
-                    <TabsList className="grid w-full grid-cols-2 mb-4">
-                        <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-                        <TabsTrigger value="coach">AI Coach</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="dashboard">
-                        <div className="space-y-6">
-                            <RealTimeTimer lastUrgeTime={lastUrgeTime} />
-                            <SavingsStats urges={sortedUrges} userProfile={userProfile} />
-                            <HourlyChart urges={sortedUrges} />
-                            <UrgeHistory urges={sortedUrges} isLoading={isLoading} />
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="coach">
-                        <Chatbot />
-                    </TabsContent>
-                </Tabs>
-
+                <div className="space-y-6">
+                    <RealTimeTimer lastUrgeTime={lastUrgeTime} />
+                    <SavingsStats urges={sortedUrges} userProfile={userProfile} />
+                    <HourlyChart urges={sortedUrges} />
+                    <UrgeHistory urges={sortedUrges} isLoading={isLoading} />
+                </div>
             </div>
         </main>
         <footer className="sticky bottom-0 p-4 bg-background/80 backdrop-blur-sm border-t border-border">
