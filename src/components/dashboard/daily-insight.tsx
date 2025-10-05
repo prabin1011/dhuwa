@@ -68,16 +68,6 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
                     mood: urge.mood
                 }));
             
-            const todayStr = new Date().toISOString().split('T')[0];
-            const todayMoments = userProfile.moments?.map(m => {
-                const replacement = m.replacementActivity?.[todayStr];
-                return {
-                    ...m,
-                    replacementActivity: replacement ? { [todayStr]: replacement } : undefined,
-                };
-            }) || [];
-
-
             const input: DailyInsightInput = {
                 userProfile: {
                     goal: userProfile.goal || 'not set',
@@ -112,7 +102,7 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
                     ) : (
                          <p className="text-sm text-primary-foreground/90 italic flex-1">"{insight}"</p>
                     )}
-                    <Button size="sm" variant="ghost" className="text-primary hover:bg-primary/20 hover:text-primary -mr-2 -mt-1" onClick={handleAnalyze} disabled={isLoading}>
+                    <Button size="icon" variant="ghost" className="text-primary hover:bg-primary/20 hover:text-primary -mr-2 -mt-2 h-8 w-8" onClick={handleAnalyze} disabled={isLoading}>
                          <Lightbulb className="w-5 h-5" />
                     </Button>
                 </div>

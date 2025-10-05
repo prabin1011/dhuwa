@@ -18,6 +18,7 @@ const MomentSchema = z.object({
     id: z.string(),
     time: z.string(),
     label: z.string(),
+    completed: z.record(z.boolean()),
     replacementActivity: z.record(z.string()).optional().describe("A map of dates to replacement activities."),
 });
 
@@ -56,7 +57,6 @@ const insightPrompt = ai.definePrompt(
     {{/if}}
     {{#if userProfile.moments}}
     - They have {{userProfile.moments.length}} planned smoking moments.
-    - Today's replacements logged: {{#each userProfile.moments}}{{#if this.replacementActivity}} {{this.replacementActivity}} {{/if}}{{/each}}
     {{/if}}
 
     Analyze all the data provided and provide ONE of the following types of messages:
