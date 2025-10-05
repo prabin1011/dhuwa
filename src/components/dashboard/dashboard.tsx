@@ -13,6 +13,7 @@ import { SavingsStats } from "./savings-stats";
 import { HourlyChart } from "./hourly-chart";
 import { Skeleton } from "../ui/skeleton";
 import { SmokingPlan } from "./smoking-plan";
+import { ProgressTracker } from "./progress-tracker";
 
 interface UserProfile {
     habits?: string[];
@@ -91,22 +92,6 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        if (!user || !firestore) return;
-                        try {
-                          const testSnap = await getDoc(doc(firestore, 'users', user.uid)); // same subtree
-                          console.log('READ OK?', testSnap.exists());
-                          alert('Read OK - rules & project align.');
-                        } catch (e:any) {
-                          alert('Read failed: ' + (e?.code ?? e?.message));
-                        }
-                      }}
-                    >
-                      Test Read
-                    </Button>
                     <Button onClick={handleSignOut} variant="outline" size="sm">Sign Out</Button>
                 </div>
                 </header>
@@ -115,6 +100,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     <RealTimeTimer lastUrgeTime={lastUrgeTime} />
                     <SavingsStats urges={sortedUrges} userProfile={userProfile} />
                     <SmokingPlan userProfile={userProfile} />
+                    <ProgressTracker userProfile={userProfile} />
                     <HourlyChart urges={sortedUrges} />
                     <UrgeHistory urges={sortedUrges} isLoading={isLoading} />
                 </div>

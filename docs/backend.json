@@ -175,6 +175,13 @@
         "label": {
           "type": "string",
           "description": "A short description for the moment (e.g., 'Morning coffee')."
+        },
+        "completed": {
+          "type": "object",
+          "description": "A map of dates (YYYY-MM-DD) to a boolean indicating if the smoke happened.",
+          "additionalProperties": {
+            "type": "boolean"
+          }
         }
       },
       "required": ["id", "time", "label"]
