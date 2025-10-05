@@ -17,13 +17,13 @@ interface UserProfile {
 }
 
 interface Urge {
-    timestamp: Timestamp;
+    timestamp: Timestamp; // This is what comes from the DB, but it's converted before being passed in
     mood?: string;
 }
 
 interface DailyInsightProps {
     userProfile: UserProfile;
-    urges: WithId<Urge>[];
+    urges: WithId<Urge>[]; // Here timestamp is actually a Date object after sorting
     lastUrgeTime?: Date;
 }
 
@@ -40,10 +40,10 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
                 // Filter urges for the last 48 hours
                 const twoDaysAgo = subHours(new Date(), 48);
                 const recentUrges = urges
-                    .filter(urge => urge.timestamp.toDate() > twoDaysAgo)
+                    .filter(urge => urge.timestamp && (urge.timestamp as unknown as Date) > twoDaysAgo)
                     .map(urge => ({
                         id: urge.id,
-                        timestamp: urge.timestamp.toDate().toISOString(),
+                        timestamp: (urge.timestamp as unknown as Date).toISOString(), // Correctly convert Date to ISO string
                         mood: urge.mood
                     }));
                 
@@ -69,7 +69,7 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
 
         generateInsight();
         
-    }, [urges.length, userProfile, timeSinceLastUrge]); // Re-run when urge count changes to be real-time
+    }, [urges, userProfile, timeSinceLastUrge]); // urges is a stable dependency, but its content changes
 
 
     if (isLoading) {
