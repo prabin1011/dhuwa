@@ -27,6 +27,11 @@
       "type": "object",
       "description": "Stores user-specific settings and preferences for the app.",
       "properties": {
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the profile was created."
+        },
         "habits": {
           "type": "array",
           "items": {
@@ -131,7 +136,7 @@
           "description": "User's preference for motivational reminders."
         }
       },
-      "required": []
+      "required": ["createdAt"]
     },
     "UrgeEntry": {
       "title": "UrgeEntry",
