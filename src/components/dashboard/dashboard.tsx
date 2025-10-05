@@ -14,6 +14,7 @@ import { HourlyChart } from "./hourly-chart";
 import { Skeleton } from "../ui/skeleton";
 import { SmokingPlan } from "./smoking-plan";
 import { ProgressTracker } from "./progress-tracker";
+import { ReplacementReport } from "./replacement-report";
 
 interface UserProfile {
     habits?: string[];
@@ -101,6 +102,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     <SavingsStats urges={sortedUrges} userProfile={userProfile} />
                     <SmokingPlan userProfile={userProfile} />
                     <ProgressTracker userProfile={userProfile} />
+                    <ReplacementReport userProfile={userProfile} />
                     <HourlyChart urges={sortedUrges} />
                     <UrgeHistory urges={sortedUrges} isLoading={isLoading} />
                 </div>

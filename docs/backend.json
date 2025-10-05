@@ -182,6 +182,13 @@
           "additionalProperties": {
             "type": "boolean"
           }
+        },
+        "replacementActivity": {
+          "type": "object",
+          "description": "A map of dates (YYYY-MM-DD) to a string describing the replacement activity.",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       },
       "required": ["id", "time", "label"]
