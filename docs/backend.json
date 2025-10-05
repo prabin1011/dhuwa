@@ -154,6 +154,27 @@
       "required": [
         "timestamp"
       ]
+    },
+    "SmokingMoment": {
+      "title": "SmokingMoment",
+      "type": "object",
+      "description": "A user-defined time and label for a recurring smoking habit.",
+      "properties": {
+        "time": {
+          "type": "string",
+          "description": "The time of the planned smoke, in HH:mm format (e.g., '09:00')."
+        },
+        "label": {
+          "type": "string",
+          "description": "A short description for the moment (e.g., 'Morning coffee')."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the moment was created."
+        }
+      },
+      "required": ["time", "label", "createdAt"]
     }
   },
   "auth": {
@@ -180,6 +201,12 @@
         "$ref": "#/entities/UrgeEntry"
       },
       "description": "A collection of all smoking urges logged by a specific user."
+    },
+    "'/users/{userId}/moments/{momentId}'": {
+        "schema": {
+            "$ref": "#/entities/SmokingMoment"
+        },
+        "description": "A collection of user-defined smoking moments/plans."
     }
   }
 }

@@ -12,6 +12,7 @@ import { RealTimeTimer } from "./real-time-timer";
 import { SavingsStats } from "./savings-stats";
 import { HourlyChart } from "./hourly-chart";
 import { Skeleton } from "../ui/skeleton";
+import { SmokingPlan } from "./smoking-plan";
 
 interface UserProfile {
     habits?: string[];
@@ -94,6 +95,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                 <div className="space-y-6">
                     <RealTimeTimer lastUrgeTime={lastUrgeTime} />
                     <SavingsStats urges={sortedUrges} userProfile={userProfile} />
+                    <SmokingPlan habits={userProfile.habits || ['Cigarette']} />
                     <HourlyChart urges={sortedUrges} />
                     <UrgeHistory urges={sortedUrges} isLoading={isLoading} />
                 </div>
