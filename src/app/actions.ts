@@ -100,3 +100,35 @@ export async function deleteUserAccount(uid: string) {
         return { success: false, message: 'An unknown error occurred while deleting the account.' };
     }
 }
+
+export async function resetUserData(uid: string) {
+    initializeAdmin();
+    if (!uid) {
+        throw new Error('User ID is required to reset data.');
+    }
+
+    try {
+        const firestore = admin.firestore();
+        const urgesCollectionRef = firestore.collection(`users/${uid}/urges`);
+        const snapshot = await urgesCollectionRef.get();
+
+        if (snapshot.empty) {
+            return { success: true, message: 'No activity data to clear.' };
+        }
+
+        const batch = firestore.batch();
+        snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+
+        await batch.commit();
+
+        return { success: true, message: 'Your activity data has been reset.' };
+    } catch (error) {
+        console.error('Error resetting user data:', error);
+        if (error instanceof Error) {
+            return { success: false, message: error.message };
+        }
+        return { success: false, message: 'An unknown error occurred while resetting your data.' };
+    }
+}

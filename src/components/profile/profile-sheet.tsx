@@ -15,7 +15,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Checkbox } from "../ui/checkbox";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
-import { deleteUserAccount } from "@/app/actions";
+import { deleteUserAccount, resetUserData } from "@/app/actions";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -40,6 +40,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     });
 
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isResetting, setIsResetting] = useState(false);
 
     const isAnonymous = user?.isAnonymous;
 
@@ -86,6 +87,20 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             toast({ variant: "destructive", title: "Deletion Failed", description: result.message });
         }
     }
+
+    const handleResetData = async () => {
+        if (!user) return;
+        setIsResetting(true);
+        const result = await resetUserData(user.uid);
+        setIsResetting(false);
+
+        if (result.success) {
+            toast({ title: "Data Reset", description: result.message });
+            onOpenChange(false); // Close sheet on success
+        } else {
+            toast({ variant: "destructive", title: "Reset Failed", description: result.message });
+        }
+    };
     
     // Group steps by title
     const groupedSteps = STEPS.reduce((acc, step) => {
@@ -165,29 +180,52 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                 ))}
             </form>
         </ScrollArea>
-        <SheetFooter className="mt-auto pt-4 border-t flex-col sm:flex-row sm:justify-between">
-             {!isAnonymous ? (
-                 <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="destructive" disabled={isDeleting}>Delete Account</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete your account and remove all of your data from our servers.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting}>
-                                {isDeleting ? 'Deleting...' : 'Continue'}
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-             ) : <div />}
-            <Button type="submit" form="profile-form" disabled={isSubmitting || !isDirty}>
+        <SheetFooter className="mt-auto pt-4 border-t flex-col sm:flex-col sm:items-stretch gap-2">
+            <div className="flex justify-between gap-2">
+                 {!isAnonymous ? (
+                    <>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="outline" className="flex-1" disabled={isResetting}>Reset Data</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Reset Your Activity Data?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This will permanently delete all your logged smokes, moods, and progress. Your profile settings will be kept. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleResetData} disabled={isResetting}>
+                                        {isResetting ? 'Resetting...' : 'Yes, Reset Data'}
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive" className="flex-1" disabled={isDeleting}>Delete Account</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete your account and remove all of your data from our servers.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting}>
+                                        {isDeleting ? 'Deleting...' : 'Continue'}
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </>
+                 ) : <div />}
+            </div>
+            <Button type="submit" form="profile-form" disabled={isSubmitting || !isDirty} className="w-full">
                 {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
         </SheetFooter>
