@@ -1,12 +1,11 @@
 'use server';
 /**
  * @fileOverview Generates a personalized daily insight for the user based on their recent activity.
- *
- * - getDailyInsight - A function that returns a coaching message.
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { DailyInsightInputSchema, type DailyInsightInput } from '@/ai/types/daily-insight-types';
+import { gemini15Flash } from '@genkit-ai/google-genai';
 
 
 // Genkit Prompt
@@ -38,6 +37,7 @@ const insightPrompt = ai.definePrompt(
     5.  Otherwise, provide a general MOTIVATIONAL message related to their primary goal or a general wellness tip. (e.g., "Remember your goal to save money. Every cigarette skipped is a deposit in your future fund.")
 
     Keep the message to 1-3 sentences. Be concise, impactful, and act as a companion. Your response should be a single string of text. Do not add any preamble.`,
+    model: gemini15Flash,
   }
 );
 
@@ -62,14 +62,11 @@ const dailyInsightFlow = ai.defineFlow(
             moments: input.userProfile.moments ?? [],
         }
     };
-    const llmResponse = await insightPrompt(sanitizedInput, {
-      model: 'googleai/gemini-1.5-flash-latest'
-    });
+    const llmResponse = await insightPrompt(sanitizedInput);
     return llmResponse.text;
   }
 );
 
-// This is the only function exported from the file.
 export async function getDailyInsight(input: DailyInsightInput): Promise<string> {
   return dailyInsightFlow(input);
 }

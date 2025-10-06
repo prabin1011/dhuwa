@@ -1,12 +1,11 @@
 'use server';
 /**
  * @fileOverview Generates a short, first-person narrative for a smoking urge.
- *
- * - narrateUrge - A function that returns a narrative sentence.
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { NarrateUrgeInputSchema, type NarrateUrgeInput } from '@/ai/types/narrate-urge-types';
+import { gemini15Flash } from '@genkit-ai/google-genai';
 
 
 const narrateUrgePrompt = ai.definePrompt(
@@ -40,6 +39,7 @@ const narrateUrgePrompt = ai.definePrompt(
       Output: Out of sheer boredom this afternoon, I lit one up. I'm not sure if it helped.
 
     Now, generate a narrative for the provided data. Your response should be a single string of text. Do not add any preamble.`,
+    model: gemini15Flash,
   }
 );
 
@@ -50,9 +50,7 @@ const narrateUrgeFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const llmResponse = await narrateUrgePrompt(input, {
-      model: 'googleai/gemini-1.5-flash-latest'
-    });
+    const llmResponse = await narrateUrgePrompt(input);
     return llmResponse.text;
   }
 );

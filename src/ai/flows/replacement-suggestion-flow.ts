@@ -1,12 +1,11 @@
 'use server';
 /**
  * @fileOverview Generates a short, creative replacement activity for a smoking break.
- *
- * - getReplacementSuggestion - A function that returns a suggestion.
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { ReplacementSuggestionInputSchema, type ReplacementSuggestionInput } from '@/ai/types/replacement-suggestion-types';
+import { gemini15Flash } from '@genkit-ai/google-genai';
 
 
 // Genkit Prompt
@@ -26,6 +25,7 @@ const suggestionPrompt = ai.definePrompt(
     - Do 10 quick desk stretches.
     
     Your suggestion should be a single sentence. Do not add any preamble.`,
+    model: gemini15Flash,
   }
 );
 
@@ -38,14 +38,11 @@ const replacementSuggestionFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const llmResponse = await suggestionPrompt(input, {
-      model: 'googleai/gemini-1.5-flash-latest'
-    });
+    const llmResponse = await suggestionPrompt(input);
     return llmResponse.text;
   }
 );
 
-// This is the only function exported from the file.
 export async function getReplacementSuggestion(input: ReplacementSuggestionInput): Promise<string> {
   return replacementSuggestionFlow(input);
 }
