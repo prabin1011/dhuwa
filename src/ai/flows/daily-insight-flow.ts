@@ -5,6 +5,7 @@
 import { ai } from '@/ai/genkit';
 import { DailyInsightInputSchema, type DailyInsightInput } from '@/ai/types/daily-insight-types';
 import { z } from 'zod';
+import { gemini15Flash } from '@genkit-ai/googleai';
 
 
 // Genkit Prompt
@@ -60,7 +61,7 @@ const dailyInsightFlow = ai.defineFlow(
             moments: input.userProfile.moments ?? [],
         }
     };
-    const llmResponse = await insightPrompt(sanitizedInput);
+    const llmResponse = await insightPrompt(sanitizedInput, { model: gemini15Flash });
     return llmResponse.text;
   }
 );
