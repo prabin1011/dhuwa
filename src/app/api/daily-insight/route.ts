@@ -1,6 +1,10 @@
+// Force Node runtime; Edge often breaks Genkit.
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getDailyInsight } from '@/ai/flows/daily-insight-flow'; // <-- safe on server
+import { getDailyInsight } from '@/ai/flows/daily-insight-flow';
 
 const MomentSchema = z.object({
   id: z.string(),
@@ -34,10 +38,21 @@ export async function POST(req: Request) {
     const insight = await getDailyInsight(parsed);
     return NextResponse.json({ insight });
   } catch (err: any) {
-    console.error('daily-insight API error:', err);
-    if (err instanceof z.ZodError) {
-        return NextResponse.json({ error: 'Invalid input provided.', details: err.errors }, { status: 400 });
-    }
-    return NextResponse.json({ error: 'Insight generation failed' }, { status: 500 });
+    // Log *everything* on the server to see real cause
+    console.error('[daily-insight] ERROR:', {
+      message: err?.message,
+      stack: err?.stack,
+      name: err?.name,
+      cause: err?.cause,
+    });
+
+    // Show a helpful hint in dev
+    const hint =
+      process.env.NODE_ENV !== 'production'
+        ? err?.message || 'Insight generation failed'
+        : 'Insight generation failed';
+
+    const status = err instanceof z.ZodError ? 400 : 500;
+    return NextResponse.json({ error: hint }, { status });
   }
 }
