@@ -6,7 +6,7 @@ import type { WithId } from "@/firebase";
 import { useForm, Controller } from 'react-hook-form';
 import { STEPS, type OnboardingData } from '@/lib/onboarding-questions';
 import { useFirebase } from "@/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, writeBatch, collection, getDocs } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "../ui/scroll-area";
 import { Label } from "../ui/label";
@@ -15,9 +15,9 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Checkbox } from "../ui/checkbox";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
-import { deleteUserAccount, resetUserData } from "@/app/actions";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { deleteUser } from "firebase/auth";
 
 interface UserProfile extends Partial<OnboardingData> {
     username?: string;
@@ -75,32 +75,58 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
              return;
         }
         setIsDeleting(true);
-        const result = await deleteUserAccount(user.uid);
-        setIsDeleting(false);
 
-        if (result.success) {
-            toast({ title: "Account Deleted", description: "Your account has been permanently deleted." });
+        const batch = writeBatch(firestore);
+        const urgesRef = collection(firestore, `users/${user.uid}/urges`);
+        const userProfileRef = doc(firestore, `users/${user.uid}/profile/main`);
+        const userDocRef = doc(firestore, `users/${user.uid}`);
+
+        try {
+            // Delete subcollections first
+            const urgesSnapshot = await getDocs(urgesRef);
+            urgesSnapshot.forEach(doc => batch.delete(doc.ref));
+
+            // Delete main profile docs
+            batch.delete(userProfileRef);
+            batch.delete(userDocRef);
+            
+            await batch.commit();
+            await deleteUser(user);
+            
+            toast({ title: "Account Deleted", description: "Your account and all data have been permanently deleted." });
             onOpenChange(false);
-            if (auth) {
-                await auth.signOut();
-            }
             router.push('/login');
-        } else {
-            toast({ variant: "destructive", title: "Deletion Failed", description: result.message });
+
+        } catch (error: any) {
+            console.error("Error deleting account:", error);
+            setIsDeleting(false);
+            toast({ variant: "destructive", title: "Deletion Failed", description: error.message || "Could not delete account. You may need to log in again." });
         }
     }
 
     const handleResetData = async () => {
         if (!user) return;
         setIsResetting(true);
-        const result = await resetUserData(user.uid);
-        setIsResetting(false);
+        const urgesRef = collection(firestore, `users/${user.uid}/urges`);
+        const batch = writeBatch(firestore);
+        try {
+            const urgesSnapshot = await getDocs(urgesRef);
+            if (urgesSnapshot.empty) {
+                toast({ title: "No Data", description: "There is no activity data to reset." });
+                setIsResetting(false);
+                return;
+            }
+            urgesSnapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
 
-        if (result.success) {
-            toast({ title: "Data Reset", description: result.message });
+            toast({ title: "Data Reset", description: "Your activity log has been cleared." });
             onOpenChange(false); // Close sheet on success
-        } else {
-            toast({ variant: "destructive", title: "Reset Failed", description: result.message });
+        } catch (error: any) {
+             toast({ variant: "destructive", title: "Reset Failed", description: error.message });
+        } finally {
+            setIsResetting(false);
         }
     };
     
