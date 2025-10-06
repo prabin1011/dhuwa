@@ -41,6 +41,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
 
     const [isDeleting, setIsDeleting] = useState(false);
 
+    const isAnonymous = user?.isAnonymous;
+
     const onSubmit = async (data: OnboardingData) => {
         if (!user) return;
         const profileRef = doc(firestore, 'users', user.uid, 'profile', 'main');
@@ -164,25 +166,27 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             </form>
         </ScrollArea>
         <SheetFooter className="mt-auto pt-4 border-t flex-col sm:flex-row sm:justify-between">
-            <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button variant="destructive" disabled={isDeleting}>Delete Account</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete your account and remove all of your data from our servers.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting}>
-                            {isDeleting ? 'Deleting...' : 'Continue'}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+             {!isAnonymous ? (
+                 <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" disabled={isDeleting}>Delete Account</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete your account and remove all of your data from our servers.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting}>
+                                {isDeleting ? 'Deleting...' : 'Continue'}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+             ) : <div />}
             <Button type="submit" form="profile-form" disabled={isSubmitting || !isDirty}>
                 {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
