@@ -37,9 +37,9 @@ export function MoodAfterToastAction({ urgeId }: MoodAfterToastActionProps) {
     };
 
     return (
-        <div className="w-full mt-2">
+        <div className="w-full mt-4 text-center">
             <p className="text-sm font-medium mb-2 text-foreground/80">How do you feel afterward?</p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 justify-center">
                 {AFTER_MOOD_OPTIONS.map(mood => (
                     <Button
                         key={mood.value}

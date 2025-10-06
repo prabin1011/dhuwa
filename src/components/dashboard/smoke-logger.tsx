@@ -61,8 +61,8 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
         });
 
         toast({
-          title: "Logged!",
-          description: `A moment of awareness for ${selectedHabit} has been recorded.`,
+          title: "Smoke Logged!",
+          description: `Your moment of awareness has been recorded.`,
           duration: 10000, // Keep toast open longer for interaction
           action: <MoodAfterToastAction urgeId={docRef.id} />,
         });
