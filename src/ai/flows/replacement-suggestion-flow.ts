@@ -5,7 +5,6 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { ReplacementSuggestionInputSchema, type ReplacementSuggestionInput } from '@/ai/types/replacement-suggestion-types';
-import { gemini15Flash } from '@genkit-ai/google-genai';
 
 
 // Genkit Prompt
@@ -25,7 +24,7 @@ const suggestionPrompt = ai.definePrompt(
     - Do 10 quick desk stretches.
     
     Your suggestion should be a single sentence. Do not add any preamble.`,
-    model: gemini15Flash,
+    model: 'gemini-1.5-flash-latest',
   }
 );
 
