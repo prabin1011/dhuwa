@@ -32,6 +32,20 @@ interface SavingsStatsProps {
     selectedDate: Date | undefined;
 }
 
+const expenseMessages = [
+    "This is the price of the habit, not just in money, but in future moments.",
+    "Each dollar spent is a vote for the addiction. What will you vote for tomorrow?",
+    "You're funding your own trap. Can you see the bars you're paying for?",
+    "Is this cost truly worth the fleeting relief it promises?"
+];
+
+const savingsMessages = [
+    "Skipping a single smoke feels small, but this is how freedom begins.",
+    "Come on, skip a few. Let's see some real savings build up here.",
+    "This number represents moments you chose yourself over the addiction. Let's make it grow.",
+    "Each dollar saved is a step away from the trap. Keep walking."
+];
+
 const StatDisplay = ({ label, value, money, moneyColor = 'text-primary' }: { label: string, value: number, money: string, moneyColor?: string }) => (
     <div className="flex flex-col items-center">
         <p className="text-xs text-muted-foreground uppercase">{label}</p>
@@ -80,13 +94,11 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         const dailyExpenseAmount = dailyUrges.length * costPerItem;
         const dailySavingsAmount = dailySkipped * costPerItem;
         
-        let dynamicDescription = "Your expenses and savings from the journey.";
-        if (dailyExpenseAmount > 0 && dailyExpenseAmount > dailySavingsAmount) {
-            dynamicDescription = "Expenses are outweighing savings today. Let's turn it around.";
-        } else if (dailySavingsAmount > 0 && dailySavingsAmount > dailyExpenseAmount) {
-            dynamicDescription = "Great job! Your savings are higher than your expenses today.";
-        } else if (dailyExpenseAmount === 0 && dailySavingsAmount > 0) {
-            dynamicDescription = "No expenses and you saved money. A perfect day!";
+        let dynamicDescription = expenseMessages[dailyUrges.length % expenseMessages.length];
+        if (dailySavingsAmount > dailyExpenseAmount && dailySavingsAmount > 0) {
+            dynamicDescription = savingsMessages[dailySkipped % savingsMessages.length];
+        } else if (dailyExpenseAmount === 0 && dailySavingsAmount === 0) {
+            dynamicDescription = "A quiet day. Every choice matters tomorrow.";
         }
 
         return {

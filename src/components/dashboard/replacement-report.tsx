@@ -36,6 +36,14 @@ const getGroupTitle = (dateStr: string) => {
     return format(date, "eeee, MMMM d");
 };
 
+const encouragementMessages = [
+    "Yes. This is how you reclaim your time. Keep building.",
+    "Each replacement is a vote for a new you. Keep voting.",
+    "This is it. You're not just 'not smoking,' you're living.",
+    "Excellent choice. Freedom is built one decision at a time.",
+    "Keep this up for 3 days. Then 7. Then 21. This is how habits die."
+];
+
 export function ReplacementReport({ userProfile, selectedDate }: ReplacementReportProps) {
     const replacementLogs = useMemo(() => {
         const logs: ReplacementLog[] = [];
@@ -72,9 +80,9 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
     
     const logsForSelectedDate = groupedLogs[format(selectedDate, 'yyyy-MM-dd')] || [];
 
-    const description = logsForSelectedDate.length > 2
-        ? "Fantastic work! Each replacement builds a new, healthier habit."
-        : "Activities you chose instead of smoking.";
+    const description = logsForSelectedDate.length > 0 
+        ? encouragementMessages[logsForSelectedDate.length % encouragementMessages.length]
+        : "Activities you choose instead of giving in.";
 
     return (
         <Card>

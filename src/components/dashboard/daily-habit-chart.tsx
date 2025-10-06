@@ -35,12 +35,16 @@ export function DailyHabitChart({ urges, selectedDate }: DailyHabitChartProps) {
 
         let dynamicDescription = `Your 30-day average is ${avgSmokes.toFixed(1)} smokes/day.`;
         if (selectedDate) {
-            if (selectedDayCount > avgSmokes * 1.2) {
-                dynamicDescription = `Today was higher than your recent average.`;
+            if (selectedDayCount > avgSmokes * 1.5) {
+                dynamicDescription = `Significantly higher than average. What happened today?`;
+            } else if (selectedDayCount > avgSmokes * 1.1) {
+                dynamicDescription = `A bit higher than your recent average. Reflect on today's triggers.`;
+            } else if (selectedDayCount === 0 && avgSmokes > 0) {
+                 dynamicDescription = `Zero smokes logged today. This is a massive win.`;
             } else if (selectedDayCount < avgSmokes * 0.8 && selectedDayCount > 0) {
-                dynamicDescription = `Today was a good day, below your average. Keep it up!`;
+                dynamicDescription = `A good day, well below your average. Build on this momentum.`;
             } else if (selectedDayCount === 0) {
-                 dynamicDescription = `No smokes logged today. An amazing achievement!`;
+                dynamicDescription = `No smokes logged today. An amazing achievement!`;
             }
         }
         
