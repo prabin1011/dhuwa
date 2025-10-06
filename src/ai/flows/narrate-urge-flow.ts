@@ -6,8 +6,6 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { NarrateUrgeInputSchema, type NarrateUrgeInput } from '@/ai/types/narrate-urge-types';
 
-const MODEL = 'gemini-2.5-flash';
-
 const narrateUrgePrompt = ai.definePrompt(
   {
     name: 'narrateUrgePrompt',
@@ -49,7 +47,7 @@ const narrateUrgeFlow = ai.defineFlow(
   },
   async (input) => {
     const { text } = await ai.generate({
-      model: MODEL,
+      model: 'gemini-1.5-flash',
       prompt: narrateUrgePrompt,
       input,
     });
