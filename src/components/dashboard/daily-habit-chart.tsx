@@ -13,10 +13,11 @@ interface Urge {
 
 interface DailyHabitChartProps {
     urges: WithId<Urge>[];
+    selectedDate: Date | undefined;
 }
 
-export function DailyHabitChart({ urges }: DailyHabitChartProps) {
-    const dailyData = useMemo(() => {
+export function DailyHabitChart({ urges, selectedDate }: DailyHabitChartProps) {
+    const { dailyData, description } = useMemo(() => {
         const data = [];
         const today = new Date();
         for (let i = 29; i >= 0; i--) {
@@ -27,14 +28,30 @@ export function DailyHabitChart({ urges }: DailyHabitChartProps) {
                 count: dayUrges.length
             });
         }
-        return data;
-    }, [urges]);
+        
+        const totalSmokes = data.reduce((sum, day) => sum + day.count, 0);
+        const avgSmokes = totalSmokes / 30;
+        const selectedDayCount = data.find(d => d.date === format(selectedDate || new Date(), 'MMM d'))?.count ?? 0;
+
+        let dynamicDescription = `Your 30-day average is ${avgSmokes.toFixed(1)} smokes/day.`;
+        if (selectedDate) {
+            if (selectedDayCount > avgSmokes * 1.2) {
+                dynamicDescription = `Today was higher than your recent average.`;
+            } else if (selectedDayCount < avgSmokes * 0.8 && selectedDayCount > 0) {
+                dynamicDescription = `Today was a good day, below your average. Keep it up!`;
+            } else if (selectedDayCount === 0) {
+                 dynamicDescription = `No smokes logged today. An amazing achievement!`;
+            }
+        }
+        
+        return { dailyData: data, description: dynamicDescription };
+    }, [urges, selectedDate]);
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>30-Day Trend</CardTitle>
-                <CardDescription>Smokes per day over the last 30 days</CardDescription>
+                <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent>
                 <ResponsiveContainer width="100%" height={200}>

@@ -72,12 +72,15 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
     
     const logsForSelectedDate = groupedLogs[format(selectedDate, 'yyyy-MM-dd')] || [];
 
+    const description = logsForSelectedDate.length > 2
+        ? "Fantastic work! Each replacement builds a new, healthier habit."
+        : "Activities you chose instead of smoking.";
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Replacement Report</CardTitle>
-                <CardDescription>Activities you chose instead of smoking.</CardDescription>
+                <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent>
                 <ScrollArea className="h-48 w-full">

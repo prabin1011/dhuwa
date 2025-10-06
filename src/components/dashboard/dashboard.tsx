@@ -128,7 +128,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
 
                 <div className="space-y-6">
                     <DailyInsight userProfile={userProfile} urges={sortedUrges} lastUrgeTime={lastUrgeTime}/>
-                    <RealTimeTimer lastUrgeTime={lastUrgeTime} />
+                    <RealTimeTimer sortedUrges={sortedUrges} />
                     
                     <DateSelector selected={selectedDate} onSelect={setSelectedDate} />
 
@@ -137,7 +137,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <MoodReport urges={sortedUrges} selectedDate={selectedDate || new Date()} />
-                    <DailyHabitChart urges={sortedUrges} />
+                    <DailyHabitChart urges={sortedUrges} selectedDate={selectedDate} />
                     <HourlyChart urges={sortedUrges} />
                     <UrgeHistory urges={sortedUrges} isLoading={isLoading} userProfile={userProfile} />
                 </div>

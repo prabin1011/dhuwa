@@ -47,7 +47,7 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         return packCost / itemsPerPack;
     }, [userProfile]);
 
-    const stats = useMemo(() => {
+    const { stats, description } = useMemo(() => {
         const date = selectedDate || new Date();
         const moments = userProfile.moments || [];
         
@@ -77,17 +77,32 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
 
         const formatMoney = (amount: number) => `$${amount.toFixed(2)}`;
 
+        const dailyExpenseAmount = dailyUrges.length * costPerItem;
+        const dailySavingsAmount = dailySkipped * costPerItem;
+        
+        let dynamicDescription = "Your expenses and savings from the journey.";
+        if (dailyExpenseAmount > 0 && dailyExpenseAmount > dailySavingsAmount) {
+            dynamicDescription = "Expenses are outweighing savings today. Let's turn it around.";
+        } else if (dailySavingsAmount > 0 && dailySavingsAmount > dailyExpenseAmount) {
+            dynamicDescription = "Great job! Your savings are higher than your expenses today.";
+        } else if (dailyExpenseAmount === 0 && dailySavingsAmount > 0) {
+            dynamicDescription = "No expenses and you saved money. A perfect day!";
+        }
+
         return {
-            expenses: {
-                daily: { count: dailyUrges.length, money: formatMoney(dailyUrges.length * costPerItem) },
-                weekly: { count: weeklyUrges.length, money: formatMoney(weeklyUrges.length * costPerItem) },
-                monthly: { count: monthlyUrges.length, money: formatMoney(monthlyUrges.length * costPerItem) }
+            stats: {
+                expenses: {
+                    daily: { count: dailyUrges.length, money: formatMoney(dailyExpenseAmount) },
+                    weekly: { count: weeklyUrges.length, money: formatMoney(weeklyUrges.length * costPerItem) },
+                    monthly: { count: monthlyUrges.length, money: formatMoney(monthlyUrges.length * costPerItem) }
+                },
+                savings: {
+                    daily: { count: dailySkipped, money: formatMoney(dailySavingsAmount) },
+                    weekly: { count: weeklySkipped, money: formatMoney(weeklySkipped * costPerItem) },
+                    monthly: { count: monthlySkipped, money: formatMoney(monthlySkipped * costPerItem) }
+                }
             },
-            savings: {
-                daily: { count: dailySkipped, money: formatMoney(dailySkipped * costPerItem) },
-                weekly: { count: weeklySkipped, money: formatMoney(weeklySkipped * costPerItem) },
-                monthly: { count: monthlySkipped, money: formatMoney(monthlySkipped * costPerItem) }
-            }
+            description: dynamicDescription
         };
     }, [urges, userProfile.moments, costPerItem, selectedDate]);
 
@@ -96,7 +111,7 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         <Card>
             <CardHeader>
                 <CardTitle>Financials</CardTitle>
-                <CardDescription>Your expenses and savings from the journey.</CardDescription>
+                <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="expenses">

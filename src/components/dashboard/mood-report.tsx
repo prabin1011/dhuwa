@@ -83,7 +83,7 @@ const MoodPieChart = ({ data, title }: { data: { name: string, value: number, pe
 
 
 export function MoodReport({ urges, selectedDate }: MoodReportProps) {
-    const { beforeData, afterData } = useMemo(() => {
+    const { beforeData, afterData, description } = useMemo(() => {
         const moodsBeforeCount: Record<string, number> = {};
         const moodsAfterCount: Record<string, number> = {};
 
@@ -107,7 +107,26 @@ export function MoodReport({ urges, selectedDate }: MoodReportProps) {
                 .sort((a,b) => b.value - a.value);
         };
 
-        return { beforeData: processData(moodsBeforeCount), afterData: processData(moodsAfterCount) };
+        const bData = processData(moodsBeforeCount);
+        const aData = processData(aData);
+
+        let dynamicDescription = `Your feelings before & after smoking on ${format(selectedDate, "MMM d")}.`;
+        if (bData.length > 0) {
+            const topMood = bData[0].name;
+            if (topMood === 'stressed' || topMood === 'anxious') {
+                dynamicDescription = `Stress seems to be a key trigger. Let's find ways to manage it.`;
+            } else if (topMood === 'bored') {
+                dynamicDescription = `Boredom often leads to smoking. What can fill that space?`;
+            }
+        }
+        if (aData.length > 0) {
+            const topAfterMood = aData[0].name;
+             if (topAfterMood === 'guilty' && (aData[0].percentage > 50)) {
+                dynamicDescription = `Guilt is a heavy weight. Be gentle with yourself on this journey.`;
+            }
+        }
+
+        return { beforeData: bData, afterData: aData, description: dynamicDescription };
 
     }, [urges, selectedDate]);
 
@@ -117,7 +136,7 @@ export function MoodReport({ urges, selectedDate }: MoodReportProps) {
         <Card>
             <CardHeader>
                 <CardTitle>Mood Analysis</CardTitle>
-                <CardDescription>Your feelings before & after smoking on {format(selectedDate, "MMM d")}.</CardDescription>
+                <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent>
                 {hasData ? (
