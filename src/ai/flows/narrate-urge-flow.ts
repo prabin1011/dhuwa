@@ -21,21 +21,21 @@ const narrateUrgePrompt = ai.definePrompt(
     - Habit: {{habitType}}
 
     RULES:
-    1.  Always write in the first person ("I...").
+    1.  Always write in the first person, starting with "I felt...".
     2.  Keep it to a single, concise sentence.
     3.  Be empathetic and non-judgmental.
-    4.  Explicitly mention the act of smoking.
-    5.  If a mood is missing, be creative (e.g., "I'm not sure how I felt...").
+    4.  Connect the moods with "and then".
+    5.  Do NOT mention the act of smoking.
 
     EXAMPLES:
+    - Input: { moodBefore: 'happy', moodAfter: 'calm' }
+      Output: I felt happy and then calm.
     - Input: { moodBefore: 'happy', moodAfter: 'guilty' }
-      Output: I felt happy and smoked, but then I'm guilty now.
+      Output: I felt happy and then guilty.
     - Input: { moodBefore: 'neutral', moodAfter: 'same' }
-      Output: I felt neutral but still smoked and felt the same.
+      Output: I felt neutral and then same.
     - Input: { moodBefore: 'lonely', moodAfter: 'guilty' }
-      Output: I felt lonely and smoked, and now I'm guilty again.
-    - Input: { moodBefore: 'stressed', moodAfter: 'calm' }
-      Output: I was feeling stressed so I smoked, and now I feel a little calmer.
+      Output: I felt lonely and then guilty.
 
     Now, generate a narrative for the provided data. Your response should be a single string of text. Do not add any preamble.`,
   }
