@@ -57,14 +57,21 @@ export default function LoginPage() {
 
   const handleAuthAction = async (action: 'login' | 'signup') => {
     if (!auth || !firestore) return;
-    if (action === 'signup' && !username.trim()) {
-      toast({
-        variant: 'destructive',
-        title: 'Username Required',
-        description: 'Please enter a username to sign up.',
-      });
-      return;
+
+    // For sign-up, check if there's a username.
+    // If it's an anonymous user upgrading, their username is in user.displayName.
+    // If it's a brand new user, their username is in the `username` state.
+    const effectiveUsername = user?.isAnonymous ? user.displayName : username;
+
+    if (action === 'signup' && !effectiveUsername?.trim()) {
+        toast({
+            variant: 'destructive',
+            title: 'Username Required',
+            description: 'Please enter a username to sign up.',
+        });
+        return;
     }
+
     if (!email || !password) {
       toast({
         variant: 'destructive',
@@ -81,11 +88,10 @@ export default function LoginPage() {
         const credential = EmailAuthProvider.credential(email, password);
         await linkWithCredential(auth.currentUser, credential);
         
-        // Now update the user's profile with the username
-        await updateProfile(auth.currentUser, { displayName: username });
+        // The display name is already set, but we can ensure the Firestore doc is updated if needed.
         const userDocRef = doc(firestore, `users/${auth.currentUser.uid}`);
         await setDoc(userDocRef, {
-            username: username,
+            username: effectiveUsername, // Use the already existing username
         }, { merge: true });
         
         toast({ title: 'Account Upgraded!', description: `Your progress is now saved to ${email}.` });
@@ -94,10 +100,10 @@ export default function LoginPage() {
         // Standard new user sign-up
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const newUser = userCredential.user;
-        await updateProfile(newUser, { displayName: username });
+        await updateProfile(newUser, { displayName: effectiveUsername });
         const userDocRef = doc(firestore, `users/${newUser.uid}`);
         await setDoc(userDocRef, {
-            username: username,
+            username: effectiveUsername,
             createdAt: serverTimestamp()
         }, { merge: true });
         toast({ title: 'Success', description: 'Your account has been created.' });
@@ -207,7 +213,7 @@ export default function LoginPage() {
       <h1 className="text-4xl font-bold tracking-tighter mb-8 font-heading">
           The Easy Way Out
       </h1>
-      <Tabs defaultValue="login" className="w-full max-w-sm">
+      <Tabs defaultValue="signup" className="w-full max-w-sm">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Login</TabsTrigger>
           <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -317,3 +323,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
