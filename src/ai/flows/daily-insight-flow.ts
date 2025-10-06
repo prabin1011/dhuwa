@@ -3,8 +3,8 @@
  * @fileOverview Generates a personalized daily insight for the user based on their recent activity.
  */
 import { ai } from '@/ai/genkit';
-import { z } from 'zod';
 import { DailyInsightInputSchema, type DailyInsightInput } from '@/ai/types/daily-insight-types';
+import { z } from 'zod';
 
 
 // Genkit Prompt
