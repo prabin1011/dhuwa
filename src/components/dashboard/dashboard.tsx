@@ -1,11 +1,9 @@
-
 'use client';
 
 import { SmokeLogger } from "@/components/dashboard/smoke-logger";
 import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
 import { useUser } from "@/firebase/provider";
-import { Button } from "../ui/button";
 import { UrgeHistory } from "./urge-history";
 import { useMemo, useState } from "react";
 import type { WithId } from "@/firebase";
@@ -25,6 +23,7 @@ import { DailyInsight } from "./daily-insight";
 import { useNotifications } from "@/hooks/use-notifications";
 import { sendTestNotification } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
+import { UserProfileDropdown } from "./user-profile-dropdown";
 
 
 interface UserProfile {
@@ -45,7 +44,7 @@ interface DashboardProps {
 
 
 export function Dashboard({ userProfile }: DashboardProps) {
-  const { firestore, auth } = useFirebase();
+  const { firestore } = useFirebase();
   const { user } = useUser();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -69,12 +68,6 @@ export function Dashboard({ userProfile }: DashboardProps) {
   }, [urges]);
   
   const lastUrgeTime = sortedUrges?.[0]?.timestamp?.toDate();
-  
-  const handleSignOut = async () => {
-    if (auth) {
-      await auth.signOut();
-    }
-  }
 
   const handleSendTestNotification = async () => {
     if (!user) return;
@@ -106,7 +99,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                         </h1>
                         <Skeleton className="h-5 w-48 mt-2" />
                     </div>
-                    <Button variant="outline" size="sm">Sign Out</Button>
+                     <Skeleton className="h-10 w-10 rounded-full" />
                 </header>
                 <div className="space-y-6">
                     <Skeleton className="h-24 w-full" />
@@ -123,19 +116,16 @@ export function Dashboard({ userProfile }: DashboardProps) {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
         <main className="flex-1 flex flex-col items-center p-4 md:p-6">
             <div className="w-full max-w-md">
-                <header className="mb-6 flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tighter font-heading">
-                    The Easy Way Out
-                    </h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Welcome, {userProfile.username || user?.email || "Guest"}.
-                    </p>
-                </div>
-                <div className="flex gap-2">
-                    <Button onClick={handleSendTestNotification} variant="outline" size="sm">Test Notif</Button>
-                    <Button onClick={handleSignOut} variant="outline" size="sm">Sign Out</Button>
-                </div>
+                <header className="mb-6 flex justify-between items-start">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tighter font-heading">
+                        The Easy Way Out
+                        </h1>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Welcome, {userProfile.username || user?.email || "Guest"}.
+                        </p>
+                    </div>
+                    <UserProfileDropdown userProfile={userProfile} />
                 </header>
 
                 <div className="space-y-6">
