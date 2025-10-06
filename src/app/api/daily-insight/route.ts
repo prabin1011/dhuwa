@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getDailyInsight } from '@/ai/flows/daily-insight-flow';
+import { getDailyInsight, DailyInsightInput } from '@/ai/flows/daily-insight-flow';
 
 const MomentSchema = z.object({
   id: z.string(),
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const parsed = InputSchema.parse(body);
 
-    const insight = await getDailyInsight(parsed);
+    const insight = await getDailyInsight(parsed as DailyInsightInput);
     return NextResponse.json({ insight });
   } catch (err: any) {
     // Log *everything* on the server to see real cause
