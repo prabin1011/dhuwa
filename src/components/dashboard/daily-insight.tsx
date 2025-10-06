@@ -29,7 +29,7 @@ interface UserProfile {
 
 interface Urge {
     timestamp: Timestamp;
-    mood?: string;
+    moodBefore?: string;
 }
 
 interface DailyInsightProps {
@@ -60,8 +60,8 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
                 .filter(urge => urge.timestamp && urge.timestamp.toDate() > twoDaysAgo)
                 .map(urge => ({
                     id: urge.id,
-                    timestamp: urge.timestamp.toDate().toISOString(), // CORRECTED: Convert Date to ISO string
-                    mood: urge.mood
+                    timestamp: urge.timestamp.toDate().toISOString(),
+                    mood: urge.moodBefore
                 }));
 
             const timeSinceLastUrge = lastUrgeTime 
