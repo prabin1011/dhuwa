@@ -62,7 +62,9 @@ const dailyInsightFlow = ai.defineFlow(
             moments: input.userProfile.moments ?? [],
         }
     };
-    const llmResponse = await insightPrompt(sanitizedInput);
+    const llmResponse = await insightPrompt(sanitizedInput, {
+      model: 'googleai/gemini-1.5-flash-latest'
+    });
     return llmResponse.text;
   }
 );

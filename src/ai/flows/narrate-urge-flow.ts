@@ -50,7 +50,9 @@ const narrateUrgeFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const llmResponse = await narrateUrgePrompt(input);
+    const llmResponse = await narrateUrgePrompt(input, {
+      model: 'googleai/gemini-1.5-flash-latest'
+    });
     return llmResponse.text;
   }
 );

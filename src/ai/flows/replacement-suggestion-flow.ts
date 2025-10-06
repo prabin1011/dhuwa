@@ -38,7 +38,9 @@ const replacementSuggestionFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const llmResponse = await suggestionPrompt(input);
+    const llmResponse = await suggestionPrompt(input, {
+      model: 'googleai/gemini-1.5-flash-latest'
+    });
     return llmResponse.text;
   }
 );
