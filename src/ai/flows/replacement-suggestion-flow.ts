@@ -6,6 +6,8 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { ReplacementSuggestionInputSchema, type ReplacementSuggestionInput } from '@/ai/types/replacement-suggestion-types';
 
+const MODEL = 'gemini-2.5-flash';
+
 // Genkit Prompt
 const suggestionPrompt = ai.definePrompt(
   {
@@ -36,7 +38,7 @@ const replacementSuggestionFlow = ai.defineFlow(
   },
   async (input) => {
     const { text } = await ai.generate({
-      model: 'gemini-1.5-flash',
+      model: MODEL,
       prompt: suggestionPrompt,
       input,
     });
