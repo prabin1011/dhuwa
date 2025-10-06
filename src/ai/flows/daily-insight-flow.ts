@@ -61,6 +61,7 @@ const dailyInsightFlow = ai.defineFlow(
             moments: input.userProfile.moments ?? [],
         }
     };
+    
     const { text } = await ai.generate({
       model: MODEL,
       prompt: insightPrompt,
