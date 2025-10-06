@@ -11,7 +11,6 @@ import { Check, Cigarette, Plus, Replace, Sparkles, Trash2, X } from "lucide-rea
 import { useToast } from "@/hooks/use-toast";
 import { format, isFuture, isToday } from "date-fns";
 import { Label } from "../ui/label";
-import { getReplacementSuggestion } from "@/ai/flows/replacement-suggestion-flow";
 import {
   Accordion,
   AccordionContent,
@@ -45,8 +44,6 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
 
     const [newMomentTime, setNewMomentTime] = useState('');
     const [newMomentLabel, setNewMomentLabel] = useState('');
-    const [suggestion, setSuggestion] = useState<{momentId: string, text: string} | null>(null);
-    const [isGenerating, setIsGenerating] = useState(false);
     const [replacementInput, setReplacementInput] = useState<{ momentId: string; value: string } | null>(null);
 
     const isDateInFuture = isFuture(selectedDate) && !isToday(selectedDate);
@@ -103,7 +100,6 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
 
     const handleStartReplacement = (momentId: string) => {
         setReplacementInput({ momentId, value: '' });
-        handleGenerateSuggestion(momentId);
     }
     
     const handleSaveReplacement = async (momentId: string) => {
@@ -125,30 +121,10 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
              await updateMoments(updatedMoments);
              toast({ title: "Replacement Logged!", description: `Awesome choice for ${format(selectedDate, 'MMM d')}!` });
              setReplacementInput(null); // Close input on success
-             setSuggestion(null); // Clear suggestion
         } catch (e) {
             // Error handled in updateMoments
         }
     }
-
-
-    const handleGenerateSuggestion = async (momentId: string) => {
-        setIsGenerating(true);
-        setSuggestion({momentId, text: ""});
-        try {
-            const result = await getReplacementSuggestion({
-                habit: "smoking",
-                breakDuration: userProfile.breakDuration || "5-10 minutes"
-            });
-            setSuggestion({ momentId, text: result });
-        } catch (error) {
-            console.error("Failed to get suggestion", error);
-            setSuggestion(null); // Clear suggestion on error
-        } finally {
-            setIsGenerating(false);
-        }
-    }
-
 
     const handleAddMoment = async () => {
         if (!newMomentTime || !newMomentLabel) {
@@ -255,12 +231,6 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
                                                     
                                                     {replacementInput?.momentId === moment.id && (
                                                          <div className="mt-2 space-y-2">
-                                                            {suggestion?.momentId === moment.id && (
-                                                                <div className="p-2 bg-primary/10 rounded-md text-sm">
-                                                                    <p className="font-bold flex items-center gap-2 text-primary/80"><Sparkles className="w-4 h-4"/>Suggestion</p>
-                                                                    <p className="mt-1 pl-1 text-primary/90">{isGenerating ? <span className="animate-pulse">Thinking...</span> : suggestion.text}</p>
-                                                                </div>
-                                                            )}
                                                             <Input 
                                                                 placeholder="What did you do instead?" 
                                                                 value={replacementInput.value} 

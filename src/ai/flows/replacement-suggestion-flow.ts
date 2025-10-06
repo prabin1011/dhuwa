@@ -1,11 +1,13 @@
 'use server';
 /**
- * @fileOverview Generates a short, creative replacement activity for a smoking break.
+ * @fileOverview This file is no longer in use. Replacement suggestions are now user-driven.
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { ReplacementSuggestionInputSchema, type ReplacementSuggestionInput } from '@/ai/types/replacement-suggestion-types';
 import { gemini20Flash } from '@genkit-ai/googleai';
+
+// THIS FLOW IS DEPRECATED AND NOT IN USE.
 
 // Genkit Prompt
 const suggestionPrompt = ai.definePrompt(
@@ -27,12 +29,9 @@ const replacementSuggestionFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const res = await suggestionPrompt(input, {
-      model: gemini20Flash,
-      temperature: 0.3,
-      maxOutputTokens: 80,
-    });
-    return res.text.trim();
+    // This flow is not intended to be called anymore.
+    // It is kept here to avoid breaking imports but will not be used.
+    return "Take a 5 minute walk.";
   }
 );
 

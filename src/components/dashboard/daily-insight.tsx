@@ -1,15 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent } from '../ui/card';
-import { Lightbulb } from 'lucide-react';
+import { Lightbulb, Timer } from 'lucide-react';
 import type { DailyInsightInput } from '@/ai/types/daily-insight-types';
 import type { WithId } from '@/firebase';
-import { subHours, formatDistanceToNow } from 'date-fns';
+import { subHours, formatDistanceToNow, differenceInHours } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 import { alanCarrQuotes } from '@/lib/quotes';
 import { Button } from '../ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface SmokingMoment {
     id: string;
@@ -37,21 +38,44 @@ interface DailyInsightProps {
     lastUrgeTime?: Date;
 }
 
+const COOLDOWN_HOURS = 4;
+const LAST_ANALYSIS_KEY = 'lastAnalysisTime';
+
 export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightProps) {
     const [insight, setInsight] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [initialQuoteSet, setInitialQuoteSet] = useState(false);
+    const [lastAnalysis, setLastAnalysis] = useState<Date | null>(null);
+    const { toast } = useToast();
 
-    // Set a random quote on initial load
+    useEffect(() => {
+        const savedTime = localStorage.getItem(LAST_ANALYSIS_KEY);
+        if (savedTime) {
+            setLastAnalysis(new Date(parseInt(savedTime, 10)));
+        }
+    }, []);
+
+    const showRandomQuote = useCallback(() => {
+        const randomQuote = alanCarrQuotes[Math.floor(Math.random() * alanCarrQuotes.length)];
+        setInsight(randomQuote);
+    }, []);
+
     useEffect(() => {
         if (!initialQuoteSet) {
-            const randomQuote = alanCarrQuotes[Math.floor(Math.random() * alanCarrQuotes.length)];
-            setInsight(randomQuote);
+            showRandomQuote();
             setInitialQuoteSet(true);
         }
-    }, [initialQuoteSet]);
+    }, [initialQuoteSet, showRandomQuote]);
 
     const handleAnalyze = async () => {
+        if (lastAnalysis && differenceInHours(new Date(), lastAnalysis) < COOLDOWN_HOURS) {
+            toast({
+                title: 'Insight Cooldown',
+                description: `You can analyze your progress again in about ${COOLDOWN_HOURS - differenceInHours(new Date(), lastAnalysis)} hour(s).`,
+            });
+            return;
+        }
+
         setIsLoading(true);
         try {
             const twoDaysAgo = subHours(new Date(), 48);
@@ -88,6 +112,10 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
             if (!res.ok) throw new Error(data?.error || 'Failed to get insight.');
             
             setInsight(data.insight);
+            const now = new Date();
+            setLastAnalysis(now);
+            localStorage.setItem(LAST_ANALYSIS_KEY, String(now.getTime()));
+
         } catch (error) {
             console.error("Failed to get daily insight:", error);
             setInsight("Couldn't analyze yet. Please ensure your API key is set up correctly and try again.");
@@ -95,6 +123,8 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
             setIsLoading(false);
         }
     };
+
+    const isCoolingDown = lastAnalysis && differenceInHours(new Date(), lastAnalysis) < COOLDOWN_HOURS;
 
     return (
         <Card className="bg-primary/10 border-primary/40">
@@ -108,8 +138,14 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
                     ) : (
                          <p className="text-sm text-primary italic flex-1">"{insight}"</p>
                     )}
-                    <Button size="icon" variant="ghost" className="text-primary hover:bg-primary/20 hover:text-primary -mr-2 -mt-2 h-8 w-8" onClick={handleAnalyze} disabled={isLoading}>
-                         <Lightbulb className="w-5 h-5" />
+                    <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="text-primary hover:bg-primary/20 hover:text-primary -mr-2 -mt-2 h-8 w-8" 
+                        onClick={handleAnalyze} 
+                        disabled={isLoading || isCoolingDown}
+                    >
+                         {isCoolingDown ? <Timer className="w-5 h-5" /> : <Lightbulb className="w-5 h-5" />}
                     </Button>
                 </div>
             </CardContent>
