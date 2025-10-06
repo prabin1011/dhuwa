@@ -89,7 +89,7 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
             <AlertDialogTrigger asChild>
                 <Button size="lg" className="w-full">
                     <Icon className="w-5 h-5 mr-2" />
-                    Tap to add a cigarette
+                    Tap to Log a Moment
                 </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
