@@ -5,8 +5,8 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { NarrateUrgeInputSchema, type NarrateUrgeInput } from '@/ai/types/narrate-urge-types';
-import { gemini15Flash } from '@genkit-ai/googleai';
 
+const MODEL = 'gemini-2.5-flash';
 
 const narrateUrgePrompt = ai.definePrompt(
   {
@@ -21,11 +21,11 @@ const narrateUrgePrompt = ai.definePrompt(
     - Habit: {{habitType}}
 
     RULES:
-    1.  Always write in the first person, starting with "I felt...".
-    2.  Keep it to a single, concise sentence.
-    3.  Be empathetic and non-judgmental.
-    4.  Connect the moods with "and then".
-    5.  Do NOT mention the act of smoking.
+    1. Always write in the first person, starting with "I felt...".
+    2. Keep it to a single, concise sentence.
+    3. Be empathetic and non-judgmental.
+    4. Connect the moods with "and then".
+    5. Do NOT mention the act of smoking.
 
     EXAMPLES:
     - Input: { moodBefore: 'happy', moodAfter: 'calm' }
@@ -48,8 +48,12 @@ const narrateUrgeFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const llmResponse = await narrateUrgePrompt(input, { model: gemini15Flash });
-    return llmResponse.text;
+    const { text } = await ai.generate({
+      model: MODEL,
+      prompt: narrateUrgePrompt,
+      input,
+    });
+    return text;
   }
 );
 
