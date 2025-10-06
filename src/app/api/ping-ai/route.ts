@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const { text } = await ai.generate({
-      model: 'gemini-2.5-flash',
+      model: 'googleai/gemini-2.5-flash',
       prompt: 'Say OK.',
     });
     return NextResponse.json({ ok: true, text });

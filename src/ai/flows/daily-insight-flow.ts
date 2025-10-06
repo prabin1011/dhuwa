@@ -6,7 +6,7 @@ import { ai } from '@/ai/genkit';
 import { DailyInsightInputSchema, type DailyInsightInput } from '@/ai/types/daily-insight-types';
 import { z } from 'zod';
 
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'googleai/gemini-2.5-flash';
 
 // Genkit Prompt
 const insightPrompt = ai.definePrompt(

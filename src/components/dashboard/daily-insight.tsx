@@ -90,7 +90,7 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
             setInsight(data.insight);
         } catch (error) {
             console.error("Failed to get daily insight:", error);
-            setInsight("Couldn’t analyze yet—log a couple of moments and try again.");
+            setInsight("Couldn't analyze yet. Please ensure your API key is set up correctly and try again.");
         } finally {
             setIsLoading(false);
         }

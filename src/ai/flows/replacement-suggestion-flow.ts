@@ -6,7 +6,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { ReplacementSuggestionInputSchema, type ReplacementSuggestionInput } from '@/ai/types/replacement-suggestion-types';
 
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'googleai/gemini-2.5-flash';
 
 // Genkit Prompt
 const suggestionPrompt = ai.definePrompt(

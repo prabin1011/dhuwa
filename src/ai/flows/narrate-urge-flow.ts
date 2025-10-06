@@ -6,7 +6,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { NarrateUrgeInputSchema, type NarrateUrgeInput } from '@/ai/types/narrate-urge-types';
 
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'googleai/gemini-2.5-flash';
 
 const narrateUrgePrompt = ai.definePrompt(
   {
