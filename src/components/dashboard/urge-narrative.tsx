@@ -41,7 +41,7 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
 
         // If not, generate and save them.
         const generateAndSaveNarrative = async () => {
-            if (!user) return;
+            if (!user || !firestore) return;
             setIsLoading(true);
             try {
                 const { long, short } = getNarrative(urge.moodBefore, urge.moodAfter);
@@ -60,8 +60,10 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
                 }
                 setNarrative(fallback.long);
                 setShortMessage(fallback.short);
-                const urgeRef = doc(firestore, `users/${user.uid}/urges/${urge.id}`);
-                await updateDoc(urgeRef, { narrative: fallback.long, shortMessage: fallback.short });
+                if (user && firestore) {
+                    const urgeRef = doc(firestore, `users/${user.uid}/urges/${urge.id}`);
+                    await updateDoc(urgeRef, { narrative: fallback.long, shortMessage: fallback.short });
+                }
             } finally {
                 setIsLoading(false);
             }
