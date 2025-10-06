@@ -1,5 +1,6 @@
+'use server';
 import { genkit, Ai } from 'genkit';
-import { googleAI, gemini15Flash } from '@genkit-ai/google-genai';
+import { googleAI } from '@genkit-ai/google-genai';
 
 if (
   !process.env.GEMINI_API_KEY &&
@@ -22,5 +23,5 @@ export const ai: Ai = genkit({
         process.env.GOOGLE_API_KEY!,
     }),
   ],
-  defaultModel: gemini15Flash,
+  defaultModel: 'googleai/gemini-1.5-flash-latest',
 });

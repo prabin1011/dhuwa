@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getDailyInsight, DailyInsightInput } from '@/ai/flows/daily-insight-flow';
+import { getDailyInsight } from '@/ai/flows/daily-insight-flow';
+import type { DailyInsightInput } from '@/ai/types/daily-insight-types';
 
 const MomentSchema = z.object({
   id: z.string(),

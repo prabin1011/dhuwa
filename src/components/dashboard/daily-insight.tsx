@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Lightbulb } from 'lucide-react';
-import type { DailyInsightInput } from '@/ai/flows/daily-insight-flow';
+import type { DailyInsightInput } from '@/ai/types/daily-insight-types';
 import type { WithId } from '@/firebase';
 import { subHours, formatDistanceToNow } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';

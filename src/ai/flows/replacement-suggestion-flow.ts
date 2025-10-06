@@ -3,17 +3,11 @@
  * @fileOverview Generates a short, creative replacement activity for a smoking break.
  *
  * - getReplacementSuggestion - A function that returns a suggestion.
- * - ReplacementSuggestionInput - The input type for the flow.
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { ReplacementSuggestionInputSchema, type ReplacementSuggestionInput } from '@/ai/types/replacement-suggestion-types';
 
-// Define Zod schema for input. This is NOT exported.
-const ReplacementSuggestionInputSchema = z.object({
-  habit: z.string().describe('The habit the user is trying to replace, e.g., "smoking".'),
-  breakDuration: z.string().describe('The typical duration of the break, e.g., "5-10 minutes".'),
-});
-export type ReplacementSuggestionInput = z.infer<typeof ReplacementSuggestionInputSchema>;
 
 // Genkit Prompt
 const suggestionPrompt = ai.definePrompt(

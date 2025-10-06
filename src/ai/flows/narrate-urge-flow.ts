@@ -3,18 +3,11 @@
  * @fileOverview Generates a short, first-person narrative for a smoking urge.
  *
  * - narrateUrge - A function that returns a narrative sentence.
- * - NarrateUrgeInput - The input type for the flow.
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { NarrateUrgeInputSchema, type NarrateUrgeInput } from '@/ai/types/narrate-urge-types';
 
-const NarrateUrgeInputSchema = z.object({
-  timestamp: z.string().describe("The ISO 8601 timestamp of when the urge occurred."),
-  moodBefore: z.string().optional().describe("The user's mood before smoking (e.g., 'stressed', 'bored')."),
-  moodAfter: z.string().optional().describe("The user's mood after smoking (e.g., 'guilty', 'calm')."),
-  habitType: z.string().optional().describe("The type of habit, e.g. 'Cigarette' or 'Weed'"),
-});
-export type NarrateUrgeInput = z.infer<typeof NarrateUrgeInputSchema>;
 
 const narrateUrgePrompt = ai.definePrompt(
   {

@@ -5,7 +5,8 @@ import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 import { format } from "date-fns";
 import { Skeleton } from "../ui/skeleton";
-import { narrateUrge, NarrateUrgeInput } from "@/ai/flows/narrate-urge-flow";
+import { narrateUrge } from "@/ai/flows/narrate-urge-flow";
+import type { NarrateUrgeInput } from "@/ai/types/narrate-urge-types";
 
 interface Urge {
     timestamp: Timestamp;
