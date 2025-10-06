@@ -108,7 +108,7 @@ export function MoodReport({ urges, selectedDate }: MoodReportProps) {
         };
 
         const bData = processData(moodsBeforeCount);
-        const aData = processData(aData);
+        const aData = processData(moodsAfterCount);
 
         let dynamicDescription = `Your feelings before & after smoking on ${format(selectedDate, "MMM d")}.`;
         if (bData.length > 0) {
