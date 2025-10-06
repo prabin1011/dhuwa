@@ -9,6 +9,8 @@ import {
   signInWithEmailAndPassword,
   signInAnonymously,
   updateProfile,
+  EmailAuthProvider,
+  linkWithCredential,
 } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,7 +26,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { WelcomeIllustration } from '@/components/illustrations/welcome';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 
 export default function LoginPage() {
@@ -41,12 +43,15 @@ export default function LoginPage() {
   const [showFullLogin, setShowFullLogin] = useState(false);
 
   useEffect(() => {
-    if (!isUserLoading && user) {
+    // If we have a user who is NOT anonymous, they have a full account, redirect to home.
+    if (!isUserLoading && user && !user.isAnonymous) {
       router.push('/');
     }
+    // Anonymous users might want to upgrade, so we let them stay.
   }, [user, isUserLoading, router]);
-
-  if (isUserLoading || user) {
+  
+  // If we are checking for a user, or if a full user (not anon) is already here, show loading.
+  if (isUserLoading || (user && !user.isAnonymous)) {
     return <div className="h-screen w-screen flex items-center justify-center">Loading...</div>;
   }
 
@@ -70,20 +75,38 @@ export default function LoginPage() {
     }
     setIsSubmitting(true);
     try {
-      if (action === 'login') {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
+      // Check if there's an existing anonymous user trying to sign up
+      if (action === 'signup' && auth.currentUser && auth.currentUser.isAnonymous) {
+        // LINK anonymous account to the new email/password
+        const credential = EmailAuthProvider.credential(email, password);
+        await linkWithCredential(auth.currentUser, credential);
+        
+        // Now update the user's profile with the username
+        await updateProfile(auth.currentUser, { displayName: username });
+        const userDocRef = doc(firestore, `users/${auth.currentUser.uid}`);
+        await setDoc(userDocRef, {
+            username: username,
+        }, { merge: true });
+        
+        toast({ title: 'Account Upgraded!', description: `Your progress is now saved to ${email}.` });
+
+      } else if (action === 'signup') {
+        // Standard new user sign-up
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        // Update Firebase Auth user profile and create Firestore doc
-        await updateProfile(user, { displayName: username });
-        const userDocRef = doc(firestore, `users/${user.uid}`);
+        const newUser = userCredential.user;
+        await updateProfile(newUser, { displayName: username });
+        const userDocRef = doc(firestore, `users/${newUser.uid}`);
         await setDoc(userDocRef, {
             username: username,
             createdAt: serverTimestamp()
         }, { merge: true });
+        toast({ title: 'Success', description: 'Your account has been created.' });
+      } else {
+        // Standard login
+        await signInWithEmailAndPassword(auth, email, password);
+        toast({ title: 'Welcome Back!', description: `Successfully logged in.` });
       }
-      toast({ title: 'Success', description: `Successfully ${action === 'login' ? 'logged in' : 'signed up'}.` });
+      
       router.push('/');
     } catch (error: any) {
       console.error(error);
@@ -112,16 +135,13 @@ export default function LoginPage() {
       const userCredential = await signInAnonymously(auth);
       const user = userCredential.user;
 
-      // Update Firebase Auth user profile
       await updateProfile(user, { displayName: username });
 
-      // Create the anonymous user profile document in Firestore
       const userDocRef = doc(firestore, `users/${user.uid}`);
       await setDoc(userDocRef, {
         username: username,
         createdAt: serverTimestamp()
       }, { merge: true });
-
 
       toast({ title: 'Welcome!', description: 'You can explore the app as a guest.' });
       router.push('/');
@@ -136,29 +156,45 @@ export default function LoginPage() {
       setIsSubmitting(false);
     }
   };
+  
+  const currentUsername = user?.displayName || username;
 
+  // Decide what to show: the guest intro or the full login/signup form
   if (!showFullLogin) {
     return (
       <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-8 text-center">
         <div className="flex-1 flex flex-col justify-center items-center">
             <WelcomeIllustration className="w-64 h-64" />
             <h1 className="text-3xl font-bold mt-8 font-heading">Welcome to The Easy Way Out</h1>
-             <p className="text-muted-foreground mt-2">Start your journey with a guest account.</p>
+             <p className="text-muted-foreground mt-2">
+              {user?.isAnonymous ? `Continuing as ${user.displayName}.` : 'Start your journey with a guest account.'}
+             </p>
         </div>
         <div className="w-full max-w-sm space-y-4">
-            <Input 
-                type="text"
-                placeholder="Enter a guest username"
-                className="h-14 text-center text-lg"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={isSubmitting}
-            />
-            <Button size="lg" className="w-full h-14 text-lg" onClick={handleAnonymousSignIn} disabled={isSubmitting}>
+            {/* Only show username input if there is no user yet */}
+            {!user && (
+              <Input 
+                  type="text"
+                  placeholder="Enter a guest username"
+                  className="h-14 text-center text-lg"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  disabled={isSubmitting}
+              />
+            )}
+            {/* If anonymous, this button takes them home. If new, it signs them in. */}
+            {user?.isAnonymous ? (
+              <Button size="lg" className="w-full h-14 text-lg" onClick={() => router.push('/')}>
+                Continue Journey
+              </Button>
+            ) : (
+               <Button size="lg" className="w-full h-14 text-lg" onClick={handleAnonymousSignIn} disabled={isSubmitting || !username}>
                 {isSubmitting ? 'Starting...' : 'Continue as Guest'}
-            </Button>
+               </Button>
+            )}
+            
             <Button size="lg" variant="outline" className="w-full h-14 text-lg" onClick={() => setShowFullLogin(true)} disabled={isSubmitting}>
-                Sign In with Email
+                {user?.isAnonymous ? 'Save Progress with Email' : 'Sign In with Email'}
             </Button>
         </div>
       </div>
@@ -221,9 +257,12 @@ export default function LoginPage() {
         <TabsContent value="signup">
           <Card className="bg-card">
             <CardHeader>
-              <CardTitle>Sign Up</CardTitle>
+              <CardTitle>{user?.isAnonymous ? 'Save Your Progress' : 'Sign Up'}</CardTitle>
               <CardDescription>
-                Create an account to save your progress across devices.
+                {user?.isAnonymous 
+                  ? 'Create a permanent account to save your progress and access it on any device.'
+                  : 'Create an account to save your progress across devices.'
+                }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -233,9 +272,9 @@ export default function LoginPage() {
                   id="username-signup"
                   type="text"
                   placeholder="your_username"
-                  value={username}
+                  value={currentUsername}
                   onChange={(e) => setUsername(e.target.value)}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !!user?.isAnonymous}
                 />
               </div>
               <div className="space-y-2">
@@ -266,7 +305,7 @@ export default function LoginPage() {
                 onClick={() => handleAuthAction('signup')}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Signing up...' : 'Sign Up'}
+                {isSubmitting ? 'Saving...' : 'Save Account'}
               </Button>
             </CardFooter>
           </Card>
