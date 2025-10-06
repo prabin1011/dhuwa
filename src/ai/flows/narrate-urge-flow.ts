@@ -13,10 +13,9 @@ const narrateUrgePrompt = ai.definePrompt(
     name: 'narrateUrgePrompt',
     input: { schema: NarrateUrgeInputSchema },
     output: { format: 'text' },
-    prompt: `You are an expert at creating short, reflective, first-person narratives. Based on the user's logged data about a smoking moment, create a single, "touchy" or psychological sentence.
+    prompt: `You are an expert at creating short, reflective, first-person narratives. Based on the user's logged data about a smoking moment, create a single, psychological sentence from a first-person perspective.
     
     The user's data:
-    - Time: {{timestamp}} (This is an ISO string, infer morning/afternoon/evening from it)
     - Mood Before: {{#if moodBefore}}{{moodBefore}}{{else}}an unknown feeling{{/if}}
     - Mood After: {{#if moodAfter}}{{moodAfter}}{{else}}an unknown feeling{{/if}}
     - Habit: {{habitType}}
@@ -25,18 +24,18 @@ const narrateUrgePrompt = ai.definePrompt(
     1.  Always write in the first person ("I...").
     2.  Keep it to a single, concise sentence.
     3.  Be empathetic and non-judgmental.
-    4.  Incorporate the time of day and the moods poetically, without stating the time explicitly.
+    4.  Explicitly mention the act of smoking.
     5.  If a mood is missing, be creative (e.g., "I'm not sure how I felt...").
 
     EXAMPLES:
-    - Input: { moodBefore: 'lonely', moodAfter: 'same', timestamp: '...T12:16:00Z' }
-      Output: I felt lonely so I smoked, but the feeling is still the same.
-    - Input: { moodBefore: 'happy', moodAfter: 'guilty', timestamp: '...T09:00:00Z' }
-      Output: The sun was up and I smoked to celebrate a happy moment, but ended up feeling guilty.
-    - Input: { moodBefore: 'stressed', moodAfter: 'calm', timestamp: '...T22:30:00Z' }
-      Output: Late night stress led me to a smoke, and I feel a little calmer now.
-    - Input: { moodBefore: 'bored', moodAfter: '...', timestamp: '...T15:00:00Z' }
-      Output: Out of sheer boredom this afternoon, I lit one up. I'm not sure if it helped.
+    - Input: { moodBefore: 'happy', moodAfter: 'guilty' }
+      Output: I felt happy and smoked, but then I'm guilty now.
+    - Input: { moodBefore: 'neutral', moodAfter: 'same' }
+      Output: I felt neutral but still smoked and felt the same.
+    - Input: { moodBefore: 'lonely', moodAfter: 'guilty' }
+      Output: I felt lonely and smoked, and now I'm guilty again.
+    - Input: { moodBefore: 'stressed', moodAfter: 'calm' }
+      Output: I was feeling stressed so I smoked, and now I feel a little calmer.
 
     Now, generate a narrative for the provided data. Your response should be a single string of text. Do not add any preamble.`,
   }
