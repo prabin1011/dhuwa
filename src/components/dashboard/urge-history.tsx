@@ -13,6 +13,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { UrgeNarrative } from "./urge-narrative";
+
 
 interface Urge {
     timestamp: Timestamp;
@@ -48,7 +50,7 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
 
     const costPerItem = useMemo(() => {
         const { packCost = 0, itemsPerPack = 1 } = userProfile;
-        if (itemsPerPack === 0) return 0;
+        if (!itemsPerPack || itemsPerPack === 0) return 0;
         return packCost / itemsPerPack;
     }, [userProfile]);
 
@@ -105,16 +107,10 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
                                         </div>
                                     </AccordionTrigger>
                                     <AccordionContent className="pb-2">
-                                        <ul className="space-y-1 pt-2 border-t">
+                                        <ul className="space-y-3 pt-2 border-t">
                                             {groupedUrges[dateStr].map((urge) => (
-                                                <li key={urge.id} className="flex justify-between items-center px-2 py-1 rounded-md text-xs">
-                                                    <span className="flex items-center gap-2">
-                                                        <span className="font-semibold capitalize">{urge.moodBefore || '...'} &rarr; {urge.moodAfter || '...'}</span>
-                                                        <span className="text-muted-foreground">({urge.type || 'cigarette'})</span>
-                                                    </span>
-                                                    <span className="text-muted-foreground font-mono">
-                                                        {format(urge.timestamp.toDate(), "h:mm a")}
-                                                    </span>
+                                                <li key={urge.id} className="flex justify-between items-center px-1 rounded-md text-xs">
+                                                    <UrgeNarrative urge={urge} />
                                                 </li>
                                             ))}
                                         </ul>
