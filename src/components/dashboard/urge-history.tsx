@@ -18,7 +18,8 @@ interface Urge {
     timestamp: Timestamp;
     notes?: string;
     type?: string;
-    mood?: string;
+    moodBefore?: string;
+    moodAfter?: string;
 }
 
 interface UserProfile {
@@ -48,7 +49,7 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
     const costPerItem = useMemo(() => {
         const { packCost = 0, itemsPerPack = 1 } = userProfile;
         if (itemsPerPack === 0) return 0;
-        return packCost / itemsPerPack;
+        return costPerItem;
     }, [userProfile]);
 
     const groupedUrges = useMemo(() => {
@@ -108,7 +109,7 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
                                             {groupedUrges[dateStr].map((urge) => (
                                                 <li key={urge.id} className="flex justify-between items-center px-2 py-1 rounded-md text-xs">
                                                     <span className="flex items-center gap-2">
-                                                        <span className="font-semibold capitalize">{urge.mood}</span>
+                                                        <span className="font-semibold capitalize">{urge.moodBefore || '...'} &rarr; {urge.moodAfter || '...'}</span>
                                                         <span className="text-muted-foreground">({urge.type || 'cigarette'})</span>
                                                     </span>
                                                     <span className="text-muted-foreground font-mono">

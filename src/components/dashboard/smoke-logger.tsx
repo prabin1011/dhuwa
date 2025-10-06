@@ -2,10 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { useFirebase } from "@/firebase";
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
-import { collection, serverTimestamp } from "firebase/firestore";
-import { Cigarette, Leaf, Plus } from "lucide-react";
+import { collection, serverTimestamp, addDoc } from "firebase/firestore";
+import { Cigarette, Leaf } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -17,6 +16,7 @@ import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
+import { MoodAfterToastAction } from "./mood-after-toast-action";
 
 const MOOD_OPTIONS = [
     {value: 'stressed', label: 'Stressed'},
@@ -40,7 +40,7 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
 
-  const handleLogSmoke = () => {
+  const handleLogSmoke = async () => {
     if (!user || !firestore) {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in to track your habits." });
       return;
@@ -52,17 +52,29 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
     
     const urgesCollection = collection(firestore, 'users', user.uid, 'urges');
     
-    addDocumentNonBlocking(urgesCollection, {
-      timestamp: serverTimestamp(),
-      type: selectedHabit,
-      mood: selectedMood,
-      notes: "" 
-    });
+    try {
+        const docRef = await addDoc(urgesCollection, {
+          timestamp: serverTimestamp(),
+          type: selectedHabit,
+          moodBefore: selectedMood,
+          notes: "" 
+        });
 
-    toast({
-      title: "Logged!",
-      description: `A moment of awareness for ${selectedHabit} has been recorded.`,
-    });
+        toast({
+          title: "Logged!",
+          description: `A moment of awareness for ${selectedHabit} has been recorded.`,
+          duration: 10000, // Keep toast open longer for interaction
+          action: <MoodAfterToastAction urgeId={docRef.id} />,
+        });
+    } catch(e) {
+        console.error("Error logging smoke: ", e);
+        toast({
+            variant: "destructive",
+            title: "Logging failed",
+            description: "Could not save your smoke log. Please try again."
+        })
+    }
+
 
     // Reset state and close dialog
     setSelectedMood(null);
