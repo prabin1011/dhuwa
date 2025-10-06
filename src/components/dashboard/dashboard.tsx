@@ -20,6 +20,7 @@ import { DailyInsight } from "./daily-insight";
 import { useNotifications } from "@/hooks/use-notifications";
 import { useToast } from "@/hooks/use-toast";
 import { UserProfileDropdown } from "./user-profile-dropdown";
+import { DailyHabitChart } from "./daily-habit-chart";
 
 
 interface UserProfile {
