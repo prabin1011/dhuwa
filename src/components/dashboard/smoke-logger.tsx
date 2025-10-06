@@ -56,15 +56,16 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
     const urgesCollection = collection(firestore, 'users', user.uid, 'urges');
     
     try {
-        // Generate narrative locally
-        const narrative = getNarrative(selectedMood);
+        // Generate narrative and short message locally
+        const { long, short } = getNarrative(selectedMood);
 
         const urgeData = {
           timestamp: serverTimestamp(),
           type: selectedHabit,
           moodBefore: selectedMood,
           notes: "",
-          narrative: narrative,
+          narrative: long,
+          shortMessage: short,
         };
 
         const docRef = await addDoc(urgesCollection, urgeData);

@@ -183,6 +183,10 @@
         "narrative": {
           "type": "string",
           "description": "An AI-generated first-person narrative of the moment."
+        },
+        "shortMessage": {
+          "type": "string",
+          "description": "A short, encouraging message about the moment."
         }
       },
       "required": [

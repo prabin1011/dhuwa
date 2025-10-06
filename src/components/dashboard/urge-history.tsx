@@ -22,6 +22,8 @@ interface Urge {
     type?: string;
     moodBefore?: string;
     moodAfter?: string;
+    narrative?: string;
+    shortMessage?: string;
 }
 
 interface UserProfile {
@@ -107,10 +109,10 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
                                         </div>
                                     </AccordionTrigger>
                                     <AccordionContent className="pb-2">
-                                        <ul className="space-y-3 pt-2 border-t">
+                                        <ul className="space-y-1 pt-2 border-t">
                                             {groupedUrges[dateStr].map((urge) => (
-                                                <li key={urge.id} className="flex justify-between items-center px-1 rounded-md text-xs">
-                                                    <UrgeNarrative urge={urge} />
+                                                <li key={urge.id}>
+                                                   <UrgeNarrative urge={urge} />
                                                 </li>
                                             ))}
                                         </ul>

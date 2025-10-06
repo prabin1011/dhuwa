@@ -9,6 +9,7 @@ import { Skeleton } from "../ui/skeleton";
 import { getNarrative } from "@/lib/narrative-vault";
 import { useFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 
 interface Urge {
     timestamp: Timestamp;
@@ -16,6 +17,7 @@ interface Urge {
     moodAfter?: string;
     type?: string;
     narrative?: string;
+    shortMessage?: string;
 }
 
 interface UrgeNarrativeProps {
@@ -25,34 +27,41 @@ interface UrgeNarrativeProps {
 export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
     const { firestore, user } = useFirebase();
     const [narrative, setNarrative] = useState<string | null>(urge.narrative || null);
-    const [isLoading, setIsLoading] = useState(!urge.narrative);
+    const [shortMessage, setShortMessage] = useState<string | null>(urge.shortMessage || null);
+    const [isLoading, setIsLoading] = useState(!urge.narrative || !urge.shortMessage);
 
     useEffect(() => {
-        // If narrative exists, just display it.
-        if (urge.narrative) {
+        // If narrative and message exist, display them.
+        if (urge.narrative && urge.shortMessage) {
             setNarrative(urge.narrative);
+            setShortMessage(urge.shortMessage);
             setIsLoading(false);
             return;
         }
 
-        // If no narrative, generate and save it locally.
+        // If not, generate and save them.
         const generateAndSaveNarrative = async () => {
             if (!user) return;
             setIsLoading(true);
             try {
-                const result = getNarrative(urge.moodBefore, urge.moodAfter);
-                setNarrative(result);
+                const { long, short } = getNarrative(urge.moodBefore, urge.moodAfter);
+                setNarrative(long);
+                setShortMessage(short);
                 
-                // Save the newly generated narrative to Firestore
+                // Save the newly generated texts to Firestore
                 const urgeRef = doc(firestore, `users/${user.uid}/urges/${urge.id}`);
-                await updateDoc(urgeRef, { narrative: result });
+                await updateDoc(urgeRef, { narrative: long, shortMessage: short });
 
             } catch (error) {
                 console.error("Failed to generate urge narrative:", error);
-                const fallbackNarrative = `I felt ${urge.moodBefore || 'a feeling'} and then ${urge.moodAfter || 'another'}.`;
-                setNarrative(fallbackNarrative);
+                const fallback = {
+                    long: `I felt ${urge.moodBefore || 'a feeling'} and then ${urge.moodAfter || 'another'}. It is what it is.`,
+                    short: "One moment at a time."
+                }
+                setNarrative(fallback.long);
+                setShortMessage(fallback.short);
                 const urgeRef = doc(firestore, `users/${user.uid}/urges/${urge.id}`);
-                await updateDoc(urgeRef, { narrative: fallbackNarrative });
+                await updateDoc(urgeRef, { narrative: fallback.long, shortMessage: fallback.short });
             } finally {
                 setIsLoading(false);
             }
@@ -64,7 +73,7 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
 
     if (isLoading) {
         return (
-             <div className="flex items-center justify-between w-full">
+             <div className="flex items-center justify-between w-full px-1 py-2">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/6" />
             </div>
@@ -72,13 +81,24 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
     }
 
     return (
-      <div className="grid grid-cols-[1fr_auto] gap-x-3 w-full">
-        <p className="block text-xs italic text-foreground/80 whitespace-normal break-words">
-          “{narrative}”
-        </p>
-        <time className="text-muted-foreground font-mono text-xs leading-5">
-          {format(urge.timestamp.toDate(), 'h:mm a')}
-        </time>
-      </div>
+        <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value={urge.id} className="border-none">
+                <AccordionTrigger className="py-2 px-1 text-xs hover:no-underline justify-between">
+                   <div className="flex items-center gap-3">
+                     <time className="text-muted-foreground font-mono">
+                        {format(urge.timestamp.toDate(), 'h:mm a')}
+                     </time>
+                     <p className="text-left text-foreground/90 font-medium">
+                        {shortMessage}
+                     </p>
+                   </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-1 pb-2">
+                    <p className="text-xs italic text-foreground/70">
+                       “{narrative}”
+                    </p>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
     );
 }
