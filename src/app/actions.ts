@@ -6,9 +6,7 @@ import { alanCarrQuotes } from '@/lib/quotes';
 // Initialize Firebase Admin SDK if not already initialized
 function initializeAdmin() {
     if (admin.apps.length === 0) {
-        admin.initializeApp({
-            credential: admin.credential.applicationDefault(),
-        });
+        admin.initializeApp();
     }
 }
 
@@ -80,12 +78,19 @@ export async function deleteUserAccount(uid: string) {
         const firestore = admin.firestore();
         const userDocRef = firestore.doc(`users/${uid}`);
         const userProfileRef = firestore.doc(`users/${uid}/profile/main`);
+        const urgesCollectionRef = firestore.collection(`users/${uid}/urges`);
 
-        // We can extend this to delete subcollections like urges if needed.
-        // For now, we delete the main documents.
+        // Delete all documents in the 'urges' subcollection
+        const urgesSnapshot = await urgesCollectionRef.get();
         const batch = firestore.batch();
+        urgesSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+
+        // Delete the main profile documents
         batch.delete(userProfileRef);
         batch.delete(userDocRef);
+        
         await batch.commit();
 
         // Delete the user from Firebase Authentication

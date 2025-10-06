@@ -81,7 +81,9 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         if (result.success) {
             toast({ title: "Account Deleted", description: "Your account has been permanently deleted." });
             onOpenChange(false);
-            auth?.signOut();
+            if (auth) {
+                await auth.signOut();
+            }
             router.push('/login');
         } else {
             toast({ variant: "destructive", title: "Deletion Failed", description: result.message });
@@ -139,7 +141,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                         }
                                         if (step.type === 'radio' && step.options) {
                                             return (
-                                                <RadioGroup {...field} className="grid grid-cols-2 gap-2">
+                                                <RadioGroup {...field} onValueChange={field.onChange} className="grid grid-cols-2 gap-2">
                                                     {step.options.map(option => (
                                                         <Label key={option.value} htmlFor={`${step.field}-${option.value}`} className="flex items-center space-x-2 rounded-md border border-secondary bg-secondary/50 p-2 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/10">
                                                             <RadioGroupItem value={option.value} id={`${step.field}-${option.value}`} />
@@ -171,7 +173,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                                  </div>
                                             );
                                         }
-                                        return <Input {...field} />;
+                                        return <Input {...field} value={field.value || ''} />;
                                     }}
                                 />
                             </div>

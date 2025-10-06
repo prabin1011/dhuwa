@@ -1,34 +1,29 @@
 /**
- * @file Firebase Security Rules for SmokeLess Prototyping.
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a user-ownership model for all data. Each user can only access their own profile data and the urges they have logged.
  *
- * @core_philosophy This ruleset enforces a strict user-ownership model. Each user can only access their own data.
- * All write operations are restricted to authenticated users. The rules prioritize security and data privacy,
- * but avoid complex data validation to facilitate rapid prototyping.
+ * Data Structure:
+ * - /users/{userId}: Stores public profile information for each user.
+ * - /users/{userId}/profile/main: A singleton document storing the user's app-specific profile and settings.
+ * - /users/{userId}/urges/{urgeId}: A collection of all smoking urges logged by a specific user.
  *
- * @data_structure The data is organized under the `/users/{userId}` path. Each user has a profile document
- * and a collection of urge entries.
+ * Key Security Decisions:
+ * - User listing is disallowed.
+ * - All write operations are restricted to the owner of the data.
  *
- * @key_security_decisions
- * - Users can only list their own urges.
- * - Users can only read and write their own profile.
- * - No administrative roles are defined. All users are treated equally.
+ * Denormalization for Authorization:
+ * - User IDs are embedded in the document paths to enforce ownership, avoiding the need for `get()` calls to determine ownership.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Grants access to user documents.
-     * @path /databases/{database}/documents/users/{userId}
-     * @allow (create) Authenticated user can create their own user document.
-     * @deny (create) Authenticated user cannot create another user's document.
-     * @allow (get) Authenticated user can read their own user document.
-     * @deny (get) Authenticated user cannot read another user's document.
-     * @allow (update) Authenticated user can update their own user document.
-     * @deny (update) Authenticated user cannot update another user's document.
-     * @allow (delete) Authenticated user can delete their own user document.
-     * @deny (delete) Authenticated user cannot delete another user's document.
-     * @principle Enforces document ownership for all operations on user documents.
+     * @description Allows a user to read and create their public profile.
+     * @path /users/{userId}
+     * @allow (get, create) if request.auth.uid == userId
+     * @deny (update, delete) if request.auth.uid != userId
+     * @principle Enforces document ownership for writes. Allows self-creation.
      */
     match /users/{userId} {
       function isSignedIn() {
@@ -47,17 +42,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Grants access to user profile documents.
-     * @path /databases/{database}/documents/users/{userId}/profile/main
-     * @allow (create) Authenticated user can create their own profile.
-     * @deny (create) Authenticated user cannot create another user's profile.
-     * @allow (get) Authenticated user can read their own profile.
-     * @deny (get) Authenticated user cannot read another user's profile.
-     * @allow (update) Authenticated user can update their own profile.
-     * @deny (update) Authenticated user cannot update another user's profile.
-     * @allow (delete) Authenticated user can delete their own profile.
-     * @deny (delete) Authenticated user cannot delete another user's profile.
-     * @principle Enforces document ownership for all operations on user profile documents.
+     * @description Allows a user to read and modify their app-specific profile settings.
+     * @path /users/{userId}/profile/main
+     * @allow (get, create, update, delete) if request.auth.uid == userId
+     * @deny If the authenticated user ID does not match the userId in the path.
+     * @principle Restricts access to a user's own data tree.
      */
     match /users/{userId}/profile/main {
       function isSignedIn() {
@@ -76,17 +65,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Grants access to user urges collection.
-     * @path /databases/{database}/documents/users/{userId}/urges/{urgeId}
-     * @allow (create) Authenticated user can create urges in their own collection.
-     * @deny (create) Authenticated user cannot create urges in another user's collection.
-     * @allow (get) Authenticated user can read urges from their own collection.
-     * @deny (get) Authenticated user cannot read urges from another user's collection.
-     * @allow (update) Authenticated user can update urges from their own collection.
-     * @deny (update) Authenticated user cannot update urges from another user's collection.
-     * @allow (delete) Authenticated user can delete urges from their own collection.
-     * @deny (delete) Authenticated user cannot delete urges from another user's collection.
-     * @principle Enforces document ownership for all operations on user urges collection.
+     * @description Allows a user to read and modify their smoking urge logs.
+     * @path /users/{userId}/urges/{urgeId}
+     * @allow (get, create, update, delete) if request.auth.uid == userId
+     * @deny If the authenticated user ID does not match the userId in the path.
+     * @principle Restricts access to a user's own data tree.
      */
     match /users/{userId}/urges/{urgeId} {
       function isSignedIn() {
@@ -98,7 +81,7 @@ service cloud.firestore {
       }
 
       allow get: if isSignedIn() && isOwner(userId);
-      allow list: if isOwner(userId);
+      allow list: if false;
       allow create: if isSignedIn() && isOwner(userId);
       allow update: if isSignedIn() && isOwner(userId);
       allow delete: if isSignedIn() && isOwner(userId);
