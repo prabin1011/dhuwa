@@ -14,12 +14,19 @@ export default function App() {
   const router = useRouter();
   const firestore = useFirestore();
 
+  // Ref for the main onboarding profile
   const userProfileRef = useMemoFirebase(() => {
     if (!user) return null;
     return doc(firestore, `users/${user.uid}/profile/main`);
   }, [firestore, user]);
-
   const { data: userProfile, isLoading: isProfileLoading } = useDoc(userProfileRef);
+
+  // Ref for the anonymous user profile (used to check if it's their first time)
+  const anonymousProfileRef = useMemoFirebase(() => {
+    if (!user || !user.isAnonymous) return null;
+    return doc(firestore, `users/${user.uid}`);
+  }, [firestore, user]);
+  const { data: anonymousProfile, isLoading: isAnonymousProfileLoading } = useDoc(anonymousProfileRef);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -27,7 +34,7 @@ export default function App() {
     }
   }, [user, isUserLoading, router]);
 
-  const isLoading = isUserLoading || (user && isProfileLoading);
+  const isLoading = isUserLoading || (user && (isProfileLoading || (user.isAnonymous && isAnonymousProfileLoading)));
 
   if (isLoading) {
     return (
@@ -52,12 +59,17 @@ export default function App() {
     );
   }
 
-  // If user is logged in but has not completed onboarding
-  if (user && !userProfile) {
+  // A full user (not anonymous) who hasn't completed onboarding.
+  if (user && !user.isAnonymous && !userProfile) {
     return <Onboarding />;
   }
 
-  // If user is logged in and has completed onboarding
+  // An anonymous user who exists but hasn't completed onboarding.
+  if (user && user.isAnonymous && anonymousProfile && !userProfile) {
+    return <Onboarding />;
+  }
+
+  // If user is logged in and has a full profile, show the dashboard.
   if (user && userProfile) {
     return (
       <div className="h-screen w-screen bg-background">
@@ -66,6 +78,7 @@ export default function App() {
     );
   }
   
-  // Fallback, should ideally not be reached if logic is correct
+  // Fallback for any other state (e.g., user exists but anonymous profile check failed)
+  // This could briefly show while redirects or state updates are happening.
   return null;
 }

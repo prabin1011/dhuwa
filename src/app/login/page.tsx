@@ -22,9 +22,12 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { WelcomeIllustration } from '@/components/illustrations/welcome';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore } from '@/firebase/provider';
 
 export default function LoginPage() {
   const auth = useAuth();
+  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
@@ -76,14 +79,23 @@ export default function LoginPage() {
   };
 
   const handleAnonymousSignIn = async () => {
-    if (!auth) return;
+    if (!auth || !firestore) return;
     setIsSubmitting(true);
     try {
-      await signInAnonymously(auth);
+      const userCredential = await signInAnonymously(auth);
+      const user = userCredential.user;
+
+      // Create the anonymous user profile document
+      const userDocRef = doc(firestore, `users/${user.uid}`);
+      await setDoc(userDocRef, {
+        createdAt: serverTimestamp()
+      }, { merge: true });
+
+
       toast({ title: 'Welcome!', description: 'You can explore the app as a guest.' });
       router.push('/');
     } catch (error: any) {
-      console.error(error);
+      console.error("Anonymous sign-in error:", error);
       toast({
         variant: 'destructive',
         title: 'Authentication Error',
