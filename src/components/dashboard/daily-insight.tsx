@@ -100,7 +100,7 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
                             <Skeleton className="h-4 w-3/4 bg-primary/20" />
                         </div>
                     ) : (
-                         <p className="text-sm text-primary-foreground/90 italic flex-1">"{insight}"</p>
+                         <p className="text-sm text-primary/90 italic flex-1">"{insight}"</p>
                     )}
                     <Button size="icon" variant="ghost" className="text-primary hover:bg-primary/20 hover:text-primary -mr-2 -mt-2 h-8 w-8" onClick={handleAnalyze} disabled={isLoading}>
                          <Lightbulb className="w-5 h-5" />
