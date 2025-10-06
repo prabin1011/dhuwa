@@ -6,8 +6,7 @@ import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 import { format } from "date-fns";
 import { Skeleton } from "../ui/skeleton";
-import { narrateUrge } from "@/ai/flows/narrate-urge-flow";
-import type { NarrateUrgeInput } from "@/ai/types/narrate-urge-types";
+import { getNarrative } from "@/lib/narrative-vault";
 import { useFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 
@@ -36,18 +35,12 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
             return;
         }
 
-        // If no narrative, generate and save it.
+        // If no narrative, generate and save it locally.
         const generateAndSaveNarrative = async () => {
             if (!user) return;
             setIsLoading(true);
             try {
-                const input: NarrateUrgeInput = {
-                    timestamp: urge.timestamp.toDate().toISOString(),
-                    moodBefore: urge.moodBefore,
-                    moodAfter: urge.moodAfter,
-                    habitType: urge.type
-                };
-                const result = await narrateUrge(input);
+                const result = getNarrative(urge.moodBefore, urge.moodAfter);
                 setNarrative(result);
                 
                 // Save the newly generated narrative to Firestore
@@ -56,9 +49,9 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
 
             } catch (error) {
                 console.error("Failed to generate urge narrative:", error);
-                const fallbackNarrative = `Felt ${urge.moodBefore || '...'} and then ${urge.moodAfter || '...'}.`;
+                const fallbackNarrative = `I felt ${urge.moodBefore || 'a feeling'} and then ${urge.moodAfter || 'another'}.`;
                 setNarrative(fallbackNarrative);
-                 const urgeRef = doc(firestore, `users/${user.uid}/urges/${urge.id}`);
+                const urgeRef = doc(firestore, `users/${user.uid}/urges/${urge.id}`);
                 await updateDoc(urgeRef, { narrative: fallbackNarrative });
             } finally {
                 setIsLoading(false);
