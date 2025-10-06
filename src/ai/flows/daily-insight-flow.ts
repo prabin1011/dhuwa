@@ -61,7 +61,7 @@ const dailyInsightFlow = ai.defineFlow(
             moments: input.userProfile.moments ?? [],
         }
     };
-    const llmResponse = await insightPrompt(sanitizedInput);
+    const llmResponse = await insightPrompt(sanitizedInput, { model: gemini15Flash });
     return llmResponse.text;
   }
 );

@@ -49,7 +49,7 @@ const narrateUrgeFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const llmResponse = await narrateUrgePrompt(input);
+    const llmResponse = await narrateUrgePrompt(input, { model: gemini15Flash });
     return llmResponse.text;
   }
 );
