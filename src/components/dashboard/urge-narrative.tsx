@@ -9,7 +9,6 @@ import { Skeleton } from "../ui/skeleton";
 import { getNarrative } from "@/lib/narrative-vault";
 import { useFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 
 interface Urge {
     timestamp: Timestamp;
@@ -31,7 +30,6 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
     const [isLoading, setIsLoading] = useState(!urge.narrative || !urge.shortMessage);
 
     useEffect(() => {
-        // If narrative and message exist, display them.
         if (urge.narrative && urge.shortMessage) {
             setNarrative(urge.narrative);
             setShortMessage(urge.shortMessage);
@@ -39,7 +37,6 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
             return;
         }
 
-        // If not, generate and save them.
         const generateAndSaveNarrative = async () => {
             if (!user || !firestore) return;
             setIsLoading(true);
@@ -48,7 +45,6 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
                 setNarrative(long);
                 setShortMessage(short);
                 
-                // Save the newly generated texts to Firestore
                 const urgeRef = doc(firestore, `users/${user.uid}/urges/${urge.id}`);
                 await updateDoc(urgeRef, { narrative: long, shortMessage: short });
 
@@ -83,24 +79,20 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
     }
 
     return (
-        <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value={urge.id} className="border-none">
-                <AccordionTrigger className="py-2 px-1 text-xs hover:no-underline justify-between">
-                   <div className="flex items-center gap-3">
-                     <time className="text-muted-foreground font-mono">
-                        {format(urge.timestamp.toDate(), 'h:mm a')}
-                     </time>
-                     <p className="text-left text-foreground/90 font-medium">
-                        {shortMessage}
-                     </p>
-                   </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-1 pb-2">
-                    <p className="text-xs italic text-foreground/70">
-                       “{narrative}”
-                    </p>
-                </AccordionContent>
-            </AccordionItem>
-        </Accordion>
+        <div className="w-full px-1 py-2">
+            <div className="flex items-center gap-3">
+              <time className="text-muted-foreground font-mono text-xs">
+                 {format(urge.timestamp.toDate(), 'h:mm a')}
+              </time>
+              <p className="text-left text-foreground/90 font-medium text-xs">
+                 {shortMessage}
+              </p>
+            </div>
+            <div className="px-1 pt-2">
+                <p className="text-xs italic text-foreground/70">
+                   “{narrative}”
+                </p>
+            </div>
+        </div>
     );
 }
