@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Lightbulb } from 'lucide-react';
-import { getDailyInsight } from '@/ai/flows/daily-insight-flow';
 import type { DailyInsightInput } from '@/ai/flows/daily-insight-flow';
 import type { WithId } from '@/firebase';
 import { subHours, formatDistanceToNow } from 'date-fns';
@@ -70,21 +69,28 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
             
             const input: DailyInsightInput = {
                 userProfile: {
-                    goal: userProfile.goal || 'not set',
-                    motivation: userProfile.motivation || 'not set',
-                    preferredTone: userProfile.preferredTone || 'friendly',
-                    itemsPerDay: userProfile.itemsPerDay || 'unknown',
-                    moments: userProfile.moments || [],
+                    goal: userProfile.goal,
+                    motivation: userProfile.motivation,
+                    preferredTone: userProfile.preferredTone,
+                    itemsPerDay: userProfile.itemsPerDay,
+                    moments: userProfile.moments,
                 },
                 recentUrges,
                 timeSinceLastUrge,
             };
+
+            const res = await fetch('/api/daily-insight', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(input),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.error || 'Failed to get insight.');
             
-            const result = await getDailyInsight(input);
-            setInsight(result);
+            setInsight(data.insight);
         } catch (error) {
             console.error("Failed to get daily insight:", error);
-            setInsight("Couldn't analyze your day. Make sure you've logged some activity first!");
+            setInsight("Couldn’t analyze yet—log a couple of moments and try again.");
         } finally {
             setIsLoading(false);
         }

@@ -79,13 +79,16 @@ const dailyInsightFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    // Sanitize urges: limit to 10 to avoid overwhelming the prompt
+    // Sanitize input
     const sanitizedInput = {
         ...input,
         recentUrges: input.recentUrges.slice(0, 10),
         userProfile: {
-            ...input.userProfile,
-            moments: input.userProfile.moments || [], // Ensure moments is an array
+            goal: input.userProfile.goal ?? 'not set',
+            motivation: input.userProfile.motivation ?? 'not set',
+            preferredTone: input.userProfile.preferredTone ?? 'friendly',
+            itemsPerDay: input.userProfile.itemsPerDay ?? 'unknown',
+            moments: input.userProfile.moments ?? [],
         }
     };
     const llmResponse = await insightPrompt(sanitizedInput);
