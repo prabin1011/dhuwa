@@ -41,19 +41,11 @@ export async function POST(req: Request) {
   } catch (err: any) {
     // Log *everything* on the server to see real cause
     console.error('[daily-insight] ERROR:', {
+      name: err?.name,
       message: err?.message,
       stack: err?.stack,
-      name: err?.name,
-      cause: err?.cause,
     });
 
-    // Show a helpful hint in dev
-    const hint =
-      process.env.NODE_ENV !== 'production'
-        ? err?.message || 'Insight generation failed'
-        : 'Insight generation failed';
-
-    const status = err instanceof z.ZodError ? 400 : 500;
-    return NextResponse.json({ error: hint }, { status });
+    return NextResponse.json({ error: err?.message || 'Insight generation failed' }, { status: 500 });
   }
 }

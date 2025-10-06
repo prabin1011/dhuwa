@@ -14,7 +14,6 @@ export const ai: Ai = genkit({
   plugins: [
     googleAI({
       apiKey: API_KEY,
-      apiVersion: 'v1beta', // explicit to match the docs & your environment
     }),
   ],
 });
