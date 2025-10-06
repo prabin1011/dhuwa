@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from "react";
@@ -7,12 +8,15 @@ import { format } from "date-fns";
 import { Skeleton } from "../ui/skeleton";
 import { narrateUrge } from "@/ai/flows/narrate-urge-flow";
 import type { NarrateUrgeInput } from "@/ai/types/narrate-urge-types";
+import { useFirebase } from "@/firebase";
+import { doc, updateDoc } from "firebase/firestore";
 
 interface Urge {
     timestamp: Timestamp;
     moodBefore?: string;
     moodAfter?: string;
     type?: string;
+    narrative?: string;
 }
 
 interface UrgeNarrativeProps {
@@ -20,11 +24,21 @@ interface UrgeNarrativeProps {
 }
 
 export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
-    const [narrative, setNarrative] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const { firestore, user } = useFirebase();
+    const [narrative, setNarrative] = useState<string | null>(urge.narrative || null);
+    const [isLoading, setIsLoading] = useState(!urge.narrative);
 
     useEffect(() => {
-        const generateNarrative = async () => {
+        // If narrative exists, just display it.
+        if (urge.narrative) {
+            setNarrative(urge.narrative);
+            setIsLoading(false);
+            return;
+        }
+
+        // If no narrative, generate and save it.
+        const generateAndSaveNarrative = async () => {
+            if (!user) return;
             setIsLoading(true);
             try {
                 const input: NarrateUrgeInput = {
@@ -35,17 +49,24 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
                 };
                 const result = await narrateUrge(input);
                 setNarrative(result);
+                
+                // Save the newly generated narrative to Firestore
+                const urgeRef = doc(firestore, `users/${user.uid}/urges/${urge.id}`);
+                await updateDoc(urgeRef, { narrative: result });
+
             } catch (error) {
                 console.error("Failed to generate urge narrative:", error);
-                // Fallback to a simpler format on error
-                setNarrative(`Felt ${urge.moodBefore || '...'} and then ${urge.moodAfter || '...'}.`);
+                const fallbackNarrative = `Felt ${urge.moodBefore || '...'} and then ${urge.moodAfter || '...'}.`;
+                setNarrative(fallbackNarrative);
+                 const urgeRef = doc(firestore, `users/${user.uid}/urges/${urge.id}`);
+                await updateDoc(urgeRef, { narrative: fallbackNarrative });
             } finally {
                 setIsLoading(false);
             }
         };
 
-        generateNarrative();
-    }, [urge]);
+        generateAndSaveNarrative();
+    }, [urge, user, firestore]);
 
 
     if (isLoading) {

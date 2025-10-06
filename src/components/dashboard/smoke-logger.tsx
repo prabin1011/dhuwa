@@ -1,9 +1,10 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { collection, serverTimestamp, addDoc } from "firebase/firestore";
+import { collection, serverTimestamp, addDoc, updateDoc } from "firebase/firestore";
 import { Cigarette, Leaf } from "lucide-react";
 import {
   Select,
@@ -17,6 +18,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
 import { MoodAfterToastAction } from "./mood-after-toast-action";
+import { narrateUrge } from "@/ai/flows/narrate-urge-flow";
+import type { NarrateUrgeInput } from "@/ai/types/narrate-urge-types";
+
 
 const MOOD_OPTIONS = [
     {value: 'stressed', label: 'Stressed'},
@@ -53,19 +57,37 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
     const urgesCollection = collection(firestore, 'users', user.uid, 'urges');
     
     try {
-        const docRef = await addDoc(urgesCollection, {
+        const urgeData = {
           timestamp: serverTimestamp(),
           type: selectedHabit,
           moodBefore: selectedMood,
-          notes: "" 
-        });
+          notes: "",
+          narrative: "Generating narrative..." // Placeholder
+        };
+
+        const docRef = await addDoc(urgesCollection, urgeData);
 
         toast({
           title: "Smoke Logged!",
           description: `Your moment of awareness has been recorded.`,
-          duration: 10000, // Keep toast open longer for interaction
+          duration: 10000,
           action: <MoodAfterToastAction urgeId={docRef.id} />,
         });
+        
+        // Now, generate and save the narrative asynchronously
+        const narrativeInput: NarrateUrgeInput = {
+            timestamp: new Date().toISOString(),
+            moodBefore: selectedMood,
+            habitType: selectedHabit
+        }
+        
+        narrateUrge(narrativeInput).then(narrativeText => {
+            updateDoc(docRef, { narrative: narrativeText });
+        }).catch(error => {
+            console.error("Failed to generate and save narrative:", error);
+            updateDoc(docRef, { narrative: "I smoked." }); // Fallback narrative
+        });
+
     } catch(e) {
         console.error("Error logging smoke: ", e);
         toast({

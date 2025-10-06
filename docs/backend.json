@@ -179,6 +179,10 @@
           "type": "string",
           "description": "The user's mood after logging the urge.",
           "enum": ["calm", "guilty", "energized", "sleepy", "same"]
+        },
+        "narrative": {
+          "type": "string",
+          "description": "An AI-generated first-person narrative of the moment."
         }
       },
       "required": [
