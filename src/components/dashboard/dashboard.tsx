@@ -14,9 +14,7 @@ import { Skeleton } from "../ui/skeleton";
 import { SmokingPlan } from "./smoking-plan";
 import { ProgressTracker } from "./progress-tracker";
 import { ReplacementReport } from "./replacement-report";
-import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent } from "../ui/card";
-import { subDays } from "date-fns";
+import { DateSelector } from "./date-selector";
 import { MoodReport } from "./mood-report";
 import { DailyHabitChart } from "./daily-habit-chart";
 import { DailyInsight } from "./daily-insight";
@@ -132,17 +130,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     <DailyInsight userProfile={userProfile} urges={sortedUrges} lastUrgeTime={lastUrgeTime}/>
                     <RealTimeTimer lastUrgeTime={lastUrgeTime} />
                     
-                    <Card>
-                        <CardContent className="p-0">
-                            <Calendar
-                                mode="single"
-                                selected={selectedDate}
-                                onSelect={setSelectedDate}
-                                className="p-0"
-                                disabled={(date) => date > new Date() || date < subDays(new Date(), 365)}
-                            />
-                        </CardContent>
-                    </Card>
+                    <DateSelector selected={selectedDate} onSelect={setSelectedDate} />
 
                     <SavingsStats urges={sortedUrges} userProfile={userProfile} selectedDate={selectedDate} />
                     <SmokingPlan userProfile={userProfile} selectedDate={selectedDate || new Date()} />
