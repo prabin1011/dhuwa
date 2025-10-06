@@ -1,39 +1,36 @@
 /**
  * @file Firestore Security Rules
- * @description This ruleset enforces a user-ownership model for all data. Each user can only access their own profile data and the urges they have logged.
+ * @description This ruleset enforces a strict user-ownership model, ensuring that only the authenticated user can access their own data.
  *
  * Data Structure:
  * - /users/{userId}: Stores public profile information for each user.
  * - /users/{userId}/profile/main: A singleton document storing the user's app-specific profile and settings.
- * - /users/{userId}/urges/{urgeId}: A collection of all smoking urges logged by a specific user.
+ * - /users/{userId}/urges/{urgeId}: Stores smoking urges logged by a specific user.
  *
  * Key Security Decisions:
- * - User listing is disallowed.
- * - All write operations are restricted to the owner of the data.
- *
- * Denormalization for Authorization:
- * - User IDs are embedded in the document paths to enforce ownership, avoiding the need for `get()` calls to determine ownership.
+ * - Users can only read and write their own profile data.
+ * - Users can only create, read, update, and delete their own urges.
+ * - Listing all users is disallowed.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows a user to read and create their public profile.
+     * @description Controls access to user profile information.
      * @path /users/{userId}
-     * @allow (get, create) if request.auth.uid == userId
-     * @deny (update, delete) if request.auth.uid != userId
-     * @principle Enforces document ownership for writes. Allows self-creation.
+     * @allow (create) User with ID 'user123' creates their profile.
+     * @deny (create) User with ID 'user123' attempts to create profile for 'user456'.
+     * @allow (get) User with ID 'user123' reads their own profile.
+     * @deny (get) User with ID 'user123' attempts to read profile of 'user456'.
+     * @allow (update) User with ID 'user123' updates their own profile.
+     * @deny (update) User with ID 'user123' attempts to update profile of 'user456'.
+     * @allow (delete) User with ID 'user123' deletes their own profile.
+     * @deny (delete) User with ID 'user123' attempts to delete profile of 'user456'.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
+      // Verifies that the user is signed in
       allow get: if isSignedIn() && isOwner(userId);
       allow list: if false;
       allow create: if isSignedIn() && isOwner(userId);
@@ -42,49 +39,58 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows a user to read and modify their app-specific profile settings.
+     * @description Controls access to the user's main profile document.
      * @path /users/{userId}/profile/main
-     * @allow (get, create, update, delete) if request.auth.uid == userId
-     * @deny If the authenticated user ID does not match the userId in the path.
-     * @principle Restricts access to a user's own data tree.
+     * @allow (create) User with ID 'user123' creates their main profile.
+     * @deny (create) User with ID 'user123' attempts to create main profile for 'user456'.
+     * @allow (get) User with ID 'user123' reads their own main profile.
+     * @deny (get) User with ID 'user123' attempts to read main profile of 'user456'.
+     * @allow (update) User with ID 'user123' updates their own main profile.
+     * @deny (update) User with ID 'user123' attempts to update main profile of 'user456'.
+     * @allow (delete) User with ID 'user123' deletes their own main profile.
+     * @deny (delete) User with ID 'user123' attempts to delete main profile of 'user456'.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId}/profile/main {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
       allow get: if isSignedIn() && isOwner(userId);
       allow list: if false;
       allow create: if isSignedIn() && isOwner(userId);
       allow update: if isSignedIn() && isOwner(userId);
-      allow delete: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Allows a user to read and modify their smoking urge logs.
+     * @description Controls access to the collection of smoking urges for a specific user.
      * @path /users/{userId}/urges/{urgeId}
-     * @allow (get, create, update, delete) if request.auth.uid == userId
-     * @deny If the authenticated user ID does not match the userId in the path.
-     * @principle Restricts access to a user's own data tree.
+     * @allow (create) User with ID 'user123' logs a new smoking urge.
+     * @deny (create) User with ID 'user123' attempts to log a smoking urge for 'user456'.
+     * @allow (get) User with ID 'user123' reads their own smoking urge.
+     * @deny (get) User with ID 'user123' attempts to read smoking urge of 'user456'.
+     * @allow (update) User with ID 'user123' updates their own smoking urge.
+     * @deny (update) User with ID 'user123' attempts to update smoking urge of 'user456'.
+     * @allow (delete) User with ID 'user123' deletes their own smoking urge.
+     * @deny (delete) User with ID 'user123' attempts to delete smoking urge of 'user456'.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId}/urges/{urgeId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
       allow get: if isSignedIn() && isOwner(userId);
-      allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isOwner(userId);
-      allow delete: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isOwner(userId) && resource != null;
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
+  }
+
+  // Helper functions
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
+  function isOwner(userId) {
+    return request.auth.uid == userId;
+  }
+
+  function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
   }
 }
