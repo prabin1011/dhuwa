@@ -1,4 +1,4 @@
-import { genkit, Ai } from 'genkit';
+import { genkit, type Ai } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 
 const API_KEY =
@@ -11,9 +11,5 @@ if (!API_KEY) {
 }
 
 export const ai: Ai = genkit({
-  plugins: [
-    googleAI({
-      apiKey: API_KEY,
-    }),
-  ],
+  plugins: [googleAI({ apiKey: API_KEY })],
 });
