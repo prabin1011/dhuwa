@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { collection, serverTimestamp, addDoc } from "firebase/firestore";
-import { Cigarette, Leaf } from "lucide-react";
+import { Cigarette, Leaf, Minus, Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -41,6 +41,7 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
   const [selectedHabit, setSelectedHabit] = useState(habits[0]);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
 
   const handleLogSmoke = async () => {
@@ -66,12 +67,13 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
           notes: "",
           narrative: long,
           shortMessage: short,
+          count: quantity,
         };
 
         const docRef = await addDoc(urgesCollection, urgeData);
 
         toast({
-          title: "Smoke Logged!",
+          title: `Smoke${quantity > 1 ? 's' : ''} Logged!`,
           description: `Your moment of awareness has been recorded.`,
           duration: 10000,
           action: <MoodAfterToastAction urgeId={docRef.id} />,
@@ -89,6 +91,7 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
 
     // Reset state and close dialog
     setSelectedMood(null);
+    setQuantity(1);
     setIsDialogOpen(false);
   };
 
@@ -122,7 +125,7 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
                         Select the primary emotion you feel right now. This helps you identify triggers.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <div className="py-4">
+                <div className="py-4 space-y-6">
                      <RadioGroup value={selectedMood ?? ''} onValueChange={setSelectedMood} className="grid grid-cols-2 gap-3">
                         {MOOD_OPTIONS.map(item => (
                             <Label key={item.value} htmlFor={`mood-${item.value}`} className="flex items-center space-x-3 rounded-md border-2 border-secondary bg-secondary/50 p-3 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:checked]:bg-primary/10">
@@ -131,9 +134,21 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
                             </Label>
                         ))}
                     </RadioGroup>
+                    <div className="flex items-center justify-center gap-4">
+                        <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => Math.max(1, q - 1))}>
+                            <Minus className="h-4 w-4" />
+                        </Button>
+                        <div className="text-center">
+                            <p className="text-3xl font-bold">{quantity}</p>
+                            <p className="text-xs text-muted-foreground">{selectedHabit}{quantity > 1 ? 's' : ''}</p>
+                        </div>
+                        <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => q + 1)}>
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
                 <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setSelectedMood(null)}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel onClick={() => {setSelectedMood(null); setQuantity(1)}}>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleLogSmoke} disabled={!selectedMood}>
                         Log Smoke
                     </AlertDialogAction>

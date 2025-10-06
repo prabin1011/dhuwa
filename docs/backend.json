@@ -187,11 +187,16 @@
         "shortMessage": {
           "type": "string",
           "description": "A short, encouraging message about the moment."
+        },
+        "count": {
+          "type": "number",
+          "description": "The number of items (e.g., cigarettes) consumed in this single urge."
         }
       },
       "required": [
         "timestamp",
-        "moodBefore"
+        "moodBefore",
+        "count"
       ]
     },
     "SmokingMoment": {

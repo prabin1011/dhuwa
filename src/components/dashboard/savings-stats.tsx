@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from "react";
@@ -10,6 +11,7 @@ import type { Timestamp } from "firebase/firestore";
 interface Urge {
     timestamp: Timestamp;
     type?: string;
+    count?: number;
 }
 
 interface SmokingMoment {
@@ -65,10 +67,18 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         const date = selectedDate || new Date();
         const moments = userProfile.moments || [];
         
+        const getUrgeCount = (filteredUrges: WithId<Urge>[]) => {
+            return filteredUrges.reduce((sum, urge) => sum + (urge.count || 1), 0);
+        }
+
         // Expense Calculations (based on logged urges)
         const dailyUrges = urges.filter(urge => isSameDay(urge.timestamp.toDate(), date));
         const weeklyUrges = urges.filter(urge => isWithinInterval(urge.timestamp.toDate(), { start: startOfWeek(date), end: endOfWeek(date) }));
         const monthlyUrges = urges.filter(urge => isWithinInterval(urge.timestamp.toDate(), { start: startOfMonth(date), end: endOfMonth(date) }));
+        
+        const dailyUrgeCount = getUrgeCount(dailyUrges);
+        const weeklyUrgeCount = getUrgeCount(weeklyUrges);
+        const monthlyUrgeCount = getUrgeCount(monthlyUrges);
         
         // Savings Calculations (based on skipped planned moments)
         const getSkippedCount = (start: Date, end: Date): number => {
@@ -91,10 +101,10 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
 
         const formatMoney = (amount: number) => `$${amount.toFixed(2)}`;
 
-        const dailyExpenseAmount = dailyUrges.length * costPerItem;
+        const dailyExpenseAmount = dailyUrgeCount * costPerItem;
         const dailySavingsAmount = dailySkipped * costPerItem;
         
-        let dynamicDescription = expenseMessages[dailyUrges.length % expenseMessages.length];
+        let dynamicDescription = expenseMessages[dailyUrgeCount % expenseMessages.length];
         if (dailySavingsAmount > dailyExpenseAmount && dailySavingsAmount > 0) {
             dynamicDescription = savingsMessages[dailySkipped % savingsMessages.length];
         } else if (dailyExpenseAmount === 0 && dailySavingsAmount === 0) {
@@ -104,9 +114,9 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         return {
             stats: {
                 expenses: {
-                    daily: { count: dailyUrges.length, money: formatMoney(dailyExpenseAmount) },
-                    weekly: { count: weeklyUrges.length, money: formatMoney(weeklyUrges.length * costPerItem) },
-                    monthly: { count: monthlyUrges.length, money: formatMoney(monthlyUrges.length * costPerItem) }
+                    daily: { count: dailyUrgeCount, money: formatMoney(dailyExpenseAmount) },
+                    weekly: { count: weeklyUrgeCount, money: formatMoney(weeklyUrgeCount * costPerItem) },
+                    monthly: { count: monthlyUrgeCount, money: formatMoney(monthlyUrgeCount * costPerItem) }
                 },
                 savings: {
                     daily: { count: dailySkipped, money: formatMoney(dailySavingsAmount) },

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { WithId } from "@/firebase";
@@ -5,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, isToday, isYesterday, parseISO } from "date-fns";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { Timestamp } from "firebase/firestore";
 import {
   Accordion,
@@ -24,6 +25,7 @@ interface Urge {
     moodAfter?: string;
     narrative?: string;
     shortMessage?: string;
+    count?: number;
 }
 
 interface UserProfile {
@@ -92,7 +94,7 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
                     ) : sortedGroupKeys.length > 0 ? (
                         <Accordion type="multiple" className="space-y-2">
                             {sortedGroupKeys.map((dateStr) => {
-                                const dailySmokes = groupedUrges[dateStr].length;
+                                const dailySmokes = groupedUrges[dateStr].reduce((sum, urge) => sum + (urge.count || 1), 0);
                                 const dailyCost = dailySmokes * costPerItem;
 
                                 return (

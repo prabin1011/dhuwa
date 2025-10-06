@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -9,6 +10,7 @@ import { format, subDays, isSameDay } from 'date-fns';
 
 interface Urge {
     timestamp: Timestamp;
+    count?: number;
 }
 
 interface DailyHabitChartProps {
@@ -23,9 +25,10 @@ export function DailyHabitChart({ urges, selectedDate }: DailyHabitChartProps) {
         for (let i = 29; i >= 0; i--) {
             const date = subDays(today, i);
             const dayUrges = urges.filter(urge => urge.timestamp && isSameDay(urge.timestamp.toDate(), date));
+            const count = dayUrges.reduce((sum, urge) => sum + (urge.count || 1), 0);
             data.push({
                 date: format(date, 'MMM d'),
-                count: dayUrges.length
+                count
             });
         }
         

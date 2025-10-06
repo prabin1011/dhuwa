@@ -17,6 +17,7 @@ interface Urge {
     type?: string;
     narrative?: string;
     shortMessage?: string;
+    count?: number;
 }
 
 interface UrgeNarrativeProps {
@@ -78,11 +79,14 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
         )
     }
 
+    const countLabel = urge.count && urge.count > 1 ? ` (x${urge.count})` : '';
+
     return (
         <div className="w-full px-1 py-2">
             <div className="flex items-center gap-3">
               <time className="text-muted-foreground font-mono text-xs">
                  {format(urge.timestamp.toDate(), 'h:mm a')}
+                 {countLabel}
               </time>
               <p className="text-left text-foreground/90 font-medium text-xs">
                  {shortMessage}

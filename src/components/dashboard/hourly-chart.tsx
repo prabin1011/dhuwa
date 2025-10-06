@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -8,6 +9,7 @@ import type { Timestamp } from 'firebase/firestore';
 
 interface Urge {
     timestamp: Timestamp;
+    count?: number;
 }
 
 interface HourlyChartProps {
@@ -24,7 +26,7 @@ export function HourlyChart({ urges }: HourlyChartProps) {
         urges.forEach(urge => {
             if (urge.timestamp) {
                 const hour = urge.timestamp.toDate().getHours();
-                data[hour].count++;
+                data[hour].count += urge.count || 1;
             }
         });
         return data;
