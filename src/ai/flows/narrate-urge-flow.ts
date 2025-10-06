@@ -33,7 +33,7 @@ const narrateUrgePrompt = ai.definePrompt(
     1.  Always write in the first person ("I...").
     2.  Keep it to a single, concise sentence.
     3.  Be empathetic and non-judgmental.
-    4.  Incorporate the time of day and the moods.
+    4.  Incorporate the time of day and the moods poetically, without stating the time explicitly.
     5.  If a mood is missing, be creative (e.g., "I'm not sure how I felt...").
 
     EXAMPLES:

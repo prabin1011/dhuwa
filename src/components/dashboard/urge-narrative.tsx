@@ -37,7 +37,7 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
             } catch (error) {
                 console.error("Failed to generate urge narrative:", error);
                 // Fallback to a simpler format on error
-                setNarrative(`At ${format(urge.timestamp.toDate(), "h:mm a")}, felt ${urge.moodBefore || '...'} and then ${urge.moodAfter || '...'}.`);
+                setNarrative(`Felt ${urge.moodBefore || '...'} and then ${urge.moodAfter || '...'}.`);
             } finally {
                 setIsLoading(false);
             }
