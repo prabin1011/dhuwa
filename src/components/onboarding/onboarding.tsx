@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
-import { STEPS, type OnboardingData } from '@/lib/onboarding-questions';
+import { ONBOARDING_STEPS, type OnboardingData, STEPS } from '@/lib/onboarding-questions';
 
 
 // Helper components
@@ -99,7 +99,7 @@ export function Onboarding() {
   }
 
   const validateStep = () => {
-    const stepConfig = STEPS.find(s => s.id === currentStep);
+    const stepConfig = ONBOARDING_STEPS.find(s => s.id === currentStep);
     if (!stepConfig || stepConfig.type === 'summary' || stepConfig.optional) return true;
 
     const value = formData[stepConfig.field];
@@ -128,7 +128,7 @@ export function Onboarding() {
 
   const nextStep = () => {
     if(validateStep()){
-        setCurrentStep(prev => Math.min(prev + 1, STEPS.length));
+        setCurrentStep(prev => Math.min(prev + 1, ONBOARDING_STEPS.length));
     }
   }
 
@@ -182,12 +182,12 @@ export function Onboarding() {
     return value || 'Not set';
   }
   
-  const currentStepConfig = STEPS[currentStep - 1];
+  const currentStepConfig = ONBOARDING_STEPS[currentStep - 1];
 
   const renderProgressDots = () => {
     return (
         <div className="flex justify-center items-center gap-2">
-            {STEPS.map(step => (
+            {ONBOARDING_STEPS.map(step => (
                 <div key={step.id} className={cn("w-2 h-2 rounded-full transition-all", currentStep === step.id ? "p-1.5 bg-primary" : "bg-secondary/50", currentStep > step.id ? "bg-primary/50" : "bg-secondary/50")}></div>
             ))}
         </div>
@@ -202,7 +202,7 @@ export function Onboarding() {
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
             ) : <div className='w-10'></div>}
-            <div className="text-sm font-bold text-primary">{currentStep} / {STEPS.length}</div>
+            <div className="text-sm font-bold text-primary">{currentStep} / {ONBOARDING_STEPS.length}</div>
        </header>
 
        <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
@@ -251,9 +251,7 @@ export function Onboarding() {
                             <p><strong>Habits:</strong> {getSummaryValue('habits')}</p>
                             <p><strong>Goal:</strong> <span className="capitalize">{getSummaryValue('goal')}</span></p>
                             <p><strong>Daily Avg:</strong> {getSummaryValue('itemsPerDay')}</p>
-                            <p><strong>Main Trigger:</strong> <span className="capitalize">{getSummaryValue('mainTrigger')}</span></p>
-                            <p><strong>Motivation:</strong> <span className="capitalize">{getSummaryValue('motivation')}</span></p>
-                            <p><strong>Check-in:</strong> <span className="capitalize">{getSummaryValue('checkInTime')}</span></p>
+                            <p><strong>Pack Cost:</strong> ${getSummaryValue('packCost')}</p>
                         </div>
                     </div>
                  )}
@@ -262,7 +260,7 @@ export function Onboarding() {
        
         <footer className="p-6 space-y-6">
             {renderProgressDots()}
-            {currentStep < STEPS.length ? (
+            {currentStep < ONBOARDING_STEPS.length ? (
             <Button size="lg" className="w-full h-14 text-lg" onClick={nextStep} disabled={isSubmitting}>
               Next
             </Button>

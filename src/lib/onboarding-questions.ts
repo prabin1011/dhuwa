@@ -39,7 +39,7 @@ export type Step = {
 };
 
 
-// Constants
+// Constants for the full profile editing
 export const STEPS: Step[] = [
     { id: 1, title: 'The Habit', field: 'habits', question: 'What do you currently use?', type: 'checkbox', options: [{value: 'Cigarettes', label: 'Cigarettes'}, {value: 'Weed', label: 'Weed'}] },
     { id: 2, title: 'The Habit', field: 'frequency', question: 'How often do you smoke?', type: 'radio', options: [
@@ -184,3 +184,38 @@ export const STEPS: Step[] = [
     ]},
   { id: 26, title: 'Summary', field: 'habits', question: 'Summary', type: 'summary'},
 ];
+
+
+// New, streamlined flow for initial onboarding
+export const ONBOARDING_STEPS: Step[] = [
+    { id: 1, title: 'Your Habit Basics', field: 'habits', question: 'What do you currently use?', type: 'checkbox', options: [{value: 'Cigarettes', label: 'Cigarettes'}, {value: 'Weed', label: 'Weed'}] },
+    { id: 2, title: 'Your Habit Basics', field: 'frequency', question: 'How often do you smoke?', type: 'radio', options: [
+        {value: 'daily', label: 'Every day'},
+        {value: 'few-times-week', label: 'A few times a week'},
+        {value: 'weekly', label: 'Once a week'},
+        {value: 'occasionally', label: 'Occasionally'},
+    ]},
+    { id: 3, title: 'Your Smoking History', field: 'started', question: 'When did you start smoking?', type: 'radio', options: [
+        {value: 'less-6-months', label: 'Less than 6 months ago'},
+        {value: '6-12-months', label: '6 months - 1 year ago'},
+        {value: '1-3-years', label: '1–3 years ago'},
+        {value: '3-5-years', label: '3–5 years ago'},
+        {value: 'over-5-years', label: 'Over 5 years ago'},
+    ]},
+    { id: 4, title: 'Your Smoking History', field: 'itemsPerDay', question: 'On average, how many do you consume per day?', type: 'radio', options: [
+        {value: '1-5', label: '1-5'},
+        {value: '6-10', label: '6-10'},
+        {value: '11-15', label: '11-15'},
+        {value: '16-20', label: '16-20'},
+        {value: '20+', label: 'More than 20'},
+    ]},
+    { id: 5, title: 'The Cost', field: 'packCost', question: 'What is the average cost of a pack or unit?', type: 'number'},
+    { id: 6, title: 'The Cost', field: 'itemsPerPack', question: 'How many items are in one pack/unit?', type: 'number'},
+    { id: 7, title: 'The Cost', field: 'singleCost', question: 'If you buy singles, how much do you pay? (optional)', type: 'number', optional: true},
+    { id: 8, title: 'Your Goal', field: 'goal', question: 'What’s your primary goal right now?', type: 'radio', options: [
+        {value: 'quit', label: 'Quit completely'},
+        {value: 'reduce', label: 'Cut down gradually'},
+        {value: 'track', label: 'Just track and understand my habits'},
+    ]},
+    { id: 9, title: 'Summary', field: 'habits', question: 'Summary', type: 'summary'},
+]
