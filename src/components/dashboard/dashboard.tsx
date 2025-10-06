@@ -16,10 +16,8 @@ import { ProgressTracker } from "./progress-tracker";
 import { ReplacementReport } from "./replacement-report";
 import { DateSelector } from "./date-selector";
 import { MoodReport } from "./mood-report";
-import { DailyHabitChart } from "./daily-habit-chart";
 import { DailyInsight } from "./daily-insight";
 import { useNotifications } from "@/hooks/use-notifications";
-import { sendTestNotification } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 
@@ -66,25 +64,6 @@ export function Dashboard({ userProfile }: DashboardProps) {
   }, [urges]);
   
   const lastUrgeTime = sortedUrges?.[0]?.timestamp?.toDate();
-
-  const handleSendTestNotification = async () => {
-    if (!user) return;
-    
-    // First, request permission and get the token
-    const token = await requestPermissionAndToken();
-    if (!token) {
-        // The requestPermissionAndToken function already shows a toast on failure/denial
-        return;
-    }
-
-    // If permission is granted and we have a token, then try to send the notification
-    const result = await sendTestNotification(user.uid);
-    if (result.success) {
-      toast({ title: 'Notification Sent!', description: 'Check your device for a message.' });
-    } else {
-      toast({ variant: 'destructive', title: 'Notification Failed', description: result.message });
-    }
-  };
   
   if (isLoading) {
     return (
