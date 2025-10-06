@@ -72,11 +72,13 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
     }
 
     return (
-        <div className="flex justify-between w-full items-start">
-            <p className="italic text-foreground/80 text-xs flex-1 mr-4">"{narrative}"</p>
-            <span className="text-muted-foreground font-mono text-xs flex-shrink-0">
-                {format(urge.timestamp.toDate(), "h:mm a")}
-            </span>
-        </div>
+      <div className="grid grid-cols-[1fr_auto] gap-x-3 w-full">
+        <p className="block text-xs italic text-foreground/80 whitespace-normal break-words">
+          “{narrative}”
+        </p>
+        <time className="text-muted-foreground font-mono text-xs leading-5">
+          {format(urge.timestamp.toDate(), 'h:mm a')}
+        </time>
+      </div>
     );
 }
