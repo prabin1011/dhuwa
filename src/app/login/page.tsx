@@ -51,7 +51,15 @@ export default function LoginPage() {
   }
 
   const handleAuthAction = async (action: 'login' | 'signup') => {
-    if (!auth) return;
+    if (!auth || !firestore) return;
+    if (action === 'signup' && !username.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'Username Required',
+        description: 'Please enter a username to sign up.',
+      });
+      return;
+    }
     if (!email || !password) {
       toast({
         variant: 'destructive',
@@ -65,7 +73,15 @@ export default function LoginPage() {
       if (action === 'login') {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        // Update Firebase Auth user profile and create Firestore doc
+        await updateProfile(user, { displayName: username });
+        const userDocRef = doc(firestore, `users/${user.uid}`);
+        await setDoc(userDocRef, {
+            username: username,
+            createdAt: serverTimestamp()
+        }, { merge: true });
       }
       toast({ title: 'Success', description: `Successfully ${action === 'login' ? 'logged in' : 'signed up'}.` });
       router.push('/');
@@ -211,6 +227,17 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+               <div className="space-y-2">
+                <Label htmlFor="username-signup">Username</Label>
+                <Input
+                  id="username-signup"
+                  type="text"
+                  placeholder="your_username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email-signup">Email</Label>
                 <Input
