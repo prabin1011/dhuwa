@@ -49,7 +49,7 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
     const costPerItem = useMemo(() => {
         const { packCost = 0, itemsPerPack = 1 } = userProfile;
         if (itemsPerPack === 0) return 0;
-        return costPerItem;
+        return packCost / itemsPerPack;
     }, [userProfile]);
 
     const groupedUrges = useMemo(() => {
