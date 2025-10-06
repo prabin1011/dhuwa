@@ -16,4 +16,5 @@ export const ai: Ai = genkit({
       apiKey: API_KEY,
     }),
   ],
+  defaultModel: gemini15Flash,
 });
