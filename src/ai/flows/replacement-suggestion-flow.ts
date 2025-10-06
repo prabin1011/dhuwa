@@ -24,7 +24,6 @@ const suggestionPrompt = ai.definePrompt(
     - Do 10 quick desk stretches.
     
     Your suggestion should be a single sentence. Do not add any preamble.`,
-    model: 'gemini-1.5-flash-latest',
   }
 );
 

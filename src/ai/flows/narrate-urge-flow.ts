@@ -38,7 +38,6 @@ const narrateUrgePrompt = ai.definePrompt(
       Output: Out of sheer boredom this afternoon, I lit one up. I'm not sure if it helped.
 
     Now, generate a narrative for the provided data. Your response should be a single string of text. Do not add any preamble.`,
-    model: 'gemini-1.5-flash-latest',
   }
 );
 

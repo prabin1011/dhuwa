@@ -36,7 +36,6 @@ const insightPrompt = ai.definePrompt(
     5.  Otherwise, provide a general MOTIVATIONAL message related to their primary goal or a general wellness tip. (e.g., "Remember your goal to save money. Every cigarette skipped is a deposit in your future fund.")
 
     Keep the message to 1-3 sentences. Be concise, impactful, and act as a companion. Your response should be a single string of text. Do not add any preamble.`,
-    model: 'gemini-1.5-flash-latest',
   }
 );
 
