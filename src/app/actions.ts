@@ -69,3 +69,34 @@ export async function sendTestNotification(uid: string) {
     return { success: false, message: 'An unknown error occurred.' };
   }
 }
+
+export async function deleteUserAccount(uid: string) {
+    initializeAdmin();
+    if (!uid) {
+        throw new Error('User ID is required to delete an account.');
+    }
+
+    try {
+        const firestore = admin.firestore();
+        const userDocRef = firestore.doc(`users/${uid}`);
+        const userProfileRef = firestore.doc(`users/${uid}/profile/main`);
+
+        // We can extend this to delete subcollections like urges if needed.
+        // For now, we delete the main documents.
+        const batch = firestore.batch();
+        batch.delete(userProfileRef);
+        batch.delete(userDocRef);
+        await batch.commit();
+
+        // Delete the user from Firebase Authentication
+        await admin.auth().deleteUser(uid);
+
+        return { success: true, message: 'Account deleted successfully.' };
+    } catch (error) {
+        console.error('Error deleting user account:', error);
+        if (error instanceof Error) {
+            return { success: false, message: error.message };
+        }
+        return { success: false, message: 'An unknown error occurred while deleting the account.' };
+    }
+}

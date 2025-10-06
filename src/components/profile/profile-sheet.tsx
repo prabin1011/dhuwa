@@ -14,6 +14,10 @@ import { Input } from "../ui/input";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Checkbox } from "../ui/checkbox";
 import { cn } from "@/lib/utils";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import { deleteUserAccount } from "@/app/actions";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface UserProfile extends Partial<OnboardingData> {
     username?: string;
@@ -26,13 +30,16 @@ interface ProfileSheetProps {
 }
 
 export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheetProps) {
-    const { firestore, user } = useFirebase();
+    const { firestore, user, auth } = useFirebase();
+    const router = useRouter();
     const { toast } = useToast();
     const { control, handleSubmit, reset, formState: { isSubmitting, isDirty } } = useForm<OnboardingData>({
         defaultValues: {
             ...userProfile
         },
     });
+
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const onSubmit = async (data: OnboardingData) => {
         if (!user) return;
@@ -58,6 +65,25 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             });
         }
     };
+
+    const handleDeleteAccount = async () => {
+        if (!user) {
+             toast({ variant: "destructive", title: "Not logged in", description: "You must be logged in to delete an account." });
+             return;
+        }
+        setIsDeleting(true);
+        const result = await deleteUserAccount(user.uid);
+        setIsDeleting(false);
+
+        if (result.success) {
+            toast({ title: "Account Deleted", description: "Your account has been permanently deleted." });
+            onOpenChange(false);
+            auth?.signOut();
+            router.push('/login');
+        } else {
+            toast({ variant: "destructive", title: "Deletion Failed", description: result.message });
+        }
+    }
     
     // Group steps by title
     const groupedSteps = STEPS.reduce((acc, step) => {
@@ -137,7 +163,26 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                 ))}
             </form>
         </ScrollArea>
-        <SheetFooter className="mt-auto pt-4 border-t">
+        <SheetFooter className="mt-auto pt-4 border-t flex-col sm:flex-row sm:justify-between">
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive" disabled={isDeleting}>Delete Account</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your account and remove all of your data from our servers.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting}>
+                            {isDeleting ? 'Deleting...' : 'Continue'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             <Button type="submit" form="profile-form" disabled={isSubmitting || !isDirty}>
                 {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
