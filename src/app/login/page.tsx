@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,6 +8,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInAnonymously,
+  updateProfile,
 } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +36,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFullLogin, setShowFullLogin] = useState(false);
 
@@ -80,14 +83,26 @@ export default function LoginPage() {
 
   const handleAnonymousSignIn = async () => {
     if (!auth || !firestore) return;
+    if (!username.trim()) {
+        toast({
+            variant: 'destructive',
+            title: 'Username Required',
+            description: 'Please enter a username to continue.',
+        });
+        return;
+    }
     setIsSubmitting(true);
     try {
       const userCredential = await signInAnonymously(auth);
       const user = userCredential.user;
 
-      // Create the anonymous user profile document
+      // Update Firebase Auth user profile
+      await updateProfile(user, { displayName: username });
+
+      // Create the anonymous user profile document in Firestore
       const userDocRef = doc(firestore, `users/${user.uid}`);
       await setDoc(userDocRef, {
+        username: username,
         createdAt: serverTimestamp()
       }, { merge: true });
 
@@ -112,13 +127,22 @@ export default function LoginPage() {
         <div className="flex-1 flex flex-col justify-center items-center">
             <WelcomeIllustration className="w-64 h-64" />
             <h1 className="text-3xl font-bold mt-8 font-heading">Welcome to The Easy Way Out</h1>
+             <p className="text-muted-foreground mt-2">Start your journey with a guest account.</p>
         </div>
         <div className="w-full max-w-sm space-y-4">
+            <Input 
+                type="text"
+                placeholder="Enter a guest username"
+                className="h-14 text-center text-lg"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={isSubmitting}
+            />
             <Button size="lg" className="w-full h-14 text-lg" onClick={handleAnonymousSignIn} disabled={isSubmitting}>
-                {isSubmitting ? 'Starting...' : 'Start'}
+                {isSubmitting ? 'Starting...' : 'Continue as Guest'}
             </Button>
             <Button size="lg" variant="outline" className="w-full h-14 text-lg" onClick={() => setShowFullLogin(true)} disabled={isSubmitting}>
-                Sign In
+                Sign In with Email
             </Button>
         </div>
       </div>

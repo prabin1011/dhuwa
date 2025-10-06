@@ -1,3 +1,4 @@
+
 'use client';
 
 import { SmokeLogger } from "@/components/dashboard/smoke-logger";
@@ -35,6 +36,7 @@ interface UserProfile {
     goal?: string;
     motivation?: string;
     preferredTone?: string;
+    username?: string;
 }
 
 interface DashboardProps {
@@ -127,7 +129,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     The Easy Way Out
                     </h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                    Welcome, {user?.isAnonymous ? "Guest" : user?.email}.
+                      Welcome, {userProfile.username || user?.email || "Guest"}.
                     </p>
                 </div>
                 <div className="flex gap-2">
