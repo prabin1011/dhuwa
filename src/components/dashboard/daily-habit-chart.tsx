@@ -28,7 +28,7 @@ const descriptions = {
         "Look at this. A day of control, discipline, and success. This is proof you can do it."
     ],
     zero: [
-        "Zero. This is a massive win. This is what a smoke-free day feels like. Bottle this feeling.",
+        "Zero. This is a massive win against a daily average of {avg}. This is proof you can do it.",
         "Zero smokes logged today. An amazing achievement! Keep this momentum going."
     ],
     default: "Your 30-day average is {avg} smokes/day."
@@ -54,12 +54,12 @@ export function DailyHabitChart({ urges, selectedDate }: DailyHabitChartProps) {
 
         let dynamicDescription = descriptions.default.replace('{avg}', avgSmokes.toFixed(1));
         if (selectedDate) {
-            if (selectedDayCount > avgSmokes * 1.5) {
+            if (selectedDayCount > avgSmokes * 1.5 && avgSmokes > 0) {
                 dynamicDescription = descriptions.higher[0];
-            } else if (selectedDayCount > avgSmokes * 1.1) {
+            } else if (selectedDayCount > avgSmokes * 1.1 && avgSmokes > 0) {
                 dynamicDescription = descriptions.higher[1];
             } else if (selectedDayCount === 0 && avgSmokes > 0) {
-                 dynamicDescription = descriptions.zero[0];
+                 dynamicDescription = descriptions.zero[0].replace('{avg}', avgSmokes.toFixed(1));
             } else if (selectedDayCount < avgSmokes * 0.8 && selectedDayCount > 0) {
                 dynamicDescription = descriptions.lower[0];
             } else if (selectedDayCount === 0) {
