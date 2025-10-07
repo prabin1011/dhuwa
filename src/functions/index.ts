@@ -27,17 +27,31 @@ export async function sendMomentReminders() {
     const p = docSnap.data() as any;
 
     // ✅ consent gate
-    if (p.reminders !== 'yes') continue;
+    if (p.reminders !== 'yes') {
+      console.log(`User ${docSnap.id} did not opt-in for reminders. Skipping...`);
+      continue;
+    }
 
     const tokens: string[] = Array.isArray(p.fcmTokens) ? p.fcmTokens : [];
-    if (!tokens.length) continue;
+    if (!tokens.length) {
+      console.log(`User ${docSnap.id} does not have any FCM tokens. Skipping...`);
+      continue;
+    }
 
     const moments = Array.isArray(p.moments) ? p.moments : [];
+    if (!moments.length) {
+      console.log(`User ${docSnap.id} has no planned moments. Skipping...`);
+      continue;
+    }
+
     const upcoming = moments.filter((m: any) => {
       try {
         const t = parse(m.time, 'HH:mm', now);
         return isAfter(t, now) && isBefore(t, end);
-      } catch { return false; }
+      } catch (error) {
+        console.log(`Error parsing moment time for user ${docSnap.id}:`, m.time, error);
+        return false;
+      }
     });
 
     for (const m of upcoming) {
@@ -52,7 +66,7 @@ export async function sendMomentReminders() {
         });
         notificationsSent++;
       } catch (e) {
-        console.error('Error sending notification for user:', docSnap.id, e);
+        console.error(`Error sending notification for user ${docSnap.id}:`, e);
         errors++;
       }
     }
