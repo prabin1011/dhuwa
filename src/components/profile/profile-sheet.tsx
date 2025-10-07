@@ -94,23 +94,27 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const handleSendReminders = async () => {
         setIsSendingReminders(true);
         try {
-            const res = await fetch('/api/send-reminders');
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Failed to send reminders.');
+            const res = await fetch('/api/send-reminders', { method: 'POST' });
+
+            const ct = res.headers.get('content-type') || '';
+            const payload = ct.includes('application/json') ? await res.json() : { error: await res.text() };
+
+            if (!res.ok) throw new Error(payload.error || 'Failed to send reminders.');
+
             toast({
-                title: 'Reminders Sent',
-                description: `Checked ${data.totalUsers} users and sent ${data.notificationsSent} reminders.`,
+            title: 'Reminders Sent',
+            description: `Checked ${payload.totalUsers} users and sent ${payload.notificationsSent} reminders.`,
             });
         } catch (error: any) {
-             toast({
-                variant: "destructive",
-                title: "Sending Failed",
-                description: error.message,
+            toast({
+            variant: 'destructive',
+            title: 'Sending Failed',
+            description: error.message,
             });
         } finally {
             setIsSendingReminders(false);
         }
-    }
+    };
 
     const handleCopyToken = () => {
         if (fcmToken) {
