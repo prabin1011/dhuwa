@@ -2,9 +2,9 @@
 'use client';
 
 import { useMemo } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, differenceInDays, isWithinInterval } from 'date-fns';
+import { isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, differenceInDays, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 
@@ -36,7 +36,7 @@ const expenseMessages = {
 }
 
 const savingsMessages = {
-    debt: "This isn't savings; it's debt. You've borrowed from tomorrow's health for today's fleeting urge. The bill will come due.",
+    debt: "This isn't savings; it's a debt. You've borrowed from tomorrow's health for today's fleeting urge. The bill will come due.",
     zero: "You broke even. A hard-fought battle with no ground lost. Tomorrow, we take territory.",
     low: "A small surplus. A single step in the right direction. Now, take another.",
     moderate: "This is a real surplus. You won the day. This feeling is what freedom tastes like. Savor it.",
@@ -97,7 +97,7 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
             return { netCount, netMoney: netCount * costPerItem };
         }
         
-        const dailyNet = calculateNet(date, date);
+        const dailyNet = calculateNet(startOfDay(date), endOfDay(date));
         const weeklyNet = calculateNet(startOfWeek(date), endOfWeek(date));
         const monthlyNet = calculateNet(startOfMonth(date), endOfMonth(date));
 
@@ -156,38 +156,42 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
 
 
     return (
-        <Card>
-            <Tabs defaultValue="expenses">
-                <CardHeader>
-                    <CardTitle>Financials</CardTitle>
-                     <TabsContent value="expenses">
-                         <CardDescription>{stats.expenses.daily.count > 0 ? description.expenses : expenseMessages.zero}</CardDescription>
-                    </TabsContent>
-                     <TabsContent value="savings">
-                        <CardDescription>{description.savings}</CardDescription>
-                    </TabsContent>
-                </CardHeader>
-                <CardContent>
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="expenses">Expenses</TabsTrigger>
-                        <TabsTrigger value="savings">Net Savings</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="expenses" className="pt-4">
-                         <div className="grid grid-cols-3 divide-x divide-border">
-                            <StatDisplay label="Daily" value={stats.expenses.daily.count} money={stats.expenses.daily.money} moneyColor="text-destructive" />
-                            <StatDisplay label="Weekly" value={stats.expenses.weekly.count} money={stats.expenses.weekly.money} moneyColor="text-destructive"/>
-                            <StatDisplay label="Monthly" value={stats.expenses.monthly.count} money={stats.expenses.monthly.money} moneyColor="text-destructive"/>
+        <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1" className="border-b-0">
+                <Card>
+                    <AccordionTrigger className="p-6">
+                        <div className="flex flex-col items-start text-left w-full">
+                            <CardTitle>Financials</CardTitle>
+                            <CardDescription className="text-left">
+                                {stats.expenses.daily.count > 0 ? description.expenses : expenseMessages.zero}
+                            </CardDescription>
                         </div>
-                    </TabsContent>
-                    <TabsContent value="savings" className="pt-4">
-                        <div className="grid grid-cols-3 divide-x divide-border">
-                            <StatDisplay label="Daily" value={stats.savings.daily.count} money={stats.savings.daily.money} moneyColor={stats.savings.daily.count < 0 ? 'text-destructive' : 'text-primary'}/>
-                            <StatDisplay label="Weekly" value={stats.savings.weekly.count} money={stats.savings.weekly.money} moneyColor={stats.savings.weekly.count < 0 ? 'text-destructive' : 'text-primary'}/>
-                            <StatDisplay label="Monthly" value={stats.savings.monthly.count} money={stats.savings.monthly.money} moneyColor={stats.savings.monthly.count < 0 ? 'text-destructive' : 'text-primary'}/>
-                        </div>
-                    </TabsContent>
-                </CardContent>
-            </Tabs>
-        </Card>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <CardContent>
+                             <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <h4 className="text-sm font-semibold mb-2">Expenses (Smokes Logged)</h4>
+                                     <div className="grid grid-cols-3 divide-x divide-border">
+                                        <StatDisplay label="Daily" value={stats.expenses.daily.count} money={stats.expenses.daily.money} moneyColor="text-destructive" />
+                                        <StatDisplay label="Weekly" value={stats.expenses.weekly.count} money={stats.expenses.weekly.money} moneyColor="text-destructive"/>
+                                        <StatDisplay label="Monthly" value={stats.expenses.monthly.count} money={stats.expenses.monthly.money} moneyColor="text-destructive"/>
+                                    </div>
+                                </div>
+                                 <div>
+                                    <h4 className="text-sm font-semibold mb-1">Net Savings (vs. Your Baseline)</h4>
+                                     <p className="text-xs text-muted-foreground mb-2">{description.savings}</p>
+                                    <div className="grid grid-cols-3 divide-x divide-border">
+                                        <StatDisplay label="Daily" value={stats.savings.daily.count} money={stats.savings.daily.money} moneyColor={stats.savings.daily.count < 0 ? 'text-destructive' : 'text-primary'}/>
+                                        <StatDisplay label="Weekly" value={stats.savings.weekly.count} money={stats.savings.weekly.money} moneyColor={stats.savings.weekly.count < 0 ? 'text-destructive' : 'text-primary'}/>
+                                        <StatDisplay label="Monthly" value={stats.savings.monthly.count} money={stats.savings.monthly.money} moneyColor={stats.savings.monthly.count < 0 ? 'text-destructive' : 'text-primary'}/>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </AccordionContent>
+                </Card>
+            </AccordionItem>
+        </Accordion>
     )
 }
