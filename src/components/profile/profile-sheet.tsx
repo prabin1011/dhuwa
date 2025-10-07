@@ -1,5 +1,7 @@
+
 'use client';
 
+import { useState } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "../ui/button";
 import type { WithId } from "@/firebase";
@@ -15,12 +17,15 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Checkbox } from "../ui/checkbox";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteUser } from "firebase/auth";
+import { useNotifications } from '@/hooks/use-notifications';
+import { Bell, BellOff } from 'lucide-react';
+import { Separator } from '../ui/separator';
 
 interface UserProfile extends Partial<OnboardingData> {
     username?: string;
+    fcmTokens?: string[];
 }
 
 interface ProfileSheetProps {
@@ -33,6 +38,9 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const { firestore, user, auth } = useFirebase();
     const router = useRouter();
     const { toast } = useToast();
+    const { requestPermissionAndToken } = useNotifications();
+    const [isSubmittingNotifications, setIsSubmittingNotifications] = useState(false);
+
     const { control, handleSubmit, reset, formState: { isSubmitting, isDirty } } = useForm<OnboardingData>({
         defaultValues: {
             ...userProfile
@@ -68,6 +76,15 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             });
         }
     };
+    
+    const handleNotificationRequest = async () => {
+        setIsSubmittingNotifications(true);
+        await requestPermissionAndToken();
+        setIsSubmittingNotifications(false);
+    }
+    
+    const hasNotificationToken = userProfile.fcmTokens && userProfile.fcmTokens.length > 0;
+
 
     const handleDeleteAccount = async () => {
         if (!user) {
@@ -151,64 +168,85 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className="flex-1 -mx-6 px-6">
-            <form id="profile-form" onSubmit={handleSubmit(onSubmit)} className="space-y-8 py-4">
+            <div className="space-y-6 py-4">
                 {Object.entries(groupedSteps).map(([title, steps]) => (
                     <div key={title} className="space-y-4">
                         <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
-                        {steps.map(step => (
-                            <div key={step.field} className="space-y-2">
-                                <Label>{step.question}</Label>
-                                <Controller
-                                    name={step.field}
-                                    control={control}
-                                    render={({ field }) => {
-                                        if (step.type === 'number') {
-                                            return <Input type="number" {...field} value={field.value || ''} />;
-                                        }
-                                        if (step.type === 'radio' && step.options) {
-                                            return (
-                                                <RadioGroup {...field} onValueChange={field.onChange} className="grid grid-cols-2 gap-2">
-                                                    {step.options.map(option => (
-                                                        <Label key={option.value} htmlFor={`${step.field}-${option.value}`} className="flex items-center space-x-2 rounded-md border border-secondary bg-secondary/50 p-2 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/10">
-                                                            <RadioGroupItem value={option.value} id={`${step.field}-${option.value}`} />
-                                                            <p className="font-medium text-xs">{option.label}</p>
-                                                        </Label>
-                                                    ))}
-                                                </RadioGroup>
-                                            );
-                                        }
-                                        if (step.type === 'checkbox' && step.options) {
-                                            return (
-                                                 <div className="grid grid-cols-2 gap-2">
-                                                    {step.options.map(option => (
-                                                        <Label key={option.value} htmlFor={`${step.field}-${option.value}`} className="flex items-center space-x-2 rounded-md border border-secondary bg-secondary/50 p-2 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/10">
-                                                            <Checkbox
-                                                                id={`${step.field}-${option.value}`}
-                                                                checked={(field.value as string[] || []).includes(option.value)}
-                                                                onCheckedChange={(checked) => {
-                                                                    const currentValues = field.value as string[] || [];
-                                                                    const newValues = checked
-                                                                        ? [...currentValues, option.value]
-                                                                        : currentValues.filter(v => v !== option.value);
-                                                                    field.onChange(newValues);
-                                                                }}
-                                                            />
-                                                             <p className="font-medium text-xs">{option.label}</p>
-                                                        </Label>
-                                                    ))}
-                                                 </div>
-                                            );
-                                        }
-                                        return <Input {...field} value={field.value || ''} />;
-                                    }}
-                                />
-                            </div>
-                        ))}
+                        <form id="profile-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                            {steps.map(step => (
+                                <div key={step.field} className="space-y-2">
+                                    <Label>{step.question}</Label>
+                                    <Controller
+                                        name={step.field}
+                                        control={control}
+                                        render={({ field }) => {
+                                            if (step.type === 'number') {
+                                                return <Input type="number" {...field} value={field.value || ''} />;
+                                            }
+                                            if (step.type === 'radio' && step.options) {
+                                                return (
+                                                    <RadioGroup {...field} onValueChange={field.onChange} className="grid grid-cols-2 gap-2">
+                                                        {step.options.map(option => (
+                                                            <Label key={option.value} htmlFor={`${step.field}-${option.value}`} className="flex items-center space-x-2 rounded-md border border-secondary bg-secondary/50 p-2 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/10">
+                                                                <RadioGroupItem value={option.value} id={`${step.field}-${option.value}`} />
+                                                                <p className="font-medium text-xs">{option.label}</p>
+                                                            </Label>
+                                                        ))}
+                                                    </RadioGroup>
+                                                );
+                                            }
+                                            if (step.type === 'checkbox' && step.options) {
+                                                return (
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {step.options.map(option => (
+                                                            <Label key={option.value} htmlFor={`${step.field}-${option.value}`} className="flex items-center space-x-2 rounded-md border border-secondary bg-secondary/50 p-2 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/10">
+                                                                <Checkbox
+                                                                    id={`${step.field}-${option.value}`}
+                                                                    checked={(field.value as string[] || []).includes(option.value)}
+                                                                    onCheckedChange={(checked) => {
+                                                                        const currentValues = field.value as string[] || [];
+                                                                        const newValues = checked
+                                                                            ? [...currentValues, option.value]
+                                                                            : currentValues.filter(v => v !== option.value);
+                                                                        field.onChange(newValues);
+                                                                    }}
+                                                                />
+                                                                <p className="font-medium text-xs">{option.label}</p>
+                                                            </Label>
+                                                        ))}
+                                                    </div>
+                                                );
+                                            }
+                                            return <Input {...field} value={field.value || ''} />;
+                                        }}
+                                    />
+                                </div>
+                            ))}
+                        </form>
                     </div>
                 ))}
-            </form>
+                 <div className="space-y-4">
+                    <h3 className="text-lg font-semibold tracking-tight">Notifications</h3>
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label className="text-base">Push Notifications</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Receive motivational reminders and alerts.
+                            </p>
+                        </div>
+                        <Button variant="outline" size="icon" onClick={handleNotificationRequest} disabled={isSubmittingNotifications || hasNotificationToken}>
+                            {hasNotificationToken ? <BellOff className="h-5 w-5"/> : <Bell className="h-5 w-5" />}
+                        </Button>
+                    </div>
+                </div>
+
+            </div>
         </ScrollArea>
         <SheetFooter className="mt-auto pt-4 border-t flex-col sm:flex-col sm:items-stretch gap-2">
+            <Button type="submit" form="profile-form" disabled={isSubmitting || !isDirty} className="w-full">
+                {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
+            <Separator />
             <div className="flex justify-between gap-2">
                  {!isAnonymous ? (
                     <>
@@ -253,9 +291,6 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                     </>
                  ) : <div />}
             </div>
-            <Button type="submit" form="profile-form" disabled={isSubmitting || !isDirty} className="w-full">
-                {isSubmitting ? "Saving..." : "Save Changes"}
-            </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
