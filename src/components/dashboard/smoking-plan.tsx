@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from "react";
@@ -7,7 +8,7 @@ import { Input } from "../ui/input";
 import { useFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import type { WithId } from "@/firebase";
-import { Check, Cigarette, Plus, Replace, Trash2 } from "lucide-react";
+import { Check, Cigarette, Info, Plus, Replace, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, isToday, parse, isAfter } from "date-fns";
 import {
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/accordion"
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 const PREMADE_REPLACEMENTS = [
     "Drink a glass of water",
@@ -185,13 +187,25 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
             <AccordionItem value="item-1" className="border-b-0">
                  <Dialog open={dialogState.isOpen} onOpenChange={(isOpen) => setDialogState({ isOpen, momentId: isOpen ? dialogState.momentId : null })}>
                     <Card>
-                        <AccordionTrigger className="p-4">
-                            <div className="flex flex-col items-start text-left w-full">
-                                 <CardTitle>{isToday(selectedDate) ? "Today's" : format(selectedDate, 'MMMM d')} Plan</CardTitle>
-                                 <CardDescription className="text-left mt-1">
-                                    Your scheduled moments for the day.
-                                 </CardDescription>
-                            </div>
+                        <AccordionTrigger className="p-4 hover:no-underline">
+                             <div className="flex justify-between items-start w-full">
+                                <div>
+                                    <CardTitle>{isToday(selectedDate) ? "Today's" : format(selectedDate, 'MMMM d')} Plan</CardTitle>
+                                    <CardDescription className="text-left mt-1">
+                                        Your scheduled moments for the day.
+                                    </CardDescription>
+                                </div>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger onClick={(e) => e.stopPropagation()}>
+                                            <Info className="w-4 h-4 text-muted-foreground" />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="text-xs max-w-xs">Create a plan for your day. For each moment, you can log that you smoked or that you chose a positive replacement activity.</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                             </div>
                         </AccordionTrigger>
                         <AccordionContent>
                             <CardContent>

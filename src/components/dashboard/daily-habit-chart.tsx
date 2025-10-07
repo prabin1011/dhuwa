@@ -2,11 +2,13 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import type { WithId } from '@/firebase';
 import type { Timestamp } from 'firebase/firestore';
 import { format, subDays, isSameDay } from 'date-fns';
+import { Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface Urge {
     timestamp: Timestamp;
@@ -73,8 +75,22 @@ export function DailyHabitChart({ urges, selectedDate }: DailyHabitChartProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>30-Day Trend</CardTitle>
-                <CardDescription>{description}</CardDescription>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>30-Day Trend</CardTitle>
+                        <CardDescription>{description}</CardDescription>
+                    </div>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Info className="w-4 h-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p className="text-xs max-w-xs">This chart visualizes your daily smoke count over the last 30 days to help you see your progress and identify long-term patterns.</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             </CardHeader>
             <CardContent>
                 <ResponsiveContainer width="100%" height={200}>
@@ -96,7 +112,7 @@ export function DailyHabitChart({ urges, selectedDate }: DailyHabitChartProps) {
                             allowDecimals={false}
                             width={30}
                         />
-                        <Tooltip
+                        <RechartsTooltip
                           contentStyle={{
                             background: "hsl(var(--background))",
                             borderColor: "hsl(var(--border))",

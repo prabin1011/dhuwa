@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -6,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui
 import type { WithId } from '@/firebase';
 import type { Timestamp } from 'firebase/firestore';
 import { format, isSameDay } from 'date-fns';
+import { Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface Urge {
     timestamp: Timestamp;
@@ -147,8 +150,22 @@ export function MoodReport({ urges, selectedDate }: MoodReportProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Mood Analysis</CardTitle>
-                <CardDescription>{description}</CardDescription>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>Mood Analysis</CardTitle>
+                        <CardDescription>{description}</CardDescription>
+                    </div>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Info className="w-4 h-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p className="text-xs max-w-xs">This card shows a breakdown of the moods you logged before and after smoking on the selected day, helping you understand your emotional triggers.</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             </CardHeader>
             <CardContent>
                 {hasData ? (

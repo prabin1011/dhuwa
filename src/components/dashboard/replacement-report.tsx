@@ -1,9 +1,12 @@
+
 'use client';
 
 import { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { ScrollArea } from "../ui/scroll-area";
 import { format, parseISO, isToday, isYesterday, isSameDay } from "date-fns";
+import { Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface SmokingMoment {
     id: string;
@@ -94,8 +97,22 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Replacement Report</CardTitle>
-                <CardDescription>{description}</CardDescription>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>Replacement Report</CardTitle>
+                        <CardDescription>{description}</CardDescription>
+                    </div>
+                     <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Info className="w-4 h-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p className="text-xs max-w-xs">This card shows a log of the positive activities you chose instead of smoking for your planned moments.</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             </CardHeader>
             <CardContent>
                 <ScrollArea className="h-48 w-full">

@@ -1,9 +1,12 @@
+
 'use client';
 
 import { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Progress } from "../ui/progress";
 import { format, startOfWeek, startOfMonth, isWithinInterval, parseISO, endOfWeek, endOfMonth, endOfDay } from "date-fns";
+import { Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface SmokingMoment {
     id: string;
@@ -102,8 +105,22 @@ export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerPr
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Habit Progress</CardTitle>
-                <CardDescription>{description}</CardDescription>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>Habit Progress</CardTitle>
+                        <CardDescription>{description}</CardDescription>
+                    </div>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Info className="w-4 h-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p className="text-xs max-w-xs">This card tracks how often you successfully skip or replace your planned smoking moments. The percentage represents the rate of skipped moments versus total moments acted upon (smoked or skipped).</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="space-y-2">

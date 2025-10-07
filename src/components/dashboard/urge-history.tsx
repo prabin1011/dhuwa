@@ -15,6 +15,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { UrgeNarrative } from "./urge-narrative";
+import { Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 
 interface Urge {
@@ -80,8 +82,22 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Daily Summary</CardTitle>
-                <CardDescription>A look back at your logged activity.</CardDescription>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>Daily Summary</CardTitle>
+                        <CardDescription>A look back at your logged activity.</CardDescription>
+                    </div>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Info className="w-4 h-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p className="text-xs max-w-xs">This is a complete log of all your recorded smokes, grouped by day. Each entry includes an AI-generated micro-journal to help you reflect on the moment.</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             </CardHeader>
             <CardContent>
                 <ScrollArea className="h-72 w-full">

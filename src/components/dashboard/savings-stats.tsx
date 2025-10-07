@@ -4,9 +4,11 @@
 import { useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { isSameDay, startOfWeek, startOfMonth, eachDayOfInterval, endOfDay, startOfDay, format } from 'date-fns';
+import { eachDayOfInterval, endOfDay, format, isSameDay, startOfMonth, startOfWeek } from 'date-fns';
 import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
+import { Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface Urge {
     timestamp: Timestamp;
@@ -175,16 +177,28 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1" className="border-b-0">
                 <Card>
-                    <AccordionTrigger className="p-4 text-left">
-                        <div className="flex flex-col items-start w-full">
-                            <CardTitle>Financials</CardTitle>
-                            <CardDescription className="text-left mt-1">
-                                {description.expenses}
-                            </CardDescription>
-                        </div>
+                    <AccordionTrigger className="p-4 text-left hover:no-underline">
+                         <div className="flex justify-between items-start w-full">
+                            <div className="flex flex-col items-start w-full">
+                                <CardTitle>Financials</CardTitle>
+                                <CardDescription className="text-left mt-1">
+                                    {description.expenses}
+                                </CardDescription>
+                            </div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger onClick={(e) => e.stopPropagation()}>
+                                        <Info className="w-4 h-4 text-muted-foreground" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="text-xs max-w-xs">This card estimates your spending and net savings based on your logged smokes and the cost/baseline info from your profile.</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                         </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                        <CardContent className="space-y-6">
+                        <CardContent className="space-y-8">
                              <div>
                                 <h4 className="text-sm font-semibold mb-4 text-center">Expenses (to-date)</h4>
                                  <div className="grid grid-cols-3 divide-x divide-border">
@@ -195,7 +209,7 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
                             </div>
                              <div>
                                 <h4 className="text-sm font-semibold mb-2 text-center">Net Savings vs Baseline (to-date)</h4>
-                                 <p className="text-xs text-muted-foreground mb-4 px-2">{description.savings}</p>
+                                 <p className="text-xs text-muted-foreground mb-4 px-2 text-center">{description.savings}</p>
                                 <div className="grid grid-cols-3 divide-x divide-border">
                                     <StatDisplay label="Daily" value={stats.savings.daily.count} money={stats.savings.daily.money} moneyColor={stats.savings.daily.count < 0 ? 'text-destructive' : 'text-primary'}/>
                                     <StatDisplay label="Weekly" value={stats.savings.weekly.count} money={stats.savings.weekly.money} moneyColor={stats.savings.weekly.count < 0 ? 'text-destructive' : 'text-primary'}/>
