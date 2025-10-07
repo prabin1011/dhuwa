@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useCallback, useState } from 'react';
-import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
+import { getMessaging, getToken, onMessage, isSupported, type MessagePayload } from 'firebase/messaging';
 import { useFirebase } from '@/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from './use-toast';
@@ -37,6 +37,7 @@ export function useNotifications() {
   const { toast } = useToast();
   const [fcmToken, setFcmToken] = useState<string | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>('default');
+  const [lastMessage, setLastMessage] = useState<MessagePayload | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -56,6 +57,7 @@ export function useNotifications() {
         const title = payload.notification?.title || 'Notification';
         const body  = payload.notification?.body  || '';
         toast({ title, description: body });
+        setLastMessage(payload);
       });
     })();
   }, [firebaseApp, toast]);
@@ -124,5 +126,5 @@ export function useNotifications() {
     }
   }, [firebaseApp, firestore, user, toast]);
 
-  return { requestPermissionAndToken, fcmToken, permissionStatus };
+  return { requestPermissionAndToken, fcmToken, permissionStatus, lastMessage, setLastMessage };
 }

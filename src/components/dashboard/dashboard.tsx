@@ -22,6 +22,7 @@ import { UserProfileDropdown } from "./user-profile-dropdown";
 import { DailyHabitChart } from "./daily-habit-chart";
 import { SosActionBar } from "./sos-action-bar";
 import { NextRiskWindow } from "./next-risk-window";
+import { NotificationCard } from "./notification-card";
 
 
 interface UserProfile {
@@ -49,7 +50,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   
   // Initialize notifications hook
-  const { requestPermissionAndToken } = useNotifications();
+  const { requestPermissionAndToken, lastMessage } = useNotifications();
 
 
   const urgesQuery = useMemoFirebase(() => {
@@ -109,6 +110,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                 </header>
 
                 <div className="space-y-6">
+                    <NotificationCard lastMessage={lastMessage} />
                     <DailyInsight userProfile={userProfile} urges={sortedUrges} lastUrgeTime={lastUrgeTime}/>
                     <RealTimeTimer 
                       sortedUrges={sortedUrges} 
