@@ -232,6 +232,35 @@
         }
       },
       "required": ["id", "time", "label"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "type": "object",
+      "description": "A record of a push notification sent to a user.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the notification."
+        },
+        "body": {
+          "type": "string",
+          "description": "The body content of the notification."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the notification was sent."
+        },
+        "read": {
+          "type": "boolean",
+          "description": "Whether the user has viewed the notification in the app."
+        },
+        "link": {
+            "type": "string",
+            "description": "The URL to navigate to when the notification is clicked."
+        }
+      },
+      "required": ["title", "body", "timestamp", "read"]
     }
   },
   "auth": {
@@ -258,6 +287,12 @@
         "$ref": "#/entities/UrgeEntry"
       },
       "description": "A collection of all smoking urges logged by a specific user."
+    },
+    "'/users/{userId}/notifications/{notificationId}'": {
+        "schema": {
+            "$ref": "#/entities/Notification"
+        },
+        "description": "A collection of notifications sent to the user."
     }
   }
 }
