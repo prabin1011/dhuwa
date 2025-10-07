@@ -14,6 +14,7 @@ async function registerServiceWorker() {
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const registration of registrations) {
                 await registration.unregister();
+                console.log('Old service worker unregistered.');
             }
             
             // Register the new service worker
@@ -53,7 +54,12 @@ export const useNotifications = () => {
         return null;
     }
     
-    await registerServiceWorker();
+    // Ensure the service worker is registered before requesting a token
+    const swRegistration = await registerServiceWorker();
+    if (!swRegistration) {
+        toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not register the notification service worker.' });
+        return;
+    }
     
     if (!process.env.NEXT_PUBLIC_VAPID_KEY) {
         console.error("VAPID key is missing. Set NEXT_PUBLIC_VAPID_KEY in your .env file.");
@@ -69,6 +75,7 @@ export const useNotifications = () => {
       if (permission === 'granted') {
         const currentToken = await getToken(messaging, {
           vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY,
+          serviceWorkerRegistration: swRegistration, // Pass the registration
         });
 
         if (currentToken) {

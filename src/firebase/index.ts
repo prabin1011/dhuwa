@@ -3,11 +3,11 @@
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore'
+import { getFirestore } from 'firebase/firestore';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
-  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
   if (process.env.NODE_ENV !== 'production') {
     console.info('[Firebase Config]',
