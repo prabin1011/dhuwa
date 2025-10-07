@@ -57,7 +57,8 @@ export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
     }
 
     const currentPhaseText = PHASES[phaseIndex];
-    const isExpanding = currentPhaseText === 'Inhale';
+    // Inhale is phase 0, first Hold is phase 1. The circle should be expanded for both.
+    const isExpanding = phaseIndex === 0 || phaseIndex === 1;
 
     if (isFinished) {
         return (
