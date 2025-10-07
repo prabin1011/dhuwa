@@ -1,16 +1,15 @@
 'use client';
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { useFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import type { WithId } from "@/firebase";
-import { Check, Cigarette, Plus, Replace, Sparkles, Trash2, X } from "lucide-react";
+import { Check, Cigarette, Plus, Replace, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format, isFuture, isToday } from "date-fns";
-import { Label } from "../ui/label";
+import { format, isFuture, isToday, parse, isAfter } from "date-fns";
 import {
   Accordion,
   AccordionContent,
@@ -41,6 +40,7 @@ interface SmokingPlanProps {
 export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
     const { firestore, user } = useFirebase();
     const { toast } = useToast();
+    const [currentTime, setCurrentTime] = useState(new Date());
 
     const [newMomentTime, setNewMomentTime] = useState('');
     const [newMomentLabel, setNewMomentLabel] = useState('');
@@ -49,10 +49,27 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
     const isDateInFuture = isFuture(selectedDate) && !isToday(selectedDate);
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
-    const sortedMoments = useMemo(() => {
-        if (!userProfile.moments) return [];
-        return [...userProfile.moments].sort((a, b) => a.time.localeCompare(b.time));
-    }, [userProfile.moments]);
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000 * 60); // Update every minute
+        return () => clearInterval(timer);
+    }, []);
+
+    const { sortedMoments, nextMoment } = useMemo(() => {
+        if (!userProfile.moments) return { sortedMoments: [], nextMoment: null };
+
+        const momentsWithDate = userProfile.moments.map(m => ({
+            ...m,
+            date: parse(m.time, 'HH:mm', new Date()), // Use current date for parsing time
+        }));
+
+        const sorted = momentsWithDate.sort((a, b) => a.date.getTime() - b.date.getTime());
+        
+        const next = isToday(selectedDate) 
+            ? sorted.find(m => isAfter(m.date, currentTime)) 
+            : null;
+
+        return { sortedMoments: sorted, nextMoment: next };
+    }, [userProfile.moments, currentTime, selectedDate]);
 
     const updateMoments = async (updatedMoments: SmokingMoment[]) => {
         if (!user || !firestore) return;
@@ -191,9 +208,10 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
                                             const status = moment.completed?.[dateStr]; // true, false, or undefined
                                             const replacementText = moment.replacementActivity?.[dateStr];
                                             const isProcessed = status !== undefined;
+                                            const isNext = nextMoment?.id === moment.id;
 
                                             return (
-                                                <div key={moment.id} className="p-3 rounded-md bg-secondary/30 text-left">
+                                                <div key={moment.id} className={cn("p-3 rounded-md bg-secondary/30 text-left", isNext && "ring-2 ring-primary")}>
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex flex-col">
                                                             <div className="flex items-center gap-2">

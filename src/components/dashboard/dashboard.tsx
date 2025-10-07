@@ -21,7 +21,6 @@ import { useNotifications } from "@/hooks/use-notifications";
 import { useToast } from "@/hooks/use-toast";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 import { DailyHabitChart } from "./daily-habit-chart";
-import { NextRiskWindow } from "./next-risk-window";
 import { SosActionBar } from "./sos-action-bar";
 
 
@@ -110,13 +109,12 @@ export function Dashboard({ userProfile }: DashboardProps) {
 
                 <div className="space-y-6">
                     <DailyInsight userProfile={userProfile} urges={sortedUrges} lastUrgeTime={lastUrgeTime}/>
-                    <NextRiskWindow userProfile={userProfile} urges={sortedUrges} />
                     <RealTimeTimer sortedUrges={sortedUrges} />
                     
                     <DateSelector selected={selectedDate} onSelect={setSelectedDate} />
 
-                    <SavingsStats urges={sortedUrges} userProfile={userProfile} selectedDate={selectedDate} />
                     <SmokingPlan userProfile={userProfile} selectedDate={selectedDate || new Date()} />
+                    <SavingsStats urges={sortedUrges} userProfile={userProfile} selectedDate={selectedDate} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <MoodReport urges={sortedUrges} selectedDate={selectedDate || new Date()} />
