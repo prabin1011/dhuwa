@@ -111,9 +111,9 @@ export function NextRiskWindow({ userProfile, urges }: NextRiskWindowProps) {
             setIsDialogOpen(false);
             setCustomReplacement("");
             setSelectedReplacement("");
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            toast({ variant: 'destructive', title: "Update Failed", description: "Could not save your replacement." });
+            toast({ variant: 'destructive', title: "Update Failed", description: e.message || "Could not save your replacement." });
         }
     };
     
