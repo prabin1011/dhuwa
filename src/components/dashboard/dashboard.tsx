@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 import { DailyHabitChart } from "./daily-habit-chart";
 import { SosActionBar } from "./sos-action-bar";
+import { NextRiskWindow } from "./next-risk-window";
 
 
 interface UserProfile {
@@ -109,6 +110,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
 
                 <div className="space-y-6">
                     <DailyInsight userProfile={userProfile} urges={sortedUrges} lastUrgeTime={lastUrgeTime}/>
+                    <NextRiskWindow userProfile={userProfile} urges={sortedUrges} />
                     <RealTimeTimer sortedUrges={sortedUrges} />
                     
                     <DateSelector selected={selectedDate} onSelect={setSelectedDate} />
