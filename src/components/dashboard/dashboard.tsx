@@ -113,7 +113,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     
                     <DateSelector selected={selectedDate} onSelect={setSelectedDate} />
 
-                    <SmokingPlan userProfile={userProfile} selectedDate={selectedDate || new Date()} />
+                    <SmokingPlan userProfile={userProfile} urges={sortedUrges} selectedDate={selectedDate || new Date()} />
                     <SavingsStats urges={sortedUrges} userProfile={userProfile} selectedDate={selectedDate} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />

@@ -9,7 +9,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import type { WithId } from "@/firebase";
 import { Check, Cigarette, Plus, Replace, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format, isFuture, isToday, parse, isAfter } from "date-fns";
+import { format, isFuture, isToday, parse, isAfter, subDays, isSameDay } from "date-fns";
 import {
   Accordion,
   AccordionContent,
@@ -17,6 +17,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { cn } from "@/lib/utils";
+import type { Timestamp } from "firebase/firestore";
 
 
 interface SmokingMoment {
@@ -31,13 +32,17 @@ interface UserProfile {
     moments?: SmokingMoment[];
     breakDuration?: string;
 }
+interface Urge {
+    timestamp: Timestamp;
+}
 
 interface SmokingPlanProps {
     userProfile: WithId<UserProfile>;
+    urges: WithId<Urge>[];
     selectedDate: Date;
 }
 
-export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
+export function SmokingPlan({ userProfile, urges, selectedDate }: SmokingPlanProps) {
     const { firestore, user } = useFirebase();
     const { toast } = useToast();
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -54,10 +59,11 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
         return () => clearInterval(timer);
     }, []);
 
-    const { sortedMoments, nextMoment } = useMemo(() => {
-        if (!userProfile.moments) return { sortedMoments: [], nextMoment: null };
+    const { sortedMoments, nextMoment, dynamicDescription } = useMemo(() => {
+        const moments = userProfile.moments || [];
+        if (!moments) return { sortedMoments: [], nextMoment: null, dynamicDescription: "Plan your moments to get ahead of cravings." };
 
-        const momentsWithDate = userProfile.moments.map(m => ({
+        const momentsWithDate = moments.map(m => ({
             ...m,
             date: parse(m.time, 'HH:mm', new Date()), // Use current date for parsing time
         }));
@@ -65,11 +71,26 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
         const sorted = momentsWithDate.sort((a, b) => a.date.getTime() - b.date.getTime());
         
         const next = isToday(selectedDate) 
-            ? sorted.find(m => isAfter(m.date, currentTime)) 
+            ? sorted.find(m => isAfter(m.date, currentTime) && m.completed?.[dateStr] === undefined) 
             : null;
+        
+        // Dynamic Description Logic
+        let description = "Your next challenge is approaching. You have a plan. You can do this.";
+        const yesterdayStr = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+        const missedYesterday = moments.some(m => m.completed?.[yesterdayStr] === undefined && !isAfter(parse(m.time, 'HH:mm', new Date()), new Date()));
+        const smokedToday = urges.some(u => u.timestamp && isToday(u.timestamp.toDate()));
 
-        return { sortedMoments: sorted, nextMoment: next };
-    }, [userProfile.moments, currentTime, selectedDate]);
+        if (missedYesterday) {
+            description = "You missed a moment yesterday. Today is a new chance to stay on track.";
+        } else if (smokedToday && isToday(selectedDate)) {
+            description = "One smoke logged. The chain is only as strong as the next link. You can break it here.";
+        } else if (!next && isToday(selectedDate) && moments.length > 0) {
+            description = "All planned moments for today are complete. Well done."
+        }
+
+
+        return { sortedMoments: sorted, nextMoment: next, dynamicDescription: description };
+    }, [userProfile.moments, urges, currentTime, selectedDate, dateStr]);
 
     const updateMoments = async (updatedMoments: SmokingMoment[]) => {
         if (!user || !firestore) return;
@@ -193,10 +214,12 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
          <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
             <AccordionItem value="item-1" className="border-b-0">
                 <Card>
-                    <AccordionTrigger className="p-6">
-                        <div className="flex flex-col items-start text-left">
+                    <AccordionTrigger className="p-4">
+                        <div className="flex flex-col items-start text-left w-full">
                              <CardTitle>{isToday(selectedDate) ? "Today's" : format(selectedDate, 'MMMM d')} Plan</CardTitle>
-                             <CardDescription>Log smokes or replacements for your planned moments.</CardDescription>
+                             <CardDescription className="text-left mt-1">
+                                {dynamicDescription}
+                             </CardDescription>
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>
@@ -298,5 +321,3 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
         </Accordion>
     );
 }
-
-    
