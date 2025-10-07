@@ -174,10 +174,10 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
     }, [urges, userProfile, costPerItem, selectedDate]);
 
     return (
-        <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="item-1" className="border-b-0">
-                <Card>
-                    <AccordionTrigger className="p-4 text-left hover:no-underline">
+        <Card>
+            <Accordion type="single" collapsible>
+                <AccordionItem value="item-1" className="border-b-0">
+                    <AccordionTrigger className="p-4 text-left hover:no-underline [&[data-state=open]]:pb-0">
                          <div className="flex justify-between items-start w-full">
                             <div className="flex flex-col items-start w-full">
                                 <CardTitle>Financials</CardTitle>
@@ -187,8 +187,10 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
                             </div>
                             <TooltipProvider>
                                 <Tooltip>
-                                    <TooltipTrigger onClick={(e) => e.stopPropagation()}>
-                                        <Info className="w-4 h-4 text-muted-foreground" />
+                                    <TooltipTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                            <Info className="w-4 h-4 text-muted-foreground" />
+                                        </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         <p className="text-xs max-w-xs">This card estimates your spending and net savings based on your logged smokes and the cost/baseline info from your profile.</p>
@@ -198,7 +200,7 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
                          </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                        <CardContent className="space-y-8">
+                        <div className="space-y-8 p-4 pt-2">
                              <div>
                                 <h4 className="text-sm font-semibold mb-4 text-center">Expenses (to-date)</h4>
                                  <div className="grid grid-cols-3 divide-x divide-border">
@@ -216,14 +218,10 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
                                     <StatDisplay label="Monthly" value={stats.savings.monthly.count} money={stats.savings.monthly.money} moneyColor={stats.savings.monthly.count < 0 ? 'text-destructive' : 'text-primary'}/>
                                 </div>
                             </div>
-                        </CardContent>
+                        </div>
                     </AccordionContent>
-                </Card>
-            </AccordionItem>
-        </Accordion>
+                </AccordionItem>
+            </Accordion>
+        </Card>
     )
 }
-
-    
-
-    

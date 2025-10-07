@@ -17,6 +17,7 @@ import {
 import { UrgeNarrative } from "./urge-narrative";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { Button } from "../ui/button";
 
 
 interface Urge {
@@ -104,74 +105,82 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
 
     return (
         <Card>
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle>Daily Summary</CardTitle>
-                        <CardDescription>A look back at your logged activity.</CardDescription>
-                    </div>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger>
-                                <Info className="w-4 h-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p className="text-xs max-w-xs">This is a complete log of all your recorded smokes, grouped by day. Each entry includes an AI-generated micro-journal to help you reflect on the moment.</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <ScrollArea className="h-72 w-full">
-                    {isLoading ? (
-                        <div className="space-y-4 p-1">
-                            <Skeleton className="h-20 w-full" />
-                            <Skeleton className="h-20 w-full" />
-                            <Skeleton className="h-20 w-full" />
+            <Accordion type="single" collapsible>
+                <AccordionItem value="item-1" className="border-b-0">
+                    <AccordionTrigger className="p-4 text-left hover:no-underline [&[data-state=open]]:pb-0">
+                        <div className="flex justify-between items-start w-full">
+                            <div>
+                                <CardTitle>Daily Summary</CardTitle>
+                                <CardDescription>A look back at your logged activity.</CardDescription>
+                            </div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                            <Info className="w-4 h-4 text-muted-foreground" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="text-xs max-w-xs">This is a complete log of all your recorded smokes, grouped by day. Each entry includes an AI-generated micro-journal to help you reflect on the moment.</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
-                    ) : sortedGroupKeys.length > 0 ? (
-                        <Accordion type="multiple" className="space-y-2">
-                            {sortedGroupKeys.map((dateStr) => {
-                                const dailySmokes = groupedUrges[dateStr].reduce((sum, urge) => sum + (urge.count || 1), 0);
-                                const dailyCost = dailySmokes * costPerItem;
-                                const dailyTimeSpent = dailySmokes * timePerSmoke;
-
-                                return (
-                                <AccordionItem key={dateStr} value={dateStr} className="border bg-secondary/30 rounded-md px-4">
-                                     <AccordionTrigger className="py-3 hover:no-underline">
-                                        <div className="flex justify-between items-center w-full pr-2">
-                                            <div className="flex flex-col items-start">
-                                                <h3 className="font-semibold text-sm">
-                                                    {getGroupTitle(dateStr)}
-                                                </h3>
-                                                <span className="text-xs text-primary">{formatTimeSpent(dailyTimeSpent)} spent smoking</span>
-                                            </div>
-                                            <div className="flex items-center gap-4 text-sm">
-                                                <span className="font-medium">{dailySmokes} {dailySmokes > 1 ? 'smokes' : 'smoke'}</span>
-                                                <span className="font-semibold text-primary">{formatMoney(dailyCost)}</span>
-                                            </div>
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pb-2">
-                                        <ul className="space-y-1 pt-2 border-t">
-                                            {groupedUrges[dateStr].map((urge) => (
-                                                <li key={urge.id}>
-                                                   <UrgeNarrative urge={urge} />
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            )})}
-                        </Accordion>
-                    ) : (
-                        <div className="flex h-full items-center justify-center">
-                            <p className="text-muted-foreground text-center">No smokes logged yet. Keep it up!</p>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <div className="p-4 pt-2">
+                             <ScrollArea className="h-72 w-full">
+                                {isLoading ? (
+                                    <div className="space-y-4 p-1">
+                                        <Skeleton className="h-20 w-full" />
+                                        <Skeleton className="h-20 w-full" />
+                                        <Skeleton className="h-20 w-full" />
+                                    </div>
+                                ) : sortedGroupKeys.length > 0 ? (
+                                    <Accordion type="multiple" className="space-y-2">
+                                        {sortedGroupKeys.map((dateStr) => {
+                                            const dailySmokes = groupedUrges[dateStr].reduce((sum, urge) => sum + (urge.count || 1), 0);
+                                            const dailyCost = dailySmokes * costPerItem;
+                                            const dailyTimeSpent = dailySmokes * timePerSmoke;
+    
+                                            return (
+                                            <AccordionItem key={dateStr} value={dateStr} className="border bg-secondary/30 rounded-md px-4">
+                                                 <AccordionTrigger className="py-3 hover:no-underline">
+                                                    <div className="flex justify-between items-center w-full pr-2">
+                                                        <div className="flex flex-col items-start">
+                                                            <h3 className="font-semibold text-sm">
+                                                                {getGroupTitle(dateStr)}
+                                                            </h3>
+                                                            <span className="text-xs text-primary">{formatTimeSpent(dailyTimeSpent)} spent smoking</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-4 text-sm">
+                                                            <span className="font-medium">{dailySmokes} {dailySmokes > 1 ? 'smokes' : 'smoke'}</span>
+                                                            <span className="font-semibold text-primary">{formatMoney(dailyCost)}</span>
+                                                        </div>
+                                                    </div>
+                                                </AccordionTrigger>
+                                                <AccordionContent className="pb-2">
+                                                    <ul className="space-y-1 pt-2 border-t">
+                                                        {groupedUrges[dateStr].map((urge) => (
+                                                            <li key={urge.id}>
+                                                               <UrgeNarrative urge={urge} />
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        )})}
+                                    </Accordion>
+                                ) : (
+                                    <div className="flex h-full items-center justify-center">
+                                        <p className="text-muted-foreground text-center">No smokes logged yet. Keep it up!</p>
+                                    </div>
+                                )}
+                            </ScrollArea>
                         </div>
-                    )}
-                </ScrollArea>
-            </CardContent>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
         </Card>
     );
 }

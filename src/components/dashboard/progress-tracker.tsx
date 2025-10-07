@@ -7,6 +7,8 @@ import { Progress } from "../ui/progress";
 import { format, startOfWeek, startOfMonth, isWithinInterval, parseISO, endOfWeek, endOfMonth, endOfDay } from "date-fns";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
+import { Button } from "../ui/button";
 
 interface SmokingMoment {
     id: string;
@@ -104,47 +106,55 @@ export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerPr
 
     return (
         <Card>
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle>Habit Progress</CardTitle>
-                        <CardDescription>{description}</CardDescription>
-                    </div>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger>
-                                <Info className="w-4 h-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p className="text-xs max-w-xs">This card tracks how often you successfully skip or replace your planned smoking moments. The percentage represents the rate of skipped moments versus total moments acted upon (smoked or skipped).</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="font-medium">Daily</span>
-                        <span className="text-muted-foreground">{progressData.daily.label}</span>
-                    </div>
-                    <Progress value={progressData.daily.percentage} />
-                </div>
-                 <div className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="font-medium">Weekly</span>
-                        <span className="text-muted-foreground">{progressData.weekly.label}</span>
-                    </div>
-                    <Progress value={progressData.weekly.percentage} />
-                </div>
-                 <div className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="font-medium">Monthly</span>
-                        <span className="text-muted-foreground">{progressData.monthly.label}</span>
-                    </div>
-                    <Progress value={progressData.monthly.percentage} />
-                </div>
-            </CardContent>
+            <Accordion type="single" collapsible>
+                <AccordionItem value="item-1" className="border-b-0">
+                    <AccordionTrigger className="p-4 text-left hover:no-underline [&[data-state=open]]:pb-0">
+                         <div className="flex justify-between items-start w-full">
+                            <div>
+                                <CardTitle>Habit Progress</CardTitle>
+                                <CardDescription>{description}</CardDescription>
+                            </div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                            <Info className="w-4 h-4 text-muted-foreground" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="text-xs max-w-xs">This card tracks how often you successfully skip or replace your planned smoking moments. The percentage represents the rate of skipped moments versus total moments acted upon (smoked or skipped).</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <div className="p-4 pt-2 space-y-4">
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="font-medium">Daily</span>
+                                    <span className="text-muted-foreground">{progressData.daily.label}</span>
+                                </div>
+                                <Progress value={progressData.daily.percentage} />
+                            </div>
+                             <div className="space-y-2">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="font-medium">Weekly</span>
+                                    <span className="text-muted-foreground">{progressData.weekly.label}</span>
+                                </div>
+                                <Progress value={progressData.weekly.percentage} />
+                            </div>
+                             <div className="space-y-2">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="font-medium">Monthly</span>
+                                    <span className="text-muted-foreground">{progressData.monthly.label}</span>
+                                </div>
+                                <Progress value={progressData.monthly.percentage} />
+                            </div>
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
         </Card>
     );
 }

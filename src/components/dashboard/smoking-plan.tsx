@@ -183,11 +183,11 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
 
 
     return (
-         <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
-            <AccordionItem value="item-1" className="border-b-0">
-                 <Dialog open={dialogState.isOpen} onOpenChange={(isOpen) => setDialogState({ isOpen, momentId: isOpen ? dialogState.momentId : null })}>
-                    <Card>
-                        <AccordionTrigger className="p-4 hover:no-underline">
+        <Card>
+            <Accordion type="single" collapsible defaultValue="item-1">
+                <Dialog open={dialogState.isOpen} onOpenChange={(isOpen) => setDialogState({ isOpen, momentId: isOpen ? dialogState.momentId : null })}>
+                    <AccordionItem value="item-1" className="border-b-0">
+                        <AccordionTrigger className="p-4 hover:no-underline [&[data-state=open]]:pb-0">
                              <div className="flex justify-between items-start w-full">
                                 <div>
                                     <CardTitle>{isToday(selectedDate) ? "Today's" : format(selectedDate, 'MMMM d')} Plan</CardTitle>
@@ -197,8 +197,10 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
                                 </div>
                                 <TooltipProvider>
                                     <Tooltip>
-                                        <TooltipTrigger onClick={(e) => e.stopPropagation()}>
-                                            <Info className="w-4 h-4 text-muted-foreground" />
+                                        <TooltipTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                                <Info className="w-4 h-4 text-muted-foreground" />
+                                            </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
                                             <p className="text-xs max-w-xs">Create a plan for your day. For each moment, you can log that you smoked or that you chose a positive replacement activity.</p>
@@ -208,7 +210,7 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
                              </div>
                         </AccordionTrigger>
                         <AccordionContent>
-                            <CardContent>
+                            <div className="p-4 pt-2">
                                 <div className="space-y-4">
                                     <div className="space-y-3">
                                         {sortedMoments.length > 0 ? (
@@ -282,7 +284,7 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
                                         </div>
                                     )}
                                 </div>
-                            </CardContent>
+                            </div>
                         </AccordionContent>
                         <DialogContent>
                             <DialogHeader>
@@ -315,9 +317,9 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
-                    </Card>
+                    </AccordionItem>
                 </Dialog>
-            </AccordionItem>
-        </Accordion>
+            </Accordion>
+        </Card>
     );
 }

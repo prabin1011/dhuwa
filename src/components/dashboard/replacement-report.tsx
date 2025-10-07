@@ -7,6 +7,8 @@ import { ScrollArea } from "../ui/scroll-area";
 import { format, parseISO, isToday, isYesterday, isSameDay } from "date-fns";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
+import { Button } from "../ui/button";
 
 interface SmokingMoment {
     id: string;
@@ -96,52 +98,60 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
 
     return (
         <Card>
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle>Replacement Report</CardTitle>
-                        <CardDescription>{description}</CardDescription>
-                    </div>
-                     <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger>
-                                <Info className="w-4 h-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p className="text-xs max-w-xs">This card shows a log of the positive activities you chose instead of smoking for your planned moments.</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <ScrollArea className="h-48 w-full">
-                     {logsForSelectedDate.length > 0 ? (
-                        <div className="space-y-4">
+            <Accordion type="single" collapsible>
+                <AccordionItem value="item-1" className="border-b-0">
+                    <AccordionTrigger className="p-4 text-left hover:no-underline [&[data-state=open]]:pb-0">
+                        <div className="flex justify-between items-start w-full">
                             <div>
-                                <h3 className="text-sm font-medium text-muted-foreground px-1 mb-2">
-                                    {getGroupTitle(format(selectedDate, 'yyyy-MM-dd'))}
-                                </h3>
-                                <ul className="space-y-2">
-                                    {logsForSelectedDate.map((log, index) => (
-                                        <li key={`${log.date}-${log.time}-${index}`} className="text-sm px-1">
-                                            <span className="font-mono text-xs text-muted-foreground">{log.time}</span> &rarr; <span className="font-semibold">{log.activity}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                                <CardTitle>Replacement Report</CardTitle>
+                                <CardDescription>{description}</CardDescription>
                             </div>
+                             <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                            <Info className="w-4 h-4 text-muted-foreground" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="text-xs max-w-xs">This card shows a log of the positive activities you chose instead of smoking for your planned moments.</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
-                    ) : sortedGroupKeys.length > 0 && !logsForSelectedDate.length ? (
-                         <div className="flex h-full items-center justify-center">
-                            <p className="text-muted-foreground text-sm text-center">No replacements logged for this day. <br/> Other logs available.</p>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <div className="p-4 pt-2">
+                             <ScrollArea className="h-48 w-full">
+                                 {logsForSelectedDate.length > 0 ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <h3 className="text-sm font-medium text-muted-foreground px-1 mb-2">
+                                                {getGroupTitle(format(selectedDate, 'yyyy-MM-dd'))}
+                                            </h3>
+                                            <ul className="space-y-2">
+                                                {logsForSelectedDate.map((log, index) => (
+                                                    <li key={`${log.date}-${log.time}-${index}`} className="text-sm px-1">
+                                                        <span className="font-mono text-xs text-muted-foreground">{log.time}</span> &rarr; <span className="font-semibold">{log.activity}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                ) : sortedGroupKeys.length > 0 && !logsForSelectedDate.length ? (
+                                     <div className="flex h-full items-center justify-center">
+                                        <p className="text-muted-foreground text-sm text-center">No replacements logged for this day. <br/> Other logs available.</p>
+                                    </div>
+                                ) : (
+                                    <div className="flex h-full items-center justify-center">
+                                        <p className="text-muted-foreground text-sm">Skip a smoke to log a replacement!</p>
+                                    </div>
+                                )}
+                            </ScrollArea>
                         </div>
-                    ) : (
-                        <div className="flex h-full items-center justify-center">
-                            <p className="text-muted-foreground text-sm">Skip a smoke to log a replacement!</p>
-                        </div>
-                    )}
-                </ScrollArea>
-            </CardContent>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
         </Card>
     );
 }

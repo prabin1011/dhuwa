@@ -9,6 +9,8 @@ import type { Timestamp } from 'firebase/firestore';
 import { format, isSameDay } from 'date-fns';
 import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { Button } from '../ui/button';
 
 interface Urge {
     timestamp: Timestamp;
@@ -149,40 +151,48 @@ export function MoodReport({ urges, selectedDate }: MoodReportProps) {
 
     return (
         <Card>
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle>Mood Analysis</CardTitle>
-                        <CardDescription>{description}</CardDescription>
-                    </div>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger>
-                                <Info className="w-4 h-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p className="text-xs max-w-xs">This card shows a breakdown of the moods you logged before and after smoking on the selected day, helping you understand your emotional triggers.</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
-            </CardHeader>
-            <CardContent>
-                {hasData ? (
-                    <div className="grid grid-cols-1 divide-y divide-border">
-                        <div className="pb-4">
-                           <MoodPieChart data={beforeData} title="Before Smoking" />
+            <Accordion type="single" collapsible>
+                <AccordionItem value="item-1" className="border-b-0">
+                    <AccordionTrigger className="p-4 text-left hover:no-underline [&[data-state=open]]:pb-0">
+                        <div className="flex justify-between items-start w-full">
+                            <div>
+                                <CardTitle>Mood Analysis</CardTitle>
+                                <CardDescription>{description}</CardDescription>
+                            </div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                            <Info className="w-4 h-4 text-muted-foreground" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="text-xs max-w-xs">This card shows a breakdown of the moods you logged before and after smoking on the selected day, helping you understand your emotional triggers.</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         </div>
-                        <div className="pt-4">
-                            <MoodPieChart data={afterData} title="After Smoking" />
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <div className="p-4 pt-2">
+                             {hasData ? (
+                                <div className="grid grid-cols-1 divide-y divide-border">
+                                    <div className="pb-4">
+                                       <MoodPieChart data={beforeData} title="Before Smoking" />
+                                    </div>
+                                    <div className="pt-4">
+                                        <MoodPieChart data={afterData} title="After Smoking" />
+                                    </div>
+                                </div>
+                            ) : (
+                                 <div className="flex h-24 items-center justify-center">
+                                    <p className="text-muted-foreground text-sm">No moods logged for this day.</p>
+                                </div>
+                            )}
                         </div>
-                    </div>
-                ) : (
-                     <div className="flex h-24 items-center justify-center">
-                        <p className="text-muted-foreground text-sm">No moods logged for this day.</p>
-                    </div>
-                )}
-            </CardContent>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
         </Card>
     );
 }
