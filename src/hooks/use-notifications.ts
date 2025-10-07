@@ -1,24 +1,22 @@
+
 'use client';
 
 import { useEffect, useCallback, useState } from 'react';
 import { getMessaging, getToken } from 'firebase/messaging';
 import { useFirebase } from '@/firebase';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useToast } from './use-toast';
 
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            // Unregister old service workers to ensure the new one takes over
+            // Unregister any existing service workers to ensure the new one takes over.
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const registration of registrations) {
-                // A more robust check for Firebase SW
-                if (registration.scope.endsWith('/')) {
-                     await registration.unregister();
-                     console.log('Unregistered old service worker:', registration);
-                }
+                await registration.unregister();
             }
             
+            // Register the new service worker
             const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
                 scope: '/' 
             });
@@ -76,13 +74,9 @@ export const useNotifications = () => {
         if (currentToken) {
           setFcmToken(currentToken);
           const userProfileRef = doc(firestore, `users/${user.uid}/profile/main`);
-          // Check if token already exists before updating
-          const userProfile = (await (await fetch(`/api/user-profile?uid=${user.uid}`)).json()).profile;
-          if (!userProfile?.fcmTokens?.includes(currentToken)) {
-             await updateDoc(userProfileRef, {
-                fcmTokens: arrayUnion(currentToken)
-             });
-          }
+          await updateDoc(userProfileRef, {
+              fcmTokens: arrayUnion(currentToken)
+          });
           toast({ title: 'Notifications Enabled!', description: "You're all set to receive messages." });
           return currentToken;
         } else {

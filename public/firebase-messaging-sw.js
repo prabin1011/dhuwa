@@ -1,50 +1,91 @@
-// This file must be in the public folder.
 
-// We need to import the app and messaging SDKs
-import { initializeApp } from "firebase/app";
-import { getMessaging, onBackgroundMessage } from "firebase/messaging/sw";
+// A dedicated service worker for Firebase Cloud Messaging.
+// It's important that this file is in the 'public' directory.
 
-// A utility function to fetch the config from a server endpoint.
-// This is necessary because environment variables are not available in the service worker.
-async function getFirebaseConfig() {
-    try {
-        // The fetch URL MUST be an absolute path.
-        const response = await fetch('/api/firebase-config');
+// Import the Firebase SDKs
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+
+// This is a placeholder for the config that will be fetched.
+let firebaseConfig = null;
+
+// Fetch config from our new API route
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    fetch('/api/firebase-config')
+      .then(response => {
         if (!response.ok) {
-            throw new Error('Failed to fetch Firebase config');
+          throw new Error('Failed to fetch Firebase config');
         }
-        const config = await response.json();
-        return config;
-    } catch (error) {
-        console.error('Error fetching Firebase config in SW:', error);
-        return null;
-    }
-}
+        return response.json();
+      })
+      .then(config => {
+        firebaseConfig = config;
+      })
+      .catch(error => {
+        console.error('Service Worker: Error fetching Firebase config:', error);
+      })
+  );
+});
 
-// Main logic to initialize Firebase and set up message handling
-async function initialize() {
-    const firebaseConfig = await getFirebaseConfig();
 
-    if (!firebaseConfig) {
-        console.error("Firebase config not found, service worker cannot initialize.");
-        return;
-    }
-    
-    // Initialize the Firebase app in the service worker
-    const app = initializeApp(firebaseConfig);
-    const messaging = getMessaging(app);
+self.addEventListener('activate', event => {
+    // This ensures the new service worker takes over immediately.
+    event.waitUntil(clients.claim());
+});
 
-    onBackgroundMessage(messaging, (payload) => {
-        console.log('[firebase-messaging-sw.js] Received background message ', payload);
-        
-        const notificationTitle = payload.notification?.title || "New Message";
-        const notificationOptions = {
-            body: payload.notification?.body || "You have a new message.",
-            icon: payload.notification?.icon || '/icons/icon-192x192.png'
-        };
 
-        self.registration.showNotification(notificationTitle, notificationOptions);
-    });
-}
+// A utility function to ensure Firebase is initialized.
+const ensureFirebaseInitialized = () => {
+  if (!firebase.apps.length && firebaseConfig) {
+    firebase.initializeApp(firebaseConfig);
+  }
+};
 
-initialize();
+
+// Handle background push notifications
+self.addEventListener('push', (event) => {
+  ensureFirebaseInitialized();
+
+  if (!event.data) {
+    console.log("Push event has no data.");
+    return;
+  }
+
+  const payload = event.data.json();
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: payload.notification.icon || '/icons/icon-192x192.png',
+    data: {
+      url: payload.notification.click_action || '/',
+    },
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(notificationTitle, notificationOptions)
+  );
+});
+
+
+// Handle notification click events
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const urlToOpen = event.notification.data.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then((clientList) => {
+      // Check if there's already a window open for the app
+      for (const client of clientList) {
+        if (client.url === '/' && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If not, open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});
