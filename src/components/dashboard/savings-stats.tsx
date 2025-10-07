@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval, startOfDay, endOfDay, differenceInCalendarDays } from 'date-fns';
 import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 
@@ -59,7 +59,6 @@ function parseItemsPerDay(itemsPerDay?: string): number {
         return parseInt(itemsPerDay.replace('+', ''), 10);
     }
     const parts = itemsPerDay.split('-').map(Number);
-    // Use the higher end of the range for a more challenging baseline
     return parts[1] || parts[0] || 0;
 }
 
@@ -90,9 +89,12 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         // Net Savings/Deficit Calculation
         const calculateNet = (start: Date, end: Date) => {
             if (dailyBaseline === 0) return { netCount: 0, netMoney: 0 };
-            const intervalDays = eachDayOfInterval({ start, end });
-            const totalBaseline = intervalDays.length * dailyBaseline;
+            
+            const intervalDaysCount = differenceInCalendarDays(end, start) + 1;
+            const totalBaseline = intervalDaysCount * dailyBaseline;
+            
             const totalSmoked = getUrgeCount(urges.filter(u => u.timestamp && isWithinInterval(u.timestamp.toDate(), { start, end })));
+            
             const netCount = totalBaseline - totalSmoked;
             return { netCount, netMoney: netCount * costPerItem };
         }
@@ -160,7 +162,7 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1" className="border-b-0">
                 <Card>
-                    <AccordionTrigger className="p-6">
+                    <AccordionTrigger className="p-4">
                         <div className="flex flex-col items-start text-left w-full">
                             <CardTitle>Financials</CardTitle>
                             <CardDescription className="text-left">
@@ -196,3 +198,5 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         </Accordion>
     )
 }
+
+    
