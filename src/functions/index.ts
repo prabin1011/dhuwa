@@ -4,12 +4,34 @@ import { getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
 import { addMinutes, isAfter, isBefore, parse } from 'date-fns';
+import * as fs from 'fs';
+import * as path from 'path';
 
 if (!getApps().length) {
-    const raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-    if (!raw) throw new Error('Missing FIREBASE_SERVICE_ACCOUNT_KEY');
-    initializeApp({ credential: cert(JSON.parse(raw)) });
+    try {
+        let serviceAccount;
+        // First, try the environment variable (primary method)
+        if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+            serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+        } else {
+            // Fallback for local development: check for a file
+            const serviceAccountPath = path.resolve(process.cwd(), 'service-account.json');
+            if (fs.existsSync(serviceAccountPath)) {
+                console.log('Found service-account.json, using for local dev.');
+                serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+            } else {
+                 throw new Error('Missing FIREBASE_SERVICE_ACCOUNT_KEY environment variable and no service-account.json found.');
+            }
+        }
+        initializeApp({ credential: cert(serviceAccount) });
+
+    } catch (e: any) {
+        console.error('Failed to initialize Firebase Admin SDK:', e.message);
+        // Throw a more specific error to help debugging
+        throw new Error(`Could not initialize Firebase Admin. Ensure FIREBASE_SERVICE_ACCOUNT_KEY is a valid, single-line JSON string. Details: ${e.message}`);
+    }
 }
+
 
 const db = getFirestore();
 const messaging = getMessaging();
