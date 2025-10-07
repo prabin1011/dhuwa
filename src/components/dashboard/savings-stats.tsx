@@ -9,6 +9,7 @@ import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { Button } from "../ui/button";
 
 interface Urge {
     timestamp: Timestamp;
