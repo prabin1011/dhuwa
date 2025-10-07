@@ -114,19 +114,23 @@ export function MoodReport({ urges, selectedDate }: MoodReportProps) {
         if (bData.length > 0) {
             const topMood = bData[0].name;
             if (topMood === 'stressed' || topMood === 'anxious') {
-                dynamicDescription = `Stress seems to be the main character today. The cigarette is a false friend.`;
+                dynamicDescription = "Stress was the trigger. But nicotine is a loan shark for calm—it gives a moment, then takes back more.";
             } else if (topMood === 'bored') {
-                dynamicDescription = `Boredom is the playground of bad habits. Did the smoke truly entertain you?`;
+                dynamicDescription = "Boredom is the playground of bad habits. Did the smoke truly entertain you, or just kill ten minutes?";
             } else if (topMood === 'happy') {
-                dynamicDescription = `You reached for a cigarette when you were already happy. Why?`;
+                dynamicDescription = "You reached for a cigarette when you were already happy. Why invite a thief to a party?";
+            } else if (topMood === 'tired') {
+                dynamicDescription = "You smoked for a lift when your body craved rest. A false friend, offering a jolt before dragging you down further."
+            } else if (topMood === 'lonely') {
+                dynamicDescription = "You smoked for company. But the cigarette is a friend that takes your money, your health, and then leaves you alone."
             }
         }
         if (aData.length > 0) {
             const topAfterMood = aData[0].name;
              if (topAfterMood === 'guilty' && (aData[0].percentage > 50)) {
-                dynamicDescription = `This guilt is a heavy, self-inflicted tax. Be gentle, but be aware.`;
+                dynamicDescription = `This guilt is a heavy, self-inflicted tax. The cigarette promised relief and left you with regret. It lied.`;
             } else if (topAfterMood === 'same') {
-                dynamicDescription = `You felt the same after. The habit offered no change, no relief. It was for nothing.`
+                dynamicDescription = `You felt the same after. The habit offered no change, no relief. It was for nothing. Remember this emptiness.`
             }
         }
         if (bData.length === 0 && aData.length === 0) {

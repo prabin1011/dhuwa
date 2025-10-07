@@ -37,12 +37,19 @@ const getGroupTitle = (dateStr: string) => {
 };
 
 const encouragementMessages = [
-    "Yes. This is how you reclaim your time. Keep building.",
-    "Each replacement is a vote for a new you. Keep voting.",
-    "This is it. You're not just 'not smoking,' you're living.",
+    "Yes. This is how you reclaim your time. The first step is the hardest and you've taken it.",
+    "Each replacement is a vote for a new you. You're casting multiple votes today. Keep going.",
+    "This is it. You're not just 'not smoking,' you're actively living. This is what winning looks like.",
+    "Keep this up for 3 days to build confidence. Keep it up for 21 days to build a new habit. You are on your way.",
     "Excellent choice. Freedom is built one decision at a time.",
-    "Keep this up for 3 days. Then 7. Then 21. This is how habits die."
+    "This is the path. Every time you choose a replacement, you weaken the addiction's hold on you."
 ];
+
+const emptyStateMessages = [
+    "Your best weapon against an urge is a plan. What's one positive action you'll choose next time?",
+    "An opportunity awaits. The next urge isn't a threat; it's a chance to make a better choice.",
+    "No replacements logged yet. Let's change that. What will you do instead of smoking next time?"
+]
 
 export function ReplacementReport({ userProfile, selectedDate }: ReplacementReportProps) {
     const replacementLogs = useMemo(() => {
@@ -82,7 +89,7 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
 
     const description = logsForSelectedDate.length > 0 
         ? encouragementMessages[logsForSelectedDate.length % encouragementMessages.length]
-        : "Activities you choose instead of giving in.";
+        : emptyStateMessages[Math.floor(Math.random() * emptyStateMessages.length)];
 
     return (
         <Card>

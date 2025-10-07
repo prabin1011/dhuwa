@@ -21,6 +21,8 @@ import { useNotifications } from "@/hooks/use-notifications";
 import { useToast } from "@/hooks/use-toast";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 import { DailyHabitChart } from "./daily-habit-chart";
+import { NextRiskWindow } from "./next-risk-window";
+import { SosActionBar } from "./sos-action-bar";
 
 
 interface UserProfile {
@@ -92,7 +94,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-        <main className="flex-1 flex flex-col items-center p-4 md:p-6">
+        <main className="flex-1 flex flex-col items-center p-4 md:p-6 pb-28">
             <div className="w-full max-w-md">
                 <header className="mb-6 flex justify-between items-start">
                     <div>
@@ -108,6 +110,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
 
                 <div className="space-y-6">
                     <DailyInsight userProfile={userProfile} urges={sortedUrges} lastUrgeTime={lastUrgeTime}/>
+                    <NextRiskWindow userProfile={userProfile} urges={sortedUrges} />
                     <RealTimeTimer sortedUrges={sortedUrges} />
                     
                     <DateSelector selected={selectedDate} onSelect={setSelectedDate} />
@@ -123,9 +126,10 @@ export function Dashboard({ userProfile }: DashboardProps) {
                 </div>
             </div>
         </main>
-        <footer className="sticky bottom-0 p-4 bg-background/80 backdrop-blur-sm border-t border-border">
-            <div className="w-full max-w-md mx-auto">
-                <SmokeLogger habits={userProfile.habits || ['Cigarette']}/>
+        <footer className="sticky bottom-0 bg-background/80 backdrop-blur-sm border-t border-border">
+            <div className="w-full max-w-md mx-auto p-4 space-y-3">
+                 <SmokeLogger habits={userProfile.habits || ['Cigarette']}/>
+                 <SosActionBar />
             </div>
         </footer>
     </div>

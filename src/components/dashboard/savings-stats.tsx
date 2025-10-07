@@ -34,19 +34,21 @@ interface SavingsStatsProps {
     selectedDate: Date | undefined;
 }
 
-const expenseMessages = [
-    "This is the price of the habit, not just in money, but in future moments.",
-    "Each dollar spent is a vote for the addiction. What will you vote for tomorrow?",
-    "You're funding your own trap. Can you see the bars you're paying for?",
-    "Is this cost truly worth the fleeting relief it promises?"
-];
+const expenseMessages = {
+    over_baseline: "You've crossed the line you drew for yourself. This isn't just about money anymore; it's about a promise.",
+    near_baseline: "You're approaching your daily limit. Each one from here on out is a choice to break a promise to yourself. Is it worth it?",
+    high: "This cost is high, not just in money, but in future moments. You are funding your own trap.",
+    moderate: "Is this fleeting relief truly worth the price? Each dollar spent is a vote for the addiction.",
+    low: "It seems small, but this is a quiet leak in your financial boat. Are you ready to patch it?",
+    zero: "A day of perfect savings. This is what financial freedom starts to feel like. Protect it."
+}
 
-const savingsMessages = [
-    "Skipping a single smoke feels small, but this is how freedom begins.",
-    "Come on, skip a few. Let's see some real savings build up here.",
-    "This number represents moments you chose yourself over the addiction. Let's make it grow.",
-    "Each dollar saved is a step away from the trap. Keep walking."
-];
+const savingsMessages = {
+    high: "Look at this number. This isn't just money; it's reclaimed time, health, and freedom. You are buying back your life.",
+    moderate: "This number represents every time you chose yourself over the addiction. You are building a new you.",
+    low: "It starts with one. Skipping a single smoke feels small, but this is how an empire of self-respect is built. Let's see this number grow.",
+    zero: "An opportunity awaits. The next urge isn't a threat; it's a chance to make a deposit into your well-being account."
+}
 
 const StatDisplay = ({ label, value, money, moneyColor = 'text-primary' }: { label: string, value: number, money: string, moneyColor?: string }) => (
     <div className="flex flex-col items-center">
@@ -55,6 +57,15 @@ const StatDisplay = ({ label, value, money, moneyColor = 'text-primary' }: { lab
         <p className={`text-sm font-medium ${moneyColor}`}>{money}</p>
     </div>
 );
+
+function parseItemsPerDay(itemsPerDay?: string): number {
+    if (!itemsPerDay) return 0;
+    if (itemsPerDay.includes('+')) {
+        return parseInt(itemsPerDay.replace('+', ''), 10);
+    }
+    const parts = itemsPerDay.split('-').map(Number);
+    return parts[0] || 0;
+}
 
 export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsProps) {
     const costPerItem = useMemo(() => {
@@ -66,6 +77,7 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
     const { stats, description } = useMemo(() => {
         const date = selectedDate || new Date();
         const moments = userProfile.moments || [];
+        const dailyBaseline = parseItemsPerDay(userProfile.itemsPerDay);
         
         const getUrgeCount = (filteredUrges: WithId<Urge>[]) => {
             return filteredUrges.reduce((sum, urge) => sum + (urge.count || 1), 0);
@@ -104,12 +116,29 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         const dailyExpenseAmount = dailyUrgeCount * costPerItem;
         const dailySavingsAmount = dailySkipped * costPerItem;
         
-        let dynamicDescription = expenseMessages[dailyUrgeCount % expenseMessages.length];
-        if (dailySavingsAmount > dailyExpenseAmount && dailySavingsAmount > 0) {
-            dynamicDescription = savingsMessages[dailySkipped % savingsMessages.length];
-        } else if (dailyExpenseAmount === 0 && dailySavingsAmount === 0) {
+        let dynamicDescription = expenseMessages.moderate;
+
+        if (dailyUrgeCount === 0 && dailySavingsAmount === 0) {
+            dynamicDescription = expenseMessages.zero;
+        } else if (dailySavingsAmount > dailyExpenseAmount) {
+             if (dailySavingsAmount > costPerItem * 5) dynamicDescription = savingsMessages.high;
+             else if (dailySavingsAmount > costPerItem) dynamicDescription = savingsMessages.moderate;
+             else dynamicDescription = savingsMessages.low;
+        } else { // Expenses are greater or equal
+            if (dailyBaseline > 0 && dailyUrgeCount > dailyBaseline) {
+                dynamicDescription = expenseMessages.over_baseline;
+            } else if (dailyBaseline > 0 && dailyUrgeCount >= dailyBaseline * 0.8) {
+                 dynamicDescription = expenseMessages.near_baseline;
+            } else if (dailyUrgeCount > 10) {
+                dynamicDescription = expenseMessages.high;
+            } else if (dailyUrgeCount > 0) {
+                 dynamicDescription = expenseMessages.low;
+            }
+        }
+        if(dailyUrgeCount === 0 && dailySkipped === 0) {
             dynamicDescription = "A quiet day. Every choice matters tomorrow.";
         }
+
 
         return {
             stats: {
@@ -126,7 +155,7 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
             },
             description: dynamicDescription
         };
-    }, [urges, userProfile.moments, costPerItem, selectedDate]);
+    }, [urges, userProfile.moments, costPerItem, selectedDate, userProfile.itemsPerDay]);
 
 
     return (

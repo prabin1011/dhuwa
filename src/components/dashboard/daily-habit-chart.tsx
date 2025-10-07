@@ -18,6 +18,22 @@ interface DailyHabitChartProps {
     selectedDate: Date | undefined;
 }
 
+const descriptions = {
+    higher: [
+        "A tough day, well above your average. It happens. Reflect on what was different today. Don't let one day define the journey.",
+        "A bit more than usual. A small deviation, not a disaster. What were the triggers? Let's be ready for them tomorrow."
+    ],
+    lower: [
+        "A good day, well below your average. This is progress. This is strength. Build on this momentum.",
+        "Look at this. A day of control, discipline, and success. This is proof you can do it."
+    ],
+    zero: [
+        "Zero. This is a massive win. This is what a smoke-free day feels like. Bottle this feeling.",
+        "Zero smokes logged today. An amazing achievement! Keep this momentum going."
+    ],
+    default: "Your 30-day average is {avg} smokes/day."
+}
+
 export function DailyHabitChart({ urges, selectedDate }: DailyHabitChartProps) {
     const { dailyData, description } = useMemo(() => {
         const data = [];
@@ -33,21 +49,21 @@ export function DailyHabitChart({ urges, selectedDate }: DailyHabitChartProps) {
         }
         
         const totalSmokes = data.reduce((sum, day) => sum + day.count, 0);
-        const avgSmokes = totalSmokes / 30;
+        const avgSmokes = totalSmokes > 0 ? totalSmokes / 30 : 0;
         const selectedDayCount = data.find(d => d.date === format(selectedDate || new Date(), 'MMM d'))?.count ?? 0;
 
-        let dynamicDescription = `Your 30-day average is ${avgSmokes.toFixed(1)} smokes/day.`;
+        let dynamicDescription = descriptions.default.replace('{avg}', avgSmokes.toFixed(1));
         if (selectedDate) {
             if (selectedDayCount > avgSmokes * 1.5) {
-                dynamicDescription = `Significantly higher than average. What happened today?`;
+                dynamicDescription = descriptions.higher[0];
             } else if (selectedDayCount > avgSmokes * 1.1) {
-                dynamicDescription = `A bit higher than your recent average. Reflect on today's triggers.`;
+                dynamicDescription = descriptions.higher[1];
             } else if (selectedDayCount === 0 && avgSmokes > 0) {
-                 dynamicDescription = `Zero smokes logged today. This is a massive win.`;
+                 dynamicDescription = descriptions.zero[0];
             } else if (selectedDayCount < avgSmokes * 0.8 && selectedDayCount > 0) {
-                dynamicDescription = `A good day, well below your average. Build on this momentum.`;
+                dynamicDescription = descriptions.lower[0];
             } else if (selectedDayCount === 0) {
-                dynamicDescription = `No smokes logged today. An amazing achievement!`;
+                dynamicDescription = descriptions.zero[1];
             }
         }
         
