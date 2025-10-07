@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { getMessaging, getToken } from 'firebase/messaging';
 import { useFirebase } from '@/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
@@ -26,6 +26,7 @@ async function registerServiceWorker() {
 export const useNotifications = () => {
   const { firebaseApp, firestore, user } = useFirebase();
   const { toast } = useToast();
+  const [fcmToken, setFcmToken] = useState<string | null>(null);
 
   const requestPermissionAndToken = useCallback(async () => {
     if (typeof window === 'undefined' || !('Notification' in window)) {
@@ -37,7 +38,6 @@ export const useNotifications = () => {
         return null;
     }
     
-    // Ensure the service worker is registered.
     const registration = await registerServiceWorker();
     if (!registration) {
         toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not register notification service worker.' });
@@ -55,6 +55,7 @@ export const useNotifications = () => {
 
         if (currentToken) {
           console.log('FCM Token:', currentToken);
+          setFcmToken(currentToken);
           const userProfileRef = doc(firestore, `users/${user.uid}/profile/main`);
           await updateDoc(userProfileRef, {
             fcmTokens: arrayUnion(currentToken)
@@ -63,18 +64,21 @@ export const useNotifications = () => {
           return currentToken;
         } else {
           toast({ variant: 'destructive', title: 'Token Error', description: 'Could not get notification token.' });
+          setFcmToken(null);
           return null;
         }
       } else {
         toast({ variant: 'destructive', title: 'Permission Denied', description: 'You will not receive notifications.' });
+        setFcmToken(null);
         return null;
       }
     } catch (error) {
       console.error('An error occurred while setting up notifications:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'An unexpected error occurred during setup.' });
+      setFcmToken(null);
       return null;
     }
   }, [firebaseApp, firestore, user, toast]);
 
-  return { requestPermissionAndToken };
+  return { requestPermissionAndToken, fcmToken };
 };

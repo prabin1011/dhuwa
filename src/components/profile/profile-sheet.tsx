@@ -20,7 +20,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useRouter } from "next/navigation";
 import { deleteUser } from "firebase/auth";
 import { useNotifications } from '@/hooks/use-notifications';
-import { Bell, BellOff } from 'lucide-react';
+import { Bell, BellOff, Copy } from 'lucide-react';
 import { Separator } from '../ui/separator';
 
 interface UserProfile extends Partial<OnboardingData> {
@@ -38,7 +38,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const { firestore, user, auth } = useFirebase();
     const router = useRouter();
     const { toast } = useToast();
-    const { requestPermissionAndToken } = useNotifications();
+    const { requestPermissionAndToken, fcmToken } = useNotifications();
     const [isSubmittingNotifications, setIsSubmittingNotifications] = useState(false);
 
     const { control, handleSubmit, reset, formState: { isSubmitting, isDirty } } = useForm<OnboardingData>({
@@ -81,6 +81,13 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         setIsSubmittingNotifications(true);
         await requestPermissionAndToken();
         setIsSubmittingNotifications(false);
+    }
+
+    const handleCopyToken = () => {
+        if (fcmToken) {
+            navigator.clipboard.writeText(fcmToken);
+            toast({ title: 'Token Copied!', description: 'FCM token has been copied to your clipboard.' });
+        }
     }
     
     const hasNotificationToken = userProfile.fcmTokens && userProfile.fcmTokens.length > 0;
@@ -234,10 +241,18 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                 Receive motivational reminders and alerts.
                             </p>
                         </div>
-                        <Button variant="outline" size="icon" onClick={handleNotificationRequest} disabled={isSubmittingNotifications || hasNotificationToken}>
+                         <Button variant="outline" size="icon" onClick={handleNotificationRequest} disabled={isSubmittingNotifications || hasNotificationToken}>
                             {hasNotificationToken ? <BellOff className="h-5 w-5"/> : <Bell className="h-5 w-5" />}
                         </Button>
                     </div>
+                     {fcmToken && (
+                        <div className="flex items-center gap-2">
+                            <Input value={fcmToken} readOnly className="text-xs" />
+                            <Button variant="outline" size="icon" onClick={handleCopyToken}>
+                                <Copy className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
             </div>
