@@ -6,6 +6,7 @@ import { getMessaging } from 'firebase-admin/messaging';
 import { addMinutes, isAfter, isBefore, parse } from 'date-fns';
 import * as fs from 'fs';
 import * as path from 'path';
+import { notificationTemplates } from '../lib/notification-templates';
 
 if (!getApps().length) {
     try {
@@ -15,17 +16,21 @@ if (!getApps().length) {
             initializeApp({ credential: cert(serviceAccount) });
             console.log('Firebase Admin SDK initialized using service-account.json');
         } else {
-            throw new Error('service-account.json not found. Please ensure the file exists at the root of your project.');
+            throw new Error('service-account.json not found.');
         }
     } catch (e: any) {
-        console.error('Failed to initialize Firebase Admin SDK:', e.message);
-        throw new Error(`Could not initialize Firebase Admin from file. Details: ${e.message}`);
+        console.error('Failed to initialize Firebase Admin SDK from file:', e.message);
+        throw new Error(`Could not initialize Firebase Admin. Details: ${e.message}`);
     }
 }
 
-
 const db = getFirestore();
 const messaging = getMessaging();
+
+// Helper to get a random template
+const getRandomTemplate = (templateArray: {title: string, body: string}[]) => {
+    return templateArray[Math.floor(Math.random() * templateArray.length)];
+}
 
 export async function sendMomentReminders() {
   const now = new Date();
@@ -39,22 +44,18 @@ export async function sendMomentReminders() {
   for (const docSnap of profiles.docs) {
     const p = docSnap.data() as any;
 
-    // ✅ consent gate
     if (p.reminders !== 'yes') {
-      console.log(`User ${docSnap.id} did not opt-in for reminders. Skipping...`);
-      continue;
+      continue; // Skip user if they've opted out
     }
 
     const tokens: string[] = Array.isArray(p.fcmTokens) ? p.fcmTokens : [];
     if (!tokens.length) {
-      console.log(`User ${docSnap.id} does not have any FCM tokens. Skipping...`);
-      continue;
+      continue; // Skip if no tokens
     }
 
     const moments = Array.isArray(p.moments) ? p.moments : [];
     if (!moments.length) {
-      console.log(`User ${docSnap.id} has no planned moments. Skipping...`);
-      continue;
+      continue; // Skip if no planned moments
     }
 
     const upcoming = moments.filter((m: any) => {
@@ -62,19 +63,19 @@ export async function sendMomentReminders() {
         const t = parse(m.time, 'HH:mm', now);
         return isAfter(t, now) && isBefore(t, end);
       } catch (error) {
-        console.log(`Error parsing moment time for user ${docSnap.id}:`, m.time, error);
         return false;
       }
     });
 
     for (const m of upcoming) {
       try {
+        const template = getRandomTemplate(notificationTemplates.upcomingMoment);
+        const title = template.title.replace('{{time}}', m.time).replace('{{label}}', m.label || 'your moment');
+        const body = template.body;
+
         await messaging.sendEachForMulticast({
           tokens,
-          notification: {
-            title: `Coming up ${m.time}: ${m.label || 'planned moment'}`,
-            body: 'Try a replacement you picked instead.',
-          },
+          notification: { title, body },
           webpush: { fcmOptions: { link: '/' } },
         });
         notificationsSent++;

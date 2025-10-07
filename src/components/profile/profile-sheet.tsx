@@ -20,8 +20,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useRouter } from "next/navigation";
 import { deleteUser } from "firebase/auth";
 import { useNotifications } from '@/hooks/use-notifications';
-import { Bell, BellOff, Copy, Send } from 'lucide-react';
+import { Copy, Send } from 'lucide-react';
 import { Separator } from '../ui/separator';
+import { Switch } from '../ui/switch';
 
 interface UserProfile extends Partial<OnboardingData> {
     username?: string;
@@ -40,14 +41,12 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const { toast } = useToast();
     const { requestPermissionAndToken, fcmToken, permissionStatus: initialPermissionStatus } = useNotifications();
     const [permissionStatus, setPermissionStatus] = useState(initialPermissionStatus);
-    const [isSubmittingNotifications, setIsSubmittingNotifications] = useState(false);
-    const [isSendingReminders, setIsSendingReminders] = useState(false);
-
-     useEffect(() => {
+    
+    useEffect(() => {
         setPermissionStatus(initialPermissionStatus);
     }, [initialPermissionStatus]);
 
-    const { control, handleSubmit, reset, formState: { isSubmitting, isDirty } } = useForm<OnboardingData>({
+    const { control, handleSubmit, reset, getValues, setValue, formState: { isSubmitting, isDirty } } = useForm<OnboardingData>({
         defaultValues: {
             ...userProfile
         },
@@ -83,38 +82,14 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         }
     };
     
-    const handleNotificationRequest = async () => {
-        setIsSubmittingNotifications(true);
-        await requestPermissionAndToken();
-        // After the request, update the status from the browser API directly
-        setPermissionStatus(Notification.permission);
-        setIsSubmittingNotifications(false);
-    }
-
-    const handleSendReminders = async () => {
-        setIsSendingReminders(true);
-        try {
-            const res = await fetch('/api/send-reminders', { method: 'POST' });
-
-            const ct = res.headers.get('content-type') || '';
-            const payload = ct.includes('application/json') ? await res.json() : { error: await res.text() };
-
-            if (!res.ok) throw new Error(payload.error || 'Failed to send reminders.');
-
-            toast({
-            title: 'Reminders Sent',
-            description: `Checked ${payload.totalUsers} users and sent ${payload.notificationsSent} reminders.`,
-            });
-        } catch (error: any) {
-            toast({
-            variant: 'destructive',
-            title: 'Sending Failed',
-            description: error.message,
-            });
-        } finally {
-            setIsSendingReminders(false);
+    const handleNotificationToggle = async (enabled: boolean) => {
+        setValue('reminders', enabled ? 'yes' : 'no', { shouldDirty: true });
+        
+        if (enabled) {
+            await requestPermissionAndToken();
+            setPermissionStatus(Notification.permission); // Re-check permission status after request
         }
-    };
+    }
 
     const handleCopyToken = () => {
         if (fcmToken) {
@@ -123,8 +98,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         }
     }
     
-    const isPermissionGranted = permissionStatus === 'granted';
     const isPermissionDenied = permissionStatus === 'denied';
+    const remindersEnabled = getValues('reminders') === 'yes';
 
 
     const handleDeleteAccount = async () => {
@@ -190,7 +165,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     
     // Group steps by title
     const groupedSteps = STEPS.reduce((acc, step) => {
-        if (step.type === 'summary') return acc;
+        if (step.type === 'summary' || step.field === 'reminders') return acc;
         if (!acc[step.title]) {
             acc[step.title] = [];
         }
@@ -270,7 +245,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                     <h3 className="text-lg font-semibold tracking-tight">Notifications</h3>
                     <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
-                            <Label className="text-base">Push Notifications</Label>
+                            <Label className="text-base">Enable Reminders</Label>
                             <p className="text-sm text-muted-foreground">
                                 {isPermissionDenied 
                                     ? "Permission was denied. You must enable it in your browser settings."
@@ -278,9 +253,17 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                 }
                             </p>
                         </div>
-                         <Button variant="outline" size="icon" onClick={handleNotificationRequest} disabled={isSubmittingNotifications || isPermissionGranted || isPermissionDenied}>
-                            {isPermissionGranted ? <Bell className="h-5 w-5"/> : <BellOff className="h-5 w-5" />}
-                        </Button>
+                         <Controller
+                            name="reminders"
+                            control={control}
+                            render={({ field }) => (
+                                <Switch
+                                    checked={field.value === 'yes'}
+                                    onCheckedChange={handleNotificationToggle}
+                                    disabled={isPermissionDenied}
+                                />
+                            )}
+                         />
                     </div>
                      {fcmToken && (
                         <div className="flex items-center gap-2">
@@ -289,11 +272,6 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                 <Copy className="h-4 w-4" />
                             </Button>
                         </div>
-                    )}
-                    {process.env.NODE_ENV === 'development' && (
-                        <Button variant="secondary" onClick={handleSendReminders} disabled={isSendingReminders} className="w-full">
-                           <Send className="mr-2 h-4 w-4" /> {isSendingReminders ? 'Sending...' : 'Manually Send Reminders'}
-                        </Button>
                     )}
                 </div>
 
