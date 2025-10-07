@@ -3,8 +3,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
-import { AlertTriangle, Clock, ShieldCheck, Waves } from "lucide-react";
+import { AlertTriangle, Clock, ShieldCheck, Waves, Replace } from "lucide-react";
 import { differenceInMinutes, parse, format, isAfter } from "date-fns";
+import { SmokingPlan } from "./smoking-plan";
+
 
 interface Urge {
     timestamp: { toDate: () => Date };
@@ -14,6 +16,8 @@ interface SmokingMoment {
     id: string;
     time: string; // "HH:mm"
     label: string;
+    completed: Record<string, boolean>;
+    replacementActivity?: Record<string, string>;
 }
 
 interface UserProfile {
@@ -82,8 +86,7 @@ export function NextRiskWindow({ userProfile, urges }: NextRiskWindowProps) {
         icon = <Clock className="w-5 h-5 text-yellow-500" />;
         cta = (
             <div className="flex gap-2 mt-4">
-                <Button variant="outline" size="sm"><Waves className="w-4 h-4 mr-2"/>Breathe</Button>
-                <Button variant="outline" size="sm">Pick Replacement</Button>
+               <SmokingPlan userProfile={userProfile} selectedDate={new Date()} />
             </div>
         );
     } else if (spikeHour !== null) {
@@ -94,8 +97,7 @@ export function NextRiskWindow({ userProfile, urges }: NextRiskWindowProps) {
         icon = <AlertTriangle className="w-5 h-5 text-orange-500" />;
          cta = (
             <div className="flex gap-2 mt-4">
-                <Button variant="outline" size="sm"><Waves className="w-4 h-4 mr-2"/>Breathe</Button>
-                <Button variant="outline" size="sm">Plan Ahead</Button>
+                 <SmokingPlan userProfile={userProfile} selectedDate={new Date()} />
             </div>
         );
     }

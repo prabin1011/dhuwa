@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { isSameDay, startOfWeek, startOfMonth, eachDayOfInterval, endOfDay, startOfDay } from 'date-fns';
+import { isSameDay, startOfWeek, startOfMonth, eachDayOfInterval, endOfDay, startOfDay, format } from 'date-fns';
 import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 
@@ -184,24 +184,22 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                        <CardContent>
-                             <div className="grid grid-cols-1 gap-6">
-                                <div>
-                                    <h4 className="text-sm font-semibold mb-3">Expenses (to-date)</h4>
-                                     <div className="grid grid-cols-3 divide-x divide-border">
-                                        <StatDisplay label="Daily" value={stats.expenses.daily.count} money={stats.expenses.daily.money} moneyColor="text-destructive" />
-                                        <StatDisplay label="Weekly" value={stats.expenses.weekly.count} money={stats.expenses.weekly.money} moneyColor="text-destructive"/>
-                                        <StatDisplay label="Monthly" value={stats.expenses.monthly.count} money={stats.expenses.monthly.money} moneyColor="text-destructive"/>
-                                    </div>
+                        <CardContent className="space-y-6">
+                             <div>
+                                <h4 className="text-sm font-semibold mb-4 text-center">Expenses (to-date)</h4>
+                                 <div className="grid grid-cols-3 divide-x divide-border">
+                                    <StatDisplay label="Daily" value={stats.expenses.daily.count} money={stats.expenses.daily.money} moneyColor="text-destructive" />
+                                    <StatDisplay label="Weekly" value={stats.expenses.weekly.count} money={stats.expenses.weekly.money} moneyColor="text-destructive"/>
+                                    <StatDisplay label="Monthly" value={stats.expenses.monthly.count} money={stats.expenses.monthly.money} moneyColor="text-destructive"/>
                                 </div>
-                                 <div>
-                                    <h4 className="text-sm font-semibold mb-2">Net Savings vs Baseline (to-date)</h4>
-                                     <p className="text-xs text-muted-foreground mb-3">{description.savings}</p>
-                                    <div className="grid grid-cols-3 divide-x divide-border">
-                                        <StatDisplay label="Daily" value={stats.savings.daily.count} money={stats.savings.daily.money} moneyColor={stats.savings.daily.count < 0 ? 'text-destructive' : 'text-primary'}/>
-                                        <StatDisplay label="Weekly" value={stats.savings.weekly.count} money={stats.savings.weekly.money} moneyColor={stats.savings.weekly.count < 0 ? 'text-destructive' : 'text-primary'}/>
-                                        <StatDisplay label="Monthly" value={stats.savings.monthly.count} money={stats.savings.monthly.money} moneyColor={stats.savings.monthly.count < 0 ? 'text-destructive' : 'text-primary'}/>
-                                    </div>
+                            </div>
+                             <div>
+                                <h4 className="text-sm font-semibold mb-2 text-center">Net Savings vs Baseline (to-date)</h4>
+                                 <p className="text-xs text-muted-foreground mb-4 px-2">{description.savings}</p>
+                                <div className="grid grid-cols-3 divide-x divide-border">
+                                    <StatDisplay label="Daily" value={stats.savings.daily.count} money={stats.savings.daily.money} moneyColor={stats.savings.daily.count < 0 ? 'text-destructive' : 'text-primary'}/>
+                                    <StatDisplay label="Weekly" value={stats.savings.weekly.count} money={stats.savings.weekly.money} moneyColor={stats.savings.weekly.count < 0 ? 'text-destructive' : 'text-primary'}/>
+                                    <StatDisplay label="Monthly" value={stats.savings.monthly.count} money={stats.savings.monthly.money} moneyColor={stats.savings.monthly.count < 0 ? 'text-destructive' : 'text-primary'}/>
                                 </div>
                             </div>
                         </CardContent>
