@@ -24,12 +24,15 @@ interface ProgressTrackerProps {
 export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerProps) {
     const moments = userProfile.moments || [];
     
-    const progressData = useMemo(() => {
+    const { progressData, description } = useMemo(() => {
         if (!moments || moments.length === 0) {
             return {
-                daily: { percentage: 0, label: "Plan moments to see progress" },
-                weekly: { percentage: 0, label: "Plan moments to see progress" },
-                monthly: { percentage: 0, label: "Plan moments to see progress" }
+                progressData: {
+                    daily: { percentage: 0, label: "Plan moments to see progress" },
+                    weekly: { percentage: 0, label: "Plan moments to see progress" },
+                    monthly: { percentage: 0, label: "Plan moments to see progress" }
+                },
+                description: "Plan your smoking moments to start tracking your progress."
             };
         }
 
@@ -62,20 +65,36 @@ export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerPr
         }, 0);
         const monthlyPercentage = monthlyMomentsTracked > 0 ? (monthlyMomentsSkipped / monthlyMomentsTracked) * 100 : 0;
 
+        let dynamicDescription = "Your success in skipping planned smokes.";
+        if (dailyTotalTracked > 0) {
+            if (dailyPercentage === 100) {
+                dynamicDescription = "A perfect day. You met every challenge and chose freedom.";
+            } else if (dailyPercentage >= 50) {
+                dynamicDescription = "You won more than you lost today. That's a victory. Build on it.";
+            } else if (dailyPercentage > 0) {
+                dynamicDescription = "Progress, not perfection. You proved you can skip. Now, let's aim for more tomorrow.";
+            } else {
+                dynamicDescription = "Today was tough. Every craving you logged is a lesson. Let's use it for tomorrow.";
+            }
+        }
+
 
         return {
-            daily: {
-                percentage: dailyPercentage,
-                label: `${dailySkipped}/${dailyTotalTracked} skipped on ${format(selectedDate, 'MMM d')}`
+            progressData: {
+                daily: {
+                    percentage: dailyPercentage,
+                    label: `${dailySkipped}/${dailyTotalTracked} skipped on ${format(selectedDate, 'MMM d')}`
+                },
+                weekly: {
+                    percentage: weeklyPercentage,
+                    label: `${weeklyMomentsSkipped}/${weeklyMomentsTracked} skipped this week`
+                },
+                monthly: {
+                    percentage: monthlyPercentage,
+                    label: `${monthlyMomentsSkipped}/${monthlyMomentsTracked} skipped this month`
+                }
             },
-            weekly: {
-                percentage: weeklyPercentage,
-                label: `${weeklyMomentsSkipped}/${weeklyMomentsTracked} skipped this week`
-            },
-            monthly: {
-                percentage: monthlyPercentage,
-                label: `${monthlyMomentsSkipped}/${monthlyMomentsTracked} skipped this month`
-            }
+            description: dynamicDescription
         };
 
     }, [moments, selectedDate]);
@@ -84,7 +103,7 @@ export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerPr
         <Card>
             <CardHeader>
                 <CardTitle>Habit Progress</CardTitle>
-                <CardDescription>Your success in skipping planned smokes.</CardDescription>
+                <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="space-y-2">
