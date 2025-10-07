@@ -5,6 +5,7 @@ export const firebaseConfig = {
   "authDomain": "studio-7251750297-88bd3.firebaseapp.com",
   "measurementId": "",
   "messagingSenderId": "856277572255",
+  "storageBucket": "studio-7251750297-88bd3.appspot.com",
   "vapidKey": process.env.NEXT_PUBLIC_VAPID_KEY
 };
 

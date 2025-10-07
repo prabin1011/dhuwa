@@ -9,11 +9,13 @@ import { useToast } from './use-toast';
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            // Unregister old service workers
+            // Unregister old service workers to ensure the new one takes over
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (const registration of registrations) {
-                if (registration.scope.includes('firebase-cloud-messaging')) {
+                // A more robust check for Firebase SW
+                if (registration.scope.endsWith('/')) {
                      await registration.unregister();
+                     console.log('Unregistered old service worker:', registration);
                 }
             }
             
@@ -74,18 +76,22 @@ export const useNotifications = () => {
         if (currentToken) {
           setFcmToken(currentToken);
           const userProfileRef = doc(firestore, `users/${user.uid}/profile/main`);
-          await updateDoc(userProfileRef, {
-            fcmTokens: arrayUnion(currentToken)
-          });
+          // Check if token already exists before updating
+          const userProfile = (await (await fetch(`/api/user-profile?uid=${user.uid}`)).json()).profile;
+          if (!userProfile?.fcmTokens?.includes(currentToken)) {
+             await updateDoc(userProfileRef, {
+                fcmTokens: arrayUnion(currentToken)
+             });
+          }
           toast({ title: 'Notifications Enabled!', description: "You're all set to receive messages." });
           return currentToken;
         } else {
-          toast({ variant: 'destructive', title: 'Token Error', description: 'Could not get notification token. Please check your VAPID key.' });
+          toast({ variant: 'destructive', title: 'Token Error', description: 'Could not get notification token. Please try again.' });
           setFcmToken(null);
           return null;
         }
       } else {
-        toast({ variant: 'destructive', title: 'Permission Denied', description: 'You will not receive notifications.' });
+        toast({ variant: 'destructive', title: 'Permission Denied', description: 'You will not receive notifications. You can enable them in browser settings.' });
         setFcmToken(null);
         return null;
       }

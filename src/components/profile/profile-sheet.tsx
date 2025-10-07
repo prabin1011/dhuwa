@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "../ui/button";
 import type { WithId } from "@/firebase";
@@ -38,8 +38,13 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const { firestore, user, auth } = useFirebase();
     const router = useRouter();
     const { toast } = useToast();
-    const { requestPermissionAndToken, fcmToken, permissionStatus } = useNotifications();
+    const { requestPermissionAndToken, fcmToken, permissionStatus: initialPermissionStatus } = useNotifications();
+    const [permissionStatus, setPermissionStatus] = useState(initialPermissionStatus);
     const [isSubmittingNotifications, setIsSubmittingNotifications] = useState(false);
+
+     useEffect(() => {
+        setPermissionStatus(initialPermissionStatus);
+    }, [initialPermissionStatus]);
 
     const { control, handleSubmit, reset, formState: { isSubmitting, isDirty } } = useForm<OnboardingData>({
         defaultValues: {
@@ -80,6 +85,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const handleNotificationRequest = async () => {
         setIsSubmittingNotifications(true);
         await requestPermissionAndToken();
+        // After the request, update the status from the browser API directly
+        setPermissionStatus(Notification.permission);
         setIsSubmittingNotifications(false);
     }
 
@@ -246,8 +253,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                 }
                             </p>
                         </div>
-                         <Button variant="outline" size="icon" onClick={handleNotificationRequest} disabled={isSubmittingNotifications || hasNotificationToken || isPermissionDenied}>
-                            {isPermissionDenied || isPermissionGranted ? <BellOff className="h-5 w-5"/> : <Bell className="h-5 w-5" />}
+                         <Button variant="outline" size="icon" onClick={handleNotificationRequest} disabled={isSubmittingNotifications || isPermissionGranted || isPermissionDenied}>
+                            {isPermissionGranted ? <Bell className="h-5 w-5"/> : <BellOff className="h-5 w-5" />}
                         </Button>
                     </div>
                      {fcmToken && (
@@ -316,4 +323,3 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     </Sheet>
   );
 }
-
