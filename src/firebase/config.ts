@@ -5,7 +5,7 @@ export const firebaseConfig = {
   "authDomain": "studio-7251750297-88bd3.firebaseapp.com",
   "measurementId": "",
   "messagingSenderId": "856277572255",
-  "vapidKey": "YOUR_VAPID_KEY"
+  "vapidKey": process.env.NEXT_PUBLIC_VAPID_KEY
 };
 
 // This function is for the service worker and should only include serializable config.

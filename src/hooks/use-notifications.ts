@@ -51,6 +51,12 @@ export const useNotifications = () => {
         return null;
     }
 
+    if (!process.env.NEXT_PUBLIC_VAPID_KEY) {
+        console.error("VAPID key is missing. Set NEXT_PUBLIC_VAPID_KEY in your .env file.");
+        toast({ variant: 'destructive', title: 'Configuration Error', description: 'VAPID key for notifications is not set.' });
+        return null;
+    }
+
     try {
       const messaging = getMessaging(firebaseApp);
       const permission = await Notification.requestPermission();
@@ -71,7 +77,7 @@ export const useNotifications = () => {
           toast({ title: 'Notifications Enabled!', description: "You're all set to receive messages." });
           return currentToken;
         } else {
-          toast({ variant: 'destructive', title: 'Token Error', description: 'Could not get notification token.' });
+          toast({ variant: 'destructive', title: 'Token Error', description: 'Could not get notification token. Is your VAPID key correct?' });
           setFcmToken(null);
           return null;
         }
