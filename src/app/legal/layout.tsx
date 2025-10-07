@@ -1,28 +1,31 @@
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
-export default function LegalLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function LegalLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
-        <header className="sticky top-0 bg-background/80 backdrop-blur-sm border-b py-4 mb-6 -mx-4 sm:-mx-6 md:-mx-8 px-4 sm:px-6 md:px-8">
-          <div className="max-w-4xl mx-auto flex items-center gap-4">
-            <Link href="/" className="p-2 rounded-full hover:bg-secondary">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <h1 className="text-lg font-semibold">Legal Information</h1>
-          </div>
-        </header>
-        <main>
-          <article className="prose prose-invert">
-              {children}
+      {/* Header uses the SAME container and padding as the body */}
+      <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 h-14 flex items-center gap-4">
+          <Link href="/" className="p-2 rounded-full hover:bg-secondary">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <h1 className="text-base sm:text-lg font-semibold">Legal Information</h1>
+        </div>
+      </header>
+
+      <main>
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-8">
+          {/* Prose stays within a comfortable reading width and is centered */}
+          <article className="prose prose-invert mx-auto
+                              prose-headings:scroll-mt-24
+                              prose-ul:pl-6 prose-ol:pl-6
+                              prose-a:no-underline hover:prose-a:underline
+                              prose-img:rounded-xl">
+            {children}
           </article>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
