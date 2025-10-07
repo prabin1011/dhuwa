@@ -23,6 +23,7 @@ import { DailyHabitChart } from "./daily-habit-chart";
 import { SosActionBar } from "./sos-action-bar";
 import { NextRiskWindow } from "./next-risk-window";
 import { NotificationBell } from "./notification-bell";
+import { User } from 'firebase/auth';
 
 
 interface UserProfile {
@@ -69,7 +70,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
   
   const lastUrgeTime = sortedUrges?.[0]?.timestamp?.toDate();
   
-  if (isLoading) {
+  if (isLoading || !user) {
     return (
         <div className="flex flex-col h-screen w-screen bg-background p-4 md:p-8 lg:p-12 gap-6">
             <div className="w-full max-w-md mx-auto">
@@ -120,7 +121,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                       onSelectDate={setSelectedDate}
                     />
                     <NextRiskWindow userProfile={userProfile} urges={sortedUrges} />
-                    <SmokingPlan userProfile={userProfile} selectedDate={selectedDate || new Date()} />
+                    <SmokingPlan user={user} userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <SavingsStats urges={sortedUrges} userProfile={userProfile} selectedDate={selectedDate} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />

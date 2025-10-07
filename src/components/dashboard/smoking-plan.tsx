@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { User } from "firebase/auth";
 
 const PREMADE_REPLACEMENTS = [
     "Drink a glass of water",
@@ -45,12 +46,13 @@ interface UserProfile {
 }
 
 interface SmokingPlanProps {
+    user: User;
     userProfile: WithId<UserProfile>;
     selectedDate: Date;
 }
 
-export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
-    const { firestore, user } = useFirebase();
+export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProps) {
+    const { firestore } = useFirebase();
     const { toast } = useToast();
 
     const [newMomentTime, setNewMomentTime] = useState('');
