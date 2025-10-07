@@ -1,4 +1,4 @@
-// src/hooks/use-notifications.ts (client component)
+
 'use client';
 
 import { useEffect, useCallback, useState } from 'react';
@@ -12,7 +12,6 @@ const SW_URL = '/firebase-messaging-sw.js';
 async function ensureMessagingSW(): Promise<ServiceWorkerRegistration | null> {
   if (!('serviceWorker' in navigator)) return null;
 
-  // Reuse if already registered
   const regs = await navigator.serviceWorker.getRegistrations();
   const existing =
     regs.find(r =>
@@ -23,7 +22,6 @@ async function ensureMessagingSW(): Promise<ServiceWorkerRegistration | null> {
 
   if (existing) return existing;
 
-  // Otherwise register
   try {
     return await navigator.serviceWorker.register(SW_URL, { scope: '/' });
   } catch (e) {
@@ -37,7 +35,9 @@ export function useNotifications() {
   const { toast } = useToast();
   const [fcmToken, setFcmToken] = useState<string | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>('default');
-  const [lastMessage, setLastMessage] = useState<MessagePayload | null>(null);
+  const [messages, setMessages] = useState<MessagePayload[]>([]);
+
+  const clearMessages = useCallback(() => setMessages([]), []);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -45,21 +45,37 @@ export function useNotifications() {
     }
   }, []);
 
-  // foreground messages (while tab is focused)
   useEffect(() => {
-    (async () => {
-      if (!firebaseApp) return;
-      if (!(await isSupported())) return;
+    if (!firebaseApp || !isSupported()) return;
 
-      const messaging = getMessaging(firebaseApp);
-      return onMessage(messaging, (payload) => {
-        // optional: show an in-app toast/banner
-        const title = payload.notification?.title || 'Notification';
-        const body  = payload.notification?.body  || '';
-        toast({ title, description: body });
-        setLastMessage(payload);
+    const setupMessaging = async () => {
+      try {
+        if (!(await isSupported())) {
+            console.log("FCM is not supported in this browser.");
+            return;
+        }
+        const messaging = getMessaging(firebaseApp);
+        const unsubscribe = onMessage(messaging, (payload) => {
+          console.log('Foreground message received.', payload);
+          toast({
+            title: payload.notification?.title || "New Message",
+            description: payload.notification?.body,
+          });
+          setMessages(prev => [payload, ...prev]);
+        });
+        return unsubscribe;
+      } catch (error) {
+        console.error("Error setting up foreground message handler:", error);
+      }
+    };
+    
+    const unsubscribePromise = setupMessaging();
+
+    return () => {
+      unsubscribePromise.then(unsubscribe => {
+        if (unsubscribe) unsubscribe();
       });
-    })();
+    };
   }, [firebaseApp, toast]);
 
   const requestPermissionAndToken = useCallback(async () => {
@@ -73,7 +89,6 @@ export function useNotifications() {
       return null;
     }
 
-    // Must be your Console > Cloud Messaging > Web Push certificates > Public key
     const vapid = process.env.NEXT_PUBLIC_VAPID_KEY;
     if (!vapid) {
       toast({ variant: 'destructive', title: 'Config error', description: 'Missing NEXT_PUBLIC_VAPID_KEY' });
@@ -86,7 +101,7 @@ export function useNotifications() {
       return null;
     }
 
-    const permission = await Notification.requestPermission(); // call this from a user gesture (button click)
+    const permission = await Notification.requestPermission();
     setPermissionStatus(permission);
     if (permission !== 'granted') {
       toast({ variant: 'destructive', title: 'Permission denied', description: 'Enable notifications in browser settings.' });
@@ -102,7 +117,7 @@ export function useNotifications() {
       const messaging = getMessaging(firebaseApp);
       const token = await getToken(messaging, {
         vapidKey: vapid,
-        serviceWorkerRegistration: swReg,   // 🔑 bind token to the SW we registered
+        serviceWorkerRegistration: swReg,
       });
 
       if (!token) {
@@ -112,7 +127,6 @@ export function useNotifications() {
 
       setFcmToken(token);
 
-      // Save the token for your server/Cloud Functions to target
       await updateDoc(doc(firestore, `users/${user.uid}/profile/main`), {
         fcmTokens: arrayUnion(token),
       });
@@ -126,5 +140,5 @@ export function useNotifications() {
     }
   }, [firebaseApp, firestore, user, toast]);
 
-  return { requestPermissionAndToken, fcmToken, permissionStatus, lastMessage, setLastMessage };
+  return { requestPermissionAndToken, fcmToken, permissionStatus, messages, clearMessages };
 }
