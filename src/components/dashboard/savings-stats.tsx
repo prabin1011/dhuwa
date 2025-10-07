@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
+import { isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, differenceInDays } from 'date-fns';
 import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 
@@ -14,18 +14,10 @@ interface Urge {
     count?: number;
 }
 
-interface SmokingMoment {
-    id: string;
-    time: string;
-    label: string;
-    completed: Record<string, boolean>;
-}
-
 interface UserProfile {
     packCost?: number;
     itemsPerPack?: number;
     itemsPerDay?: string;
-    moments?: SmokingMoment[];
 }
 
 interface SavingsStatsProps {
@@ -44,11 +36,14 @@ const expenseMessages = {
 }
 
 const savingsMessages = {
+    debt: "This isn't savings; it's debt. You've borrowed from tomorrow's health for today's fleeting urge. The bill will come due.",
+    zero: "You broke even. A hard-fought battle with no ground lost. Tomorrow, we take territory.",
+    low: "A small surplus. A single step in the right direction. Now, take another.",
+    moderate: "This is a real surplus. You won the day. This feeling is what freedom tastes like. Savor it.",
     high: "Look at this number. This isn't just money; it's reclaimed time, health, and freedom. You are buying back your life.",
-    moderate: "This number represents every time you chose yourself over the addiction. You are building a new you.",
-    low: "It starts with one. Skipping a single smoke feels small, but this is how an empire of self-respect is built. Let's see this number grow.",
-    zero: "An opportunity awaits. The next urge isn't a threat; it's a chance to make a deposit into your well-being account."
+    no_baseline: "Set your daily average in your profile to see real savings calculated here."
 }
+
 
 const StatDisplay = ({ label, value, money, moneyColor = 'text-primary' }: { label: string, value: number, money: string, moneyColor?: string }) => (
     <div className="flex flex-col items-center">
@@ -64,7 +59,8 @@ function parseItemsPerDay(itemsPerDay?: string): number {
         return parseInt(itemsPerDay.replace('+', ''), 10);
     }
     const parts = itemsPerDay.split('-').map(Number);
-    return parts[0] || 0;
+    // Use the higher end of the range for a more challenging baseline
+    return parts[1] || parts[0] || 0;
 }
 
 export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsProps) {
@@ -76,7 +72,6 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
 
     const { stats, description } = useMemo(() => {
         const date = selectedDate || new Date();
-        const moments = userProfile.moments || [];
         const dailyBaseline = parseItemsPerDay(userProfile.itemsPerDay);
         
         const getUrgeCount = (filteredUrges: WithId<Urge>[]) => {
@@ -91,84 +86,91 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         const dailyUrgeCount = getUrgeCount(dailyUrges);
         const weeklyUrgeCount = getUrgeCount(weeklyUrges);
         const monthlyUrgeCount = getUrgeCount(monthlyUrges);
+
+        // Net Savings/Deficit Calculation
+        const calculateNet = (start: Date, end: Date) => {
+            if (dailyBaseline === 0) return { netCount: 0, netMoney: 0 };
+            const intervalDays = eachDayOfInterval({ start, end });
+            const totalBaseline = intervalDays.length * dailyBaseline;
+            const totalSmoked = getUrgeCount(urges.filter(u => isWithinInterval(u.timestamp.toDate(), { start, end })));
+            const netCount = totalBaseline - totalSmoked;
+            return { netCount, netMoney: netCount * costPerItem };
+        }
         
-        // Savings Calculations (based on skipped planned moments)
-        const getSkippedCount = (start: Date, end: Date): number => {
-            let count = 0;
-            moments.forEach(moment => {
-                if (moment.completed) {
-                    Object.keys(moment.completed).forEach(dateStr => {
-                        if (moment.completed[dateStr] === false && isWithinInterval(parseISO(dateStr), { start, end })) {
-                            count++;
-                        }
-                    });
-                }
-            });
-            return count;
-        };
+        const dailyNet = calculateNet(date, date);
+        const weeklyNet = calculateNet(startOfWeek(date), endOfWeek(date));
+        const monthlyNet = calculateNet(startOfMonth(date), endOfMonth(date));
 
-        const dailySkipped = getSkippedCount(date, date);
-        const weeklySkipped = getSkippedCount(startOfWeek(date), endOfWeek(date));
-        const monthlySkipped = getSkippedCount(startOfMonth(date), endOfMonth(date));
-
-        const formatMoney = (amount: number) => `$${amount.toFixed(2)}`;
-
-        const dailyExpenseAmount = dailyUrgeCount * costPerItem;
-        const dailySavingsAmount = dailySkipped * costPerItem;
+        const formatMoney = (amount: number) => {
+            const prefix = amount < 0 ? "-" : "";
+            return `${prefix}$${Math.abs(amount).toFixed(2)}`;
+        }
         
         let dynamicDescription = expenseMessages.moderate;
 
-        if (dailyUrgeCount === 0 && dailySavingsAmount === 0) {
+        if (dailyUrgeCount > dailyBaseline && dailyBaseline > 0) {
+            dynamicDescription = expenseMessages.over_baseline;
+        } else if (dailyUrgeCount >= dailyBaseline * 0.8 && dailyBaseline > 0) {
+             dynamicDescription = expenseMessages.near_baseline;
+        } else if (dailyUrgeCount > 10) {
+            dynamicDescription = expenseMessages.high;
+        } else if (dailyUrgeCount > 0) {
+             dynamicDescription = expenseMessages.low;
+        } else {
             dynamicDescription = expenseMessages.zero;
-        } else if (dailySavingsAmount > dailyExpenseAmount) {
-             if (dailySavingsAmount > costPerItem * 5) dynamicDescription = savingsMessages.high;
-             else if (dailySavingsAmount > costPerItem) dynamicDescription = savingsMessages.moderate;
-             else dynamicDescription = savingsMessages.low;
-        } else { // Expenses are greater or equal
-            if (dailyBaseline > 0 && dailyUrgeCount > dailyBaseline) {
-                dynamicDescription = expenseMessages.over_baseline;
-            } else if (dailyBaseline > 0 && dailyUrgeCount >= dailyBaseline * 0.8) {
-                 dynamicDescription = expenseMessages.near_baseline;
-            } else if (dailyUrgeCount > 10) {
-                dynamicDescription = expenseMessages.high;
-            } else if (dailyUrgeCount > 0) {
-                 dynamicDescription = expenseMessages.low;
-            }
         }
-        if(dailyUrgeCount === 0 && dailySkipped === 0) {
-            dynamicDescription = "A quiet day. Every choice matters tomorrow.";
+        
+        let savingsDescription = savingsMessages.moderate;
+        if (dailyBaseline === 0) {
+            savingsDescription = savingsMessages.no_baseline;
+        } else if (dailyNet.netCount < 0) {
+            savingsDescription = savingsMessages.debt;
+        } else if (dailyNet.netCount === 0) {
+            savingsDescription = savingsMessages.zero;
+        } else if (dailyNet.netCount > 10) {
+            savingsDescription = savingsMessages.high;
+        } else if (dailyNet.netCount > 0) {
+            savingsDescription = savingsMessages.low;
         }
 
 
         return {
             stats: {
                 expenses: {
-                    daily: { count: dailyUrgeCount, money: formatMoney(dailyExpenseAmount) },
+                    daily: { count: dailyUrgeCount, money: formatMoney(dailyUrgeCount * costPerItem) },
                     weekly: { count: weeklyUrgeCount, money: formatMoney(weeklyUrgeCount * costPerItem) },
                     monthly: { count: monthlyUrgeCount, money: formatMoney(monthlyUrgeCount * costPerItem) }
                 },
                 savings: {
-                    daily: { count: dailySkipped, money: formatMoney(dailySavingsAmount) },
-                    weekly: { count: weeklySkipped, money: formatMoney(weeklySkipped * costPerItem) },
-                    monthly: { count: monthlySkipped, money: formatMoney(monthlySkipped * costPerItem) }
+                    daily: { count: dailyNet.netCount, money: formatMoney(dailyNet.netMoney) },
+                    weekly: { count: weeklyNet.netCount, money: formatMoney(weeklyNet.netMoney) },
+                    monthly: { count: monthlyNet.netCount, money: formatMoney(monthlyNet.netMoney) }
                 }
             },
-            description: dynamicDescription
+            description: {
+                expenses: dynamicDescription,
+                savings: savingsDescription
+            }
         };
-    }, [urges, userProfile.moments, costPerItem, selectedDate, userProfile.itemsPerDay]);
+    }, [urges, userProfile, costPerItem, selectedDate]);
 
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Financials</CardTitle>
-                <CardDescription>{description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Tabs defaultValue="expenses">
+            <Tabs defaultValue="expenses">
+                <CardHeader>
+                    <CardTitle>Financials</CardTitle>
+                     <TabsContent value="expenses">
+                         <CardDescription>{stats.expenses.daily.count > 0 ? description.expenses : expenseMessages.zero}</CardDescription>
+                    </TabsContent>
+                     <TabsContent value="savings">
+                        <CardDescription>{description.savings}</CardDescription>
+                    </TabsContent>
+                </CardHeader>
+                <CardContent>
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="expenses">Expenses</TabsTrigger>
-                        <TabsTrigger value="savings">Savings</TabsTrigger>
+                        <TabsTrigger value="savings">Net Savings</TabsTrigger>
                     </TabsList>
                     <TabsContent value="expenses" className="pt-4">
                          <div className="grid grid-cols-3 divide-x divide-border">
@@ -179,13 +181,13 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
                     </TabsContent>
                     <TabsContent value="savings" className="pt-4">
                         <div className="grid grid-cols-3 divide-x divide-border">
-                            <StatDisplay label="Daily" value={stats.savings.daily.count} money={stats.savings.daily.money} moneyColor="text-primary"/>
-                            <StatDisplay label="Weekly" value={stats.savings.weekly.count} money={stats.savings.weekly.money} moneyColor="text-primary"/>
-                            <StatDisplay label="Monthly" value={stats.savings.monthly.count} money={stats.savings.monthly.money} moneyColor="text-primary"/>
+                            <StatDisplay label="Daily" value={stats.savings.daily.count} money={stats.savings.daily.money} moneyColor={stats.savings.daily.count < 0 ? 'text-destructive' : 'text-primary'}/>
+                            <StatDisplay label="Weekly" value={stats.savings.weekly.count} money={stats.savings.weekly.money} moneyColor={stats.savings.weekly.count < 0 ? 'text-destructive' : 'text-primary'}/>
+                            <StatDisplay label="Monthly" value={stats.savings.monthly.count} money={stats.savings.monthly.money} moneyColor={stats.savings.monthly.count < 0 ? 'text-destructive' : 'text-primary'}/>
                         </div>
                     </TabsContent>
-                </Tabs>
-            </CardContent>
+                </CardContent>
+            </Tabs>
         </Card>
     )
 }
