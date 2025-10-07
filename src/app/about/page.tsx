@@ -6,8 +6,8 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div>
-      <h2>About "The Easy Way Out"</h2>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">About "The Easy Way Out"</h2>
       <p>
         Welcome to your personal companion on the journey to becoming smoke-free. Inspired by the principles of understanding and awareness, our app is designed not as a tool of force, but as a guide to help you see the smoking trap for what it is.
       </p>
@@ -17,7 +17,7 @@ export default function AboutPage() {
       <p>
         This app provides:
       </p>
-      <ul>
+      <ul className="space-y-2 list-disc list-inside">
         <li><strong>Personalized Tracking:</strong> Log your smokes, urges, and moods to see clear patterns emerge.</li>
         <li><strong>AI-Powered Insights:</strong> Get non-judgmental, personalized feedback that helps you understand your triggers and celebrate your victories.</li>
         <li><strong>Goal-Oriented Planning:</strong> Whether you want to quit or cut down, you set the pace. Plan your smokes and challenge yourself to replace them with positive activities.</li>
