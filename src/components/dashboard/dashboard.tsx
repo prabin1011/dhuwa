@@ -14,7 +14,6 @@ import { Skeleton } from "../ui/skeleton";
 import { SmokingPlan } from "./smoking-plan";
 import { ProgressTracker } from "./progress-tracker";
 import { ReplacementReport } from "./replacement-report";
-import { DateSelector } from "./date-selector";
 import { MoodReport } from "./mood-report";
 import { DailyInsight } from "./daily-insight";
 import { useNotifications } from "@/hooks/use-notifications";
@@ -110,11 +109,12 @@ export function Dashboard({ userProfile }: DashboardProps) {
 
                 <div className="space-y-6">
                     <DailyInsight userProfile={userProfile} urges={sortedUrges} lastUrgeTime={lastUrgeTime}/>
+                    <RealTimeTimer 
+                      sortedUrges={sortedUrges} 
+                      selectedDate={selectedDate}
+                      onSelectDate={setSelectedDate}
+                    />
                     <NextRiskWindow userProfile={userProfile} urges={sortedUrges} />
-                    <RealTimeTimer sortedUrges={sortedUrges} />
-                    
-                    <DateSelector selected={selectedDate} onSelect={setSelectedDate} />
-
                     <SmokingPlan userProfile={userProfile} urges={sortedUrges} selectedDate={selectedDate || new Date()} />
                     <SavingsStats urges={sortedUrges} userProfile={userProfile} selectedDate={selectedDate} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
