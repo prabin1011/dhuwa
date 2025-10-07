@@ -29,9 +29,9 @@ export function SosActionBar() {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Box Breathing</DialogTitle>
+                        <DialogTitle>Breathing Exercises</DialogTitle>
                         <DialogDescription>
-                            Follow the animation. Inhale as the circle expands, hold, exhale as it shrinks, and hold again.
+                           Select a protocol and follow the prompts to calm your mind and body.
                         </DialogDescription>
                     </DialogHeader>
                     <BreathingExercise onComplete={() => setIsBreathingOpen(false)} />

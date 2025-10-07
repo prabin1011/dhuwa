@@ -1,99 +1,177 @@
-
 'use client';
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../ui/button';
+import { cn } from '@/lib/utils'; // optional; or remove cn() and use template strings
 
-interface BreathingExerciseProps {
-    onComplete: () => void;
+type Phase = { label: string; seconds: number; targetScale: number; note?: string };
+type Protocol = { id: string; name: string; cycles: number; sequence: Phase[] };
+
+// common scales
+const MIN = 0.35;
+const MAX = 1;
+
+// breathing protocols
+const PROTOCOLS: Protocol[] = [
+  // Fastest “instant calm”
+  {
+    id: 'sigh',
+    name: 'Quick Calm',
+    cycles: 5, // 3–5 is typical; bump to preference
+    sequence: [
+      { label: 'Inhale',       seconds: 2, targetScale: 0.9, note: 'nose' },
+      { label: 'Sip (top-up)', seconds: 1, targetScale: MAX, note: 'nose' },
+      { label: 'Exhale',       seconds: 6, targetScale: MIN, note: 'mouth—long & slow' },
+    ],
+  },
+  {
+    id: 'box',
+    name: 'Box 4-4-4-4',
+    cycles: 4,
+    sequence: [
+      { label: 'Inhale', seconds: 4, targetScale: MAX },
+      { label: 'Hold',   seconds: 4, targetScale: MAX, note: 'top hold' },
+      { label: 'Exhale', seconds: 4, targetScale: MIN },
+      { label: 'Hold',   seconds: 4, targetScale: MIN, note: 'bottom hold' },
+    ],
+  },
+  {
+    id: '478',
+    name: '4-7-8',
+    cycles: 4,
+    sequence: [
+      { label: 'Inhale', seconds: 4, targetScale: MAX },
+      { label: 'Hold',   seconds: 7, targetScale: MAX, note: 'top hold' },
+      { label: 'Exhale', seconds: 8, targetScale: MIN },
+    ],
+  },
+];
+
+interface Props {
+  onComplete?: () => void;
+  startProtocolId?: 'sigh' | 'box' | '478';
 }
 
-const PHASES = ['Inhale', 'Hold', 'Exhale', 'Hold'];
-const DURATION_SECONDS = 4; // 4 seconds per phase
+export function BreathingExercise({ onComplete, startProtocolId = 'sigh' }: Props) {
+  const [protocolId, setProtocolId] = useState(startProtocolId);
+  const protocol = useMemo(
+    () => PROTOCOLS.find(p => p.id === protocolId)!,
+    [protocolId]
+  );
 
-export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
-    const [phaseIndex, setPhaseIndex] = useState(0);
-    const [countdown, setCountdown] = useState(DURATION_SECONDS);
-    const [cycleCount, setCycleCount] = useState(0);
-    const [isFinished, setIsFinished] = useState(false);
-    const totalCycles = 4;
+  const [phaseIndex, setPhaseIndex] = useState(0);
+  const [secondsLeft, setSecondsLeft] = useState(protocol.sequence[0].seconds);
+  const [cycle, setCycle] = useState(1);
+  const [running, setRunning] = useState(true);
+  const [finished, setFinished] = useState(false);
 
-    useEffect(() => {
-        if (isFinished) return;
+  // reset when protocol changes
+  useEffect(() => {
+    setPhaseIndex(0);
+    setSecondsLeft(protocol.sequence[0].seconds);
+    setCycle(1);
+    setFinished(false);
+    setRunning(true);
+  }, [protocol]);
 
-        const countdownInterval = setInterval(() => {
-            setCountdown((prev) => {
-                if (prev > 1) {
-                    return prev - 1;
-                }
-                
-                // Countdown finished, move to next phase
-                setPhaseIndex((prevPhaseIndex) => {
-                    const nextPhaseIndex = (prevPhaseIndex + 1) % PHASES.length;
-                    if (nextPhaseIndex === 0) { // Completed a full inhale-hold-exhale-hold cycle
-                        setCycleCount((prevCycleCount) => {
-                            const newCount = prevCycleCount + 1;
-                            if (newCount >= totalCycles) {
-                                clearInterval(countdownInterval);
-                                setIsFinished(true);
-                            }
-                            return newCount;
-                        });
-                    }
-                    return nextPhaseIndex;
-                });
+  // countdown & phase advance
+  useEffect(() => {
+    if (!running || finished) return;
+    const tick = setInterval(() => {
+      setSecondsLeft(s => {
+        if (s > 1) return s - 1;
 
-                return DURATION_SECONDS; // Reset countdown for the new phase
-            });
-        }, 1000);
+        // move to next phase
+        setPhaseIndex(i => {
+          const next = i + 1;
+          if (next < protocol.sequence.length) {
+            setSecondsLeft(protocol.sequence[next].seconds);
+            return next;
+          }
+          // end of a cycle
+          if (cycle >= protocol.cycles) {
+            setFinished(true);
+            setRunning(false);
+            return 0;
+          }
+          setCycle(cycle + 1);
+          setSecondsLeft(protocol.sequence[0].seconds);
+          return 0;
+        });
+        return 1; // temporary; immediately replaced above
+      });
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [running, finished, protocol, cycle]);
 
-        return () => clearInterval(countdownInterval);
-    }, [isFinished, totalCycles]);
-    
-    const handleRepeat = () => {
-        setPhaseIndex(0);
-        setCountdown(DURATION_SECONDS);
-        setCycleCount(0);
-        setIsFinished(false);
-    }
+  const cur = protocol.sequence[phaseIndex];
+  const scale = cur.targetScale;
 
-    const currentPhaseText = PHASES[phaseIndex];
-    // Inhale is phase 0, first Hold is phase 1. The circle should be expanded for both.
-    const isExpanding = phaseIndex === 0 || phaseIndex === 1;
+  const restart = () => {
+    setPhaseIndex(0);
+    setSecondsLeft(protocol.sequence[0].seconds);
+    setCycle(1);
+    setFinished(false);
+    setRunning(true);
+  };
 
-    if (isFinished) {
-        return (
-            <div className="flex flex-col items-center justify-center gap-6 py-8">
-                 <div className="relative w-48 h-48 flex flex-col items-center justify-center">
-                     <p className="text-2xl font-semibold z-10">Complete!</p>
-                     <p className="text-sm text-muted-foreground mt-2">Well done.</p>
-                </div>
-                 <div className="flex gap-4">
-                    <Button onClick={handleRepeat} variant="default">Repeat</Button>
-                    <Button onClick={onComplete} variant="outline">Done</Button>
-                 </div>
-            </div>
-        )
-    }
+  return (
+    <div className="flex flex-col items-center gap-6">
+      {/* protocol selector */}
+      <div className="grid grid-cols-3 gap-2 w-full">
+        {PROTOCOLS.map(p => (
+          <Button
+            key={p.id}
+            type="button"
+            variant={p.id === protocolId ? 'default' : 'outline'}
+            className="w-full"
+            onClick={() => setProtocolId(p.id as any)}
+          >
+            {p.name}
+          </Button>
+        ))}
+      </div>
 
-    return (
-        <div className="flex flex-col items-center justify-center gap-8 py-8">
-            <div className="relative w-48 h-48 flex items-center justify-center">
-                <div 
-                    className="absolute w-full h-full bg-primary/20 rounded-full transition-transform ease-in-out"
-                    style={{
-                        transitionDuration: `${DURATION_SECONDS}s`,
-                        transform: isExpanding ? 'scale(1)' : 'scale(0.3)'
-                    }}
-                />
-                <div className="z-10 text-center">
-                    <p className="text-2xl font-semibold">{currentPhaseText}</p>
-                    <p className="text-5xl font-mono font-bold mt-1">{countdown}</p>
-                </div>
-            </div>
-             <p className="text-sm text-muted-foreground">
-                Cycle {cycleCount + 1} of {totalCycles}
-            </p>
-             <Button onClick={onComplete} variant="outline">End Exercise</Button>
+      {/* circle */}
+      <div className="relative w-48 h-48 flex items-center justify-center">
+        <div
+          className={cn(
+            'absolute inset-0 rounded-full bg-primary/20 transition-transform ease-in-out',
+          )}
+          style={{
+            transform: `scale(${scale})`,
+            transitionDuration: `${cur.seconds * 1000}ms`,
+          }}
+        />
+        <div className="z-10 text-center">
+          <p className="text-xl font-semibold">{cur.label}</p>
+          {cur.note && <p className="text-xs text-muted-foreground">{cur.note}</p>}
+          <p className="text-5xl font-mono font-bold mt-1">{secondsLeft}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Cycle {cycle} / {protocol.cycles}
+          </p>
         </div>
-    );
+      </div>
+
+      {/* controls */}
+      {!finished ? (
+        <div className="flex gap-2">
+          <Button onClick={() => setRunning(v => !v)} variant="outline">
+            {running ? 'Pause' : 'Resume'}
+          </Button>
+          <Button onClick={restart} variant="ghost">Restart</Button>
+          <Button onClick={() => { setFinished(true); setRunning(false); onComplete?.(); }}>
+            Done
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-lg font-semibold">Complete!</p>
+          <div className="flex gap-2">
+            <Button onClick={restart}>Repeat</Button>
+            <Button variant="outline" onClick={() => onComplete?.()}>Close</Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
