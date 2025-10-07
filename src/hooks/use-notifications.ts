@@ -27,6 +27,13 @@ export const useNotifications = () => {
   const { firebaseApp, firestore, user } = useFirebase();
   const { toast } = useToast();
   const [fcmToken, setFcmToken] = useState<string | null>(null);
+  const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>('default');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setPermissionStatus(Notification.permission);
+    }
+  }, []);
 
   const requestPermissionAndToken = useCallback(async () => {
     if (typeof window === 'undefined' || !('Notification' in window)) {
@@ -47,6 +54,7 @@ export const useNotifications = () => {
     try {
       const messaging = getMessaging(firebaseApp);
       const permission = await Notification.requestPermission();
+      setPermissionStatus(permission); // Update state with the user's choice
 
       if (permission === 'granted') {
         const currentToken = await getToken(messaging, {
@@ -80,5 +88,5 @@ export const useNotifications = () => {
     }
   }, [firebaseApp, firestore, user, toast]);
 
-  return { requestPermissionAndToken, fcmToken };
+  return { requestPermissionAndToken, fcmToken, permissionStatus };
 };
