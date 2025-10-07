@@ -1,11 +1,19 @@
 
 import { NextResponse } from 'next/server';
 import { sendMomentReminders } from '@/functions';
+import { headers } from 'next/headers';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST() {
+// This function is now protected and can only be triggered by Cloud Scheduler
+export async function POST(req: Request) {
+  // IMPORTANT: Verify the request is from Cloud Scheduler
+  const headersList = headers();
+  if (headersList.get('X-CloudScheduler') !== 'true') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  }
+
   try {
     const result = await sendMomentReminders();
     // Always JSON
@@ -19,7 +27,12 @@ export async function POST() {
   }
 }
 
-// Optional: support GET for quick testing in browser
-export async function GET() {
-  return POST();
+// Optional: support GET for quick testing in browser, but also protected
+export async function GET(req: Request) {
+   const headersList = headers();
+   // Allow browser testing only in development, not in production
+   if (process.env.NODE_ENV === 'production' && headersList.get('X-CloudScheduler') !== 'true') {
+     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+   }
+   return POST(req);
 }
