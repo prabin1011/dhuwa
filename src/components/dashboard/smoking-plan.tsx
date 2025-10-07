@@ -286,38 +286,38 @@ export function SmokingPlan({ userProfile, selectedDate }: SmokingPlanProps) {
                                 </div>
                             </div>
                         </AccordionContent>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Choose Your Replacement</DialogTitle>
-                                <DialogDescription>
-                                    Pick from the list or add your own positive action.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="py-4 space-y-4">
-                                <div className="grid grid-cols-2 gap-2">
-                                    {PREMADE_REPLACEMENTS.map(item => (
-                                        <Button
-                                            key={item}
-                                            variant={selectedReplacement === item ? "default" : "outline"}
-                                            onClick={() => { setSelectedReplacement(item); setCustomReplacement(""); }}
-                                        >
-                                            {item}
-                                        </Button>
-                                    ))}
-                                </div>
-                                <Input
-                                    placeholder="Or type your own replacement..."
-                                    value={customReplacement}
-                                    onChange={(e) => { setCustomReplacement(e.target.value); setSelectedReplacement(""); }}
-                                />
-                            </div>
-                            <DialogFooter>
-                                <Button onClick={handleSaveReplacement} disabled={!selectedReplacement && !customReplacement}>
-                                    Save Replacement
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
                     </AccordionItem>
+                     <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Choose Your Replacement</DialogTitle>
+                            <DialogDescription>
+                                Pick from the list or add your own positive action.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4">
+                            <div className="grid grid-cols-2 gap-2">
+                                {PREMADE_REPLACEMENTS.map(item => (
+                                    <Button
+                                        key={item}
+                                        variant={selectedReplacement === item ? "default" : "outline"}
+                                        onClick={() => { setSelectedReplacement(item); setCustomReplacement(""); }}
+                                    >
+                                        {item}
+                                    </Button>
+                                ))}
+                            </div>
+                            <Input
+                                placeholder="Or type your own replacement..."
+                                value={customReplacement}
+                                onChange={(e) => { setCustomReplacement(e.target.value); setSelectedReplacement(""); }}
+                            />
+                        </div>
+                        <DialogFooter>
+                            <Button onClick={handleSaveReplacement} disabled={!selectedReplacement && !customReplacement}>
+                                Save Replacement
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
                 </Dialog>
             </Accordion>
         </Card>
