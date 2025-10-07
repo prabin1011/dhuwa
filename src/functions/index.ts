@@ -52,7 +52,7 @@ export async function sendMomentReminders() {
         });
         notificationsSent++;
       } catch (e) {
-        console.error('send error', e);
+        console.error('Error sending notification for user:', docSnap.id, e);
         errors++;
       }
     }

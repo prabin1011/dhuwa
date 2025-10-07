@@ -123,7 +123,6 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         }
     }
     
-    const hasNotificationToken = userProfile.fcmTokens && userProfile.fcmTokens.length > 0;
     const isPermissionGranted = permissionStatus === 'granted';
     const isPermissionDenied = permissionStatus === 'denied';
 
