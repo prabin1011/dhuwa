@@ -1,56 +1,53 @@
+/* public/firebase-messaging-sw.js */
 
-// A service worker is a background script that runs in the browser, separate from the web page.
-// It's essential for receiving and displaying push notifications when your app is not in the active browser tab.
+/* Use compat builds (works in a plain SW file) */
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
-// Import the Firebase app and messaging scripts. These are served by Firebase's hosting.
-importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
+/* 🔴 Replace these with your exact Web App config from Firebase Console > Project settings */
+firebase.initializeApp({
+  apiKey: "AIzaSyBg1EMa0HcTFTzwqTIIjqbGMqs92VNCVwM",
+  authDomain: "studio-7251750297-88bd3.firebaseapp.com",
+  projectId: "studio-7251750297-88bd3",
+  storageBucket: "studio-7251750297-88bd3.appspot.com",
+  messagingSenderId: "856277572255",
+  appId: "1:856277572255:web:8257f924b807ccfaa620aa",
+});
 
-let firebaseApp;
+/* Get messaging instance */
+const messaging = firebase.messaging();
 
-// This is the core of the fix.
-// We fetch our app's specific Firebase configuration from the API route we created.
-// This ensures the service worker knows which Firebase project to connect to.
-fetch('/api/firebase-config')
-  .then(response => response.json())
-  .then(firebaseConfig => {
-    // Initialize the Firebase app with the fetched configuration.
-    firebaseApp = firebase.initializeApp(firebaseConfig);
-    console.log("Firebase service worker initialized with config:", firebaseConfig);
+/* Handle data-only payloads when app is in the background */
+messaging.onBackgroundMessage((payload) => {
+  // Works for "data" payloads (Console: “Additional options” → Custom data)
+  const n = payload.notification || {};
+  const d = payload.data || {};
 
-    // Get an instance of Firebase Messaging.
-    const messaging = firebase.messaging();
+  const title = n.title || d.title || 'The Easy Way Out';
+  const body  = n.body  || d.body  || 'Open the app for details.';
+  const icon  = n.icon  || '/icons/icon-192x192.png';
+  const url   = d.link || d.url || n.click_action || '/';
 
-    // Set up a listener for when a message is received while the app is in the background.
-    messaging.onBackgroundMessage((payload) => {
-      console.log(
-        "[firebase-messaging-sw.js] Received background message ",
-        payload
-      );
-
-      // Customize the notification's title, body, and icon.
-      const notificationTitle = payload.notification.title || "New Message";
-      const notificationOptions = {
-        body: payload.notification.body || "",
-        icon: "/icons/icon-192x192.png", // A default icon for notifications
-      };
-
-      // Use the service worker's registration to show the notification.
-      self.registration.showNotification(notificationTitle, notificationOptions);
-    });
-
-  }).catch(error => {
-    console.error("Error fetching Firebase config in service worker:", error);
+  self.registration.showNotification(title, {
+    body,
+    icon,
+    tag: d.tag || 'tewo',
+    data: { url },
+    requireInteraction: false,
   });
+});
 
-
-// Add an event listener for when a user clicks on the notification.
+/* Ensure clicks focus or open the app */
 self.addEventListener('notificationclick', (event) => {
-  console.log('[firebase-messaging-sw.js] Notification click received.', event);
   event.notification.close();
-
-  // This opens the app's URL when the notification is clicked.
+  const target = event.notification.data?.url || '/';
   event.waitUntil(
-    clients.openWindow('/')
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      const absolute = new URL(target, self.location.origin).href;
+      for (const client of list) {
+        if (client.url === absolute) return client.focus();
+      }
+      return clients.openWindow(absolute);
+    })
   );
 });

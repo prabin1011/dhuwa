@@ -1,38 +1,38 @@
-
+// src/hooks/use-notifications.ts (client component)
 'use client';
 
 import { useEffect, useCallback, useState } from 'react';
-import { getMessaging, getToken } from 'firebase/messaging';
+import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
 import { useFirebase } from '@/firebase';
-import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from './use-toast';
 
-async function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        try {
-            // Unregister any existing service workers to ensure the new one takes over.
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            for (const registration of registrations) {
-                await registration.unregister();
-                console.log('Old service worker unregistered.');
-            }
-            
-            // Register the new service worker
-            const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-                scope: '/' 
-            });
-            console.log('Service Worker registration successful with scope: ', registration.scope);
-            return registration;
-        } catch (err) {
-            console.error('Service Worker registration failed: ', err);
-            return null;
-        }
-    }
-    console.warn('Service workers are not supported in this browser.');
+const SW_URL = '/firebase-messaging-sw.js';
+
+async function ensureMessagingSW(): Promise<ServiceWorkerRegistration | null> {
+  if (!('serviceWorker' in navigator)) return null;
+
+  // Reuse if already registered
+  const regs = await navigator.serviceWorker.getRegistrations();
+  const existing =
+    regs.find(r =>
+      r.active?.scriptURL.endsWith(SW_URL) ||
+      r.waiting?.scriptURL.endsWith(SW_URL) ||
+      r.installing?.scriptURL.endsWith(SW_URL)
+    ) || null;
+
+  if (existing) return existing;
+
+  // Otherwise register
+  try {
+    return await navigator.serviceWorker.register(SW_URL, { scope: '/' });
+  } catch (e) {
+    console.error('SW register failed', e);
     return null;
+  }
 }
 
-export const useNotifications = () => {
+export function useNotifications() {
   const { firebaseApp, firestore, user } = useFirebase();
   const { toast } = useToast();
   const [fcmToken, setFcmToken] = useState<string | null>(null);
@@ -44,65 +44,85 @@ export const useNotifications = () => {
     }
   }, []);
 
+  // foreground messages (while tab is focused)
+  useEffect(() => {
+    (async () => {
+      if (!firebaseApp) return;
+      if (!(await isSupported())) return;
+
+      const messaging = getMessaging(firebaseApp);
+      return onMessage(messaging, (payload) => {
+        // optional: show an in-app toast/banner
+        const title = payload.notification?.title || 'Notification';
+        const body  = payload.notification?.body  || '';
+        toast({ title, description: body });
+      });
+    })();
+  }, [firebaseApp, toast]);
+
   const requestPermissionAndToken = useCallback(async () => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-        toast({ variant: 'destructive', title: 'Unsupported', description: 'This browser does not support notifications.' });
-        return null;
-    }
     if (!firebaseApp || !firestore || !user) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Cannot set up notifications without being logged in.' });
-        return null;
+      toast({ variant: 'destructive', title: 'Error', description: 'Sign in first.' });
+      return null;
     }
-    
-    // Ensure the service worker is registered before requesting a token
-    const swRegistration = await registerServiceWorker();
-    if (!swRegistration) {
-        toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not register the notification service worker.' });
-        return;
+
+    if (!('Notification' in window)) {
+      toast({ variant: 'destructive', title: 'Unsupported', description: 'This browser does not support notifications.' });
+      return null;
     }
-    
-    if (!process.env.NEXT_PUBLIC_VAPID_KEY) {
-        console.error("VAPID key is missing. Set NEXT_PUBLIC_VAPID_KEY in your .env file.");
-        toast({ variant: 'destructive', title: 'Configuration Error', description: 'VAPID key for notifications is not set.' });
-        return null;
+
+    // Must be your Console > Cloud Messaging > Web Push certificates > Public key
+    const vapid = process.env.NEXT_PUBLIC_VAPID_KEY;
+    if (!vapid) {
+      toast({ variant: 'destructive', title: 'Config error', description: 'Missing NEXT_PUBLIC_VAPID_KEY' });
+      return null;
+    }
+
+    const swReg = await ensureMessagingSW();
+    if (!swReg) {
+      toast({ variant: 'destructive', title: 'Setup failed', description: 'Couldn’t register service worker.' });
+      return null;
+    }
+
+    const permission = await Notification.requestPermission(); // call this from a user gesture (button click)
+    setPermissionStatus(permission);
+    if (permission !== 'granted') {
+      toast({ variant: 'destructive', title: 'Permission denied', description: 'Enable notifications in browser settings.' });
+      return null;
     }
 
     try {
-      const messaging = getMessaging(firebaseApp);
-      const permission = await Notification.requestPermission();
-      setPermissionStatus(permission);
-
-      if (permission === 'granted') {
-        const currentToken = await getToken(messaging, {
-          vapidKey: process.env.NEXT_PUBLIC_VAPID_KEY,
-          serviceWorkerRegistration: swRegistration, // Pass the registration
-        });
-
-        if (currentToken) {
-          setFcmToken(currentToken);
-          const userProfileRef = doc(firestore, `users/${user.uid}/profile/main`);
-          await updateDoc(userProfileRef, {
-              fcmTokens: arrayUnion(currentToken)
-          });
-          toast({ title: 'Notifications Enabled!', description: "You're all set to receive messages." });
-          return currentToken;
-        } else {
-          toast({ variant: 'destructive', title: 'Token Error', description: 'Could not get notification token. Please try again.' });
-          setFcmToken(null);
-          return null;
-        }
-      } else {
-        toast({ variant: 'destructive', title: 'Permission Denied', description: 'You will not receive notifications. You can enable them in browser settings.' });
-        setFcmToken(null);
+      if (!(await isSupported())) {
+        toast({ variant: 'destructive', title: 'Unsupported', description: 'Messaging not supported in this browser.' });
         return null;
       }
-    } catch (error) {
-      console.error('An error occurred while setting up notifications:', error);
-      toast({ variant: 'destructive', title: 'Error', description: 'An unexpected error occurred during setup.' });
-      setFcmToken(null);
+
+      const messaging = getMessaging(firebaseApp);
+      const token = await getToken(messaging, {
+        vapidKey: vapid,
+        serviceWorkerRegistration: swReg,   // 🔑 bind token to the SW we registered
+      });
+
+      if (!token) {
+        toast({ variant: 'destructive', title: 'Token error', description: 'Could not get device token.' });
+        return null;
+      }
+
+      setFcmToken(token);
+
+      // Save the token for your server/Cloud Functions to target
+      await updateDoc(doc(firestore, `users/${user.uid}/profile/main`), {
+        fcmTokens: arrayUnion(token),
+      });
+
+      toast({ title: 'Notifications enabled', description: 'You’ll receive reminders here.' });
+      return token;
+    } catch (err) {
+      console.error('FCM token error', err);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to obtain token.' });
       return null;
     }
   }, [firebaseApp, firestore, user, toast]);
 
   return { requestPermissionAndToken, fcmToken, permissionStatus };
-};
+}
