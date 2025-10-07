@@ -185,9 +185,9 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
                     </AccordionTrigger>
                     <AccordionContent>
                         <CardContent>
-                             <div className="grid grid-cols-1 gap-4">
+                             <div className="grid grid-cols-1 gap-6">
                                 <div>
-                                    <h4 className="text-sm font-semibold mb-2">Expenses (to-date)</h4>
+                                    <h4 className="text-sm font-semibold mb-3">Expenses (to-date)</h4>
                                      <div className="grid grid-cols-3 divide-x divide-border">
                                         <StatDisplay label="Daily" value={stats.expenses.daily.count} money={stats.expenses.daily.money} moneyColor="text-destructive" />
                                         <StatDisplay label="Weekly" value={stats.expenses.weekly.count} money={stats.expenses.weekly.money} moneyColor="text-destructive"/>
@@ -195,8 +195,8 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
                                     </div>
                                 </div>
                                  <div>
-                                    <h4 className="text-sm font-semibold mb-1">Net Savings vs Baseline (to-date)</h4>
-                                     <p className="text-xs text-muted-foreground mb-2">{description.savings}</p>
+                                    <h4 className="text-sm font-semibold mb-2">Net Savings vs Baseline (to-date)</h4>
+                                     <p className="text-xs text-muted-foreground mb-3">{description.savings}</p>
                                     <div className="grid grid-cols-3 divide-x divide-border">
                                         <StatDisplay label="Daily" value={stats.savings.daily.count} money={stats.savings.daily.money} moneyColor={stats.savings.daily.count < 0 ? 'text-destructive' : 'text-primary'}/>
                                         <StatDisplay label="Weekly" value={stats.savings.weekly.count} money={stats.savings.weekly.money} moneyColor={stats.savings.weekly.count < 0 ? 'text-destructive' : 'text-primary'}/>
@@ -211,3 +211,5 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         </Accordion>
     )
 }
+
+    
