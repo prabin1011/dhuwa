@@ -9,6 +9,14 @@ import { useToast } from './use-toast';
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
+            // Unregister old service workers
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+                if (registration.scope.includes('firebase-cloud-messaging')) {
+                     await registration.unregister();
+                }
+            }
+            
             const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
                 scope: '/' 
             });
@@ -45,12 +53,8 @@ export const useNotifications = () => {
         return null;
     }
     
-    const registration = await registerServiceWorker();
-    if (!registration) {
-        toast({ variant: 'destructive', title: 'Setup Failed', description: 'Could not register notification service worker.' });
-        return null;
-    }
-
+    await registerServiceWorker();
+    
     if (!process.env.NEXT_PUBLIC_VAPID_KEY) {
         console.error("VAPID key is missing. Set NEXT_PUBLIC_VAPID_KEY in your .env file.");
         toast({ variant: 'destructive', title: 'Configuration Error', description: 'VAPID key for notifications is not set.' });
@@ -60,7 +64,7 @@ export const useNotifications = () => {
     try {
       const messaging = getMessaging(firebaseApp);
       const permission = await Notification.requestPermission();
-      setPermissionStatus(permission); // Update state with the user's choice
+      setPermissionStatus(permission);
 
       if (permission === 'granted') {
         const currentToken = await getToken(messaging, {
@@ -68,7 +72,6 @@ export const useNotifications = () => {
         });
 
         if (currentToken) {
-          console.log('FCM Token:', currentToken);
           setFcmToken(currentToken);
           const userProfileRef = doc(firestore, `users/${user.uid}/profile/main`);
           await updateDoc(userProfileRef, {
@@ -77,7 +80,7 @@ export const useNotifications = () => {
           toast({ title: 'Notifications Enabled!', description: "You're all set to receive messages." });
           return currentToken;
         } else {
-          toast({ variant: 'destructive', title: 'Token Error', description: 'Could not get notification token. Is your VAPID key correct?' });
+          toast({ variant: 'destructive', title: 'Token Error', description: 'Could not get notification token. Please check your VAPID key.' });
           setFcmToken(null);
           return null;
         }
