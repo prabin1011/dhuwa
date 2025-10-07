@@ -34,6 +34,7 @@ interface UserProfile {
     motivation?: string;
     preferredTone?: string;
     username?: string;
+    breakDuration?: string;
 }
 
 interface DashboardProps {
@@ -115,7 +116,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                       onSelectDate={setSelectedDate}
                     />
                     <NextRiskWindow userProfile={userProfile} urges={sortedUrges} />
-                    <SmokingPlan userProfile={userProfile} urges={sortedUrges} selectedDate={selectedDate || new Date()} />
+                    <SmokingPlan userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <SavingsStats urges={sortedUrges} userProfile={userProfile} selectedDate={selectedDate} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />

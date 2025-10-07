@@ -33,6 +33,7 @@ interface Urge {
 interface UserProfile {
     packCost?: number;
     itemsPerPack?: number;
+    breakDuration?: string;
 }
 
 interface UrgeHistoryProps {
@@ -52,6 +53,26 @@ const getGroupTitle = (dateStr: string) => {
     return format(date, "eeee, MMMM d");
 };
 
+const parseBreakDuration = (duration?: string): number => {
+    if (!duration) return 5; // Default to 5 minutes
+    switch(duration) {
+        case 'less-5-min': return 4;
+        case '5-10-min': return 8;
+        case '10-20-min': return 15;
+        case 'more-20-min': return 25;
+        default: return 5;
+    }
+}
+
+const formatTimeSpent = (totalMinutes: number): string => {
+    if (totalMinutes < 60) {
+        return `${totalMinutes} min`;
+    }
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}h ${minutes}m`;
+}
+
 export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps) {
 
     const costPerItem = useMemo(() => {
@@ -59,6 +80,8 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
         if (!itemsPerPack || itemsPerPack === 0) return 0;
         return packCost / itemsPerPack;
     }, [userProfile]);
+
+    const timePerSmoke = useMemo(() => parseBreakDuration(userProfile.breakDuration), [userProfile.breakDuration]);
 
     const groupedUrges = useMemo(() => {
         return urges.reduce((acc, urge) => {
@@ -112,14 +135,18 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
                             {sortedGroupKeys.map((dateStr) => {
                                 const dailySmokes = groupedUrges[dateStr].reduce((sum, urge) => sum + (urge.count || 1), 0);
                                 const dailyCost = dailySmokes * costPerItem;
+                                const dailyTimeSpent = dailySmokes * timePerSmoke;
 
                                 return (
                                 <AccordionItem key={dateStr} value={dateStr} className="border bg-secondary/30 rounded-md px-4">
                                      <AccordionTrigger className="py-3 hover:no-underline">
                                         <div className="flex justify-between items-center w-full pr-2">
-                                            <h3 className="font-semibold text-sm">
-                                                {getGroupTitle(dateStr)}
-                                            </h3>
+                                            <div className="flex flex-col items-start">
+                                                <h3 className="font-semibold text-sm">
+                                                    {getGroupTitle(dateStr)}
+                                                </h3>
+                                                <span className="text-xs text-primary">{formatTimeSpent(dailyTimeSpent)} spent smoking</span>
+                                            </div>
                                             <div className="flex items-center gap-4 text-sm">
                                                 <span className="font-medium">{dailySmokes} {dailySmokes > 1 ? 'smokes' : 'smoke'}</span>
                                                 <span className="font-semibold text-primary">{formatMoney(dailyCost)}</span>
