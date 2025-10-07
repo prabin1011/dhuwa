@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval, startOfDay, endOfDay, differenceInCalendarDays } from 'date-fns';
+import { isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval, startOfDay, endOfDay, differenceInCalendarDays, format } from 'date-fns';
 import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 
@@ -77,10 +77,10 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
             return filteredUrges.reduce((sum, urge) => sum + (urge.count || 1), 0);
         }
 
-        // Expense Calculations (based on logged urges)
+        // Expense Calculations (based on logged urges for the period ending on selectedDate)
         const dailyUrges = urges.filter(urge => urge.timestamp && isSameDay(urge.timestamp.toDate(), date));
-        const weeklyUrges = urges.filter(urge => urge.timestamp && isWithinInterval(urge.timestamp.toDate(), { start: startOfWeek(date), end: endOfWeek(date) }));
-        const monthlyUrges = urges.filter(urge => urge.timestamp && isWithinInterval(urge.timestamp.toDate(), { start: startOfMonth(date), end: endOfMonth(date) }));
+        const weeklyUrges = urges.filter(urge => urge.timestamp && isWithinInterval(urge.timestamp.toDate(), { start: startOfWeek(date), end: endOfDay(date) }));
+        const monthlyUrges = urges.filter(urge => urge.timestamp && isWithinInterval(urge.timestamp.toDate(), { start: startOfMonth(date), end: endOfDay(date) }));
         
         const dailyUrgeCount = getUrgeCount(dailyUrges);
         const weeklyUrgeCount = getUrgeCount(weeklyUrges);
@@ -90,13 +90,15 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         const calculateNet = (start: Date, end: Date) => {
             if (dailyBaseline === 0) return { netCount: 0, netMoney: 0 };
             
-            const intervalDaysCount = differenceInCalendarDays(end, start) + 1;
-            const totalBaseline = intervalDaysCount * dailyBaseline;
+            const daysInInterval = eachDayOfInterval({ start, end });
+            let totalNetCount = 0;
+
+            for (const day of daysInInterval) {
+                const smokesOnDay = getUrgeCount(urges.filter(u => u.timestamp && isSameDay(u.timestamp.toDate(), day)));
+                totalNetCount += (dailyBaseline - smokesOnDay);
+            }
             
-            const totalSmoked = getUrgeCount(urges.filter(u => u.timestamp && isWithinInterval(u.timestamp.toDate(), { start, end })));
-            
-            const netCount = totalBaseline - totalSmoked;
-            return { netCount, netMoney: netCount * costPerItem };
+            return { netCount: totalNetCount, netMoney: totalNetCount * costPerItem };
         }
         
         const dailyNet = calculateNet(startOfDay(date), endOfDay(date));
@@ -111,10 +113,12 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         
         let dynamicDescription = expenseMessages.moderate;
 
-        if (dailyUrgeCount > dailyBaseline && dailyBaseline > 0) {
-            dynamicDescription = expenseMessages.over_baseline;
-        } else if (dailyUrgeCount >= dailyBaseline * 0.8 && dailyBaseline > 0) {
-             dynamicDescription = expenseMessages.near_baseline;
+        if (dailyBaseline > 0) {
+            if (dailyUrgeCount > dailyBaseline) {
+                dynamicDescription = expenseMessages.over_baseline;
+            } else if (dailyUrgeCount >= dailyBaseline * 0.8) {
+                dynamicDescription = expenseMessages.near_baseline;
+            }
         } else if (dailyUrgeCount > 10) {
             dynamicDescription = expenseMessages.high;
         } else if (dailyUrgeCount > 0) {
@@ -162,10 +166,10 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1" className="border-b-0">
                 <Card>
-                    <AccordionTrigger className="p-4">
-                        <div className="flex flex-col items-start text-left w-full">
+                    <AccordionTrigger className="p-4 text-left">
+                        <div className="flex flex-col items-start w-full">
                             <CardTitle>Financials</CardTitle>
-                            <CardDescription className="text-left">
+                            <CardDescription className="text-left mt-1">
                                 {stats.expenses.daily.count > 0 ? description.expenses : expenseMessages.zero}
                             </CardDescription>
                         </div>
@@ -198,5 +202,3 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         </Accordion>
     )
 }
-
-    
