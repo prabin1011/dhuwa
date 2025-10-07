@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, differenceInDays, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 
@@ -79,9 +79,9 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         }
 
         // Expense Calculations (based on logged urges)
-        const dailyUrges = urges.filter(urge => isSameDay(urge.timestamp.toDate(), date));
-        const weeklyUrges = urges.filter(urge => isWithinInterval(urge.timestamp.toDate(), { start: startOfWeek(date), end: endOfWeek(date) }));
-        const monthlyUrges = urges.filter(urge => isWithinInterval(urge.timestamp.toDate(), { start: startOfMonth(date), end: endOfMonth(date) }));
+        const dailyUrges = urges.filter(urge => urge.timestamp && isSameDay(urge.timestamp.toDate(), date));
+        const weeklyUrges = urges.filter(urge => urge.timestamp && isWithinInterval(urge.timestamp.toDate(), { start: startOfWeek(date), end: endOfWeek(date) }));
+        const monthlyUrges = urges.filter(urge => urge.timestamp && isWithinInterval(urge.timestamp.toDate(), { start: startOfMonth(date), end: endOfMonth(date) }));
         
         const dailyUrgeCount = getUrgeCount(dailyUrges);
         const weeklyUrgeCount = getUrgeCount(weeklyUrges);
@@ -92,14 +92,15 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
             if (dailyBaseline === 0) return { netCount: 0, netMoney: 0 };
             const intervalDays = eachDayOfInterval({ start, end });
             const totalBaseline = intervalDays.length * dailyBaseline;
-            const totalSmoked = getUrgeCount(urges.filter(u => isWithinInterval(u.timestamp.toDate(), { start, end })));
+            const totalSmoked = getUrgeCount(urges.filter(u => u.timestamp && isWithinInterval(u.timestamp.toDate(), { start, end })));
             const netCount = totalBaseline - totalSmoked;
             return { netCount, netMoney: netCount * costPerItem };
         }
         
         const dailyNet = calculateNet(startOfDay(date), endOfDay(date));
-        const weeklyNet = calculateNet(startOfWeek(date), endOfWeek(date));
-        const monthlyNet = calculateNet(startOfMonth(date), endOfMonth(date));
+        const weeklyNet = calculateNet(startOfWeek(date), endOfDay(date));
+        const monthlyNet = calculateNet(startOfMonth(date), endOfDay(date));
+
 
         const formatMoney = (amount: number) => {
             const prefix = amount < 0 ? "-" : "";
