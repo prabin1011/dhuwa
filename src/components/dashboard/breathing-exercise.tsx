@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
@@ -43,7 +44,7 @@ export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
         <div className="flex flex-col items-center justify-center gap-8 py-8">
             <div className="relative w-48 h-48 flex items-center justify-center">
                 <div 
-                    className="absolute w-full h-full bg-primary/20 rounded-full transition-transform duration-[3500ms] ease-in-out"
+                    className="absolute w-full h-full bg-primary/20 rounded-full transition-transform duration-3500 ease-in-out"
                     style={{
                         transform: isExpanding ? 'scale(1)' : 'scale(0.3)'
                     }}
