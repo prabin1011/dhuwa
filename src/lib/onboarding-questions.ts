@@ -177,10 +177,8 @@ export const STEPS: Step[] = [
         {value: 'buddy', label: 'Casual buddy'},
     ]},
     { id: 25, title: 'Reflection Setup', field: 'reminders', question: 'Would you like the app to send motivational reminders?', type: 'radio', options: [
-        {value: 'daily', label: 'Yes, daily'},
-        {value: 'weekly', label: 'Yes, weekly'},
-        {value: 'slipping', label: 'Only when I’m slipping'},
-        {value: 'no', label: 'No reminders please'},
+        {value: 'yes', label: 'Yes'},
+        {value: 'no', label: 'No'},
     ]},
   { id: 26, title: 'Summary', field: 'habits', question: 'Summary', type: 'summary'},
 ];

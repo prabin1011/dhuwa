@@ -41,6 +41,11 @@ export async function sendMomentReminders() {
     for (const profileDoc of profilesSnapshot.docs) {
         const profile = profileDoc.data();
         const fcmTokens = profile.fcmTokens;
+        
+        // --- NEW: Check for consent ---
+        if (profile.reminders !== 'yes') {
+            continue; // Skip users who have not opted in
+        }
 
         if (!fcmTokens || !Array.isArray(fcmTokens) || fcmTokens.length === 0) {
             continue; // Skip users with no tokens
