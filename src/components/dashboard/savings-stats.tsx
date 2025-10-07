@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { eachDayOfInterval, endOfDay, format, isSameDay, startOfMonth, startOfWeek } from 'date-fns';
+import { eachDayOfInterval, endOfDay, format, isSameDay, startOfMonth, startOfWeek, startOfDay } from 'date-fns';
 import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 import { Info } from "lucide-react";
@@ -223,5 +223,7 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         </Accordion>
     )
 }
+
+    
 
     
