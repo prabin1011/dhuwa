@@ -9,26 +9,17 @@ import * as path from 'path';
 
 if (!getApps().length) {
     try {
-        let serviceAccount;
-        // First, try the environment variable (primary method)
-        if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-            serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+        const serviceAccountPath = path.resolve(process.cwd(), 'service-account.json');
+        if (fs.existsSync(serviceAccountPath)) {
+            const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+            initializeApp({ credential: cert(serviceAccount) });
+            console.log('Firebase Admin SDK initialized using service-account.json');
         } else {
-            // Fallback for local development: check for a file
-            const serviceAccountPath = path.resolve(process.cwd(), 'service-account.json');
-            if (fs.existsSync(serviceAccountPath)) {
-                console.log('Found service-account.json, using for local dev.');
-                serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-            } else {
-                 throw new Error('Missing FIREBASE_SERVICE_ACCOUNT_KEY environment variable and no service-account.json found.');
-            }
+            throw new Error('service-account.json not found. Please ensure the file exists at the root of your project.');
         }
-        initializeApp({ credential: cert(serviceAccount) });
-
     } catch (e: any) {
         console.error('Failed to initialize Firebase Admin SDK:', e.message);
-        // Throw a more specific error to help debugging
-        throw new Error(`Could not initialize Firebase Admin. Ensure FIREBASE_SERVICE_ACCOUNT_KEY is a valid, single-line JSON string. Details: ${e.message}`);
+        throw new Error(`Could not initialize Firebase Admin from file. Details: ${e.message}`);
     }
 }
 
