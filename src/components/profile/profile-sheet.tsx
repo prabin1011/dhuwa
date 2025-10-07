@@ -20,7 +20,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useRouter } from "next/navigation";
 import { deleteUser } from "firebase/auth";
 import { useNotifications } from '@/hooks/use-notifications';
-import { Bell, BellOff, Copy } from 'lucide-react';
+import { Bell, BellOff, Copy, Send } from 'lucide-react';
 import { Separator } from '../ui/separator';
 
 interface UserProfile extends Partial<OnboardingData> {
@@ -41,6 +41,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const { requestPermissionAndToken, fcmToken, permissionStatus: initialPermissionStatus } = useNotifications();
     const [permissionStatus, setPermissionStatus] = useState(initialPermissionStatus);
     const [isSubmittingNotifications, setIsSubmittingNotifications] = useState(false);
+    const [isSendingReminders, setIsSendingReminders] = useState(false);
 
      useEffect(() => {
         setPermissionStatus(initialPermissionStatus);
@@ -88,6 +89,27 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         // After the request, update the status from the browser API directly
         setPermissionStatus(Notification.permission);
         setIsSubmittingNotifications(false);
+    }
+
+    const handleSendReminders = async () => {
+        setIsSendingReminders(true);
+        try {
+            const res = await fetch('/api/send-reminders');
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to send reminders.');
+            toast({
+                title: 'Reminders Sent',
+                description: `Checked ${data.totalUsers} users and sent ${data.notificationsSent} reminders.`,
+            });
+        } catch (error: any) {
+             toast({
+                variant: "destructive",
+                title: "Sending Failed",
+                description: error.message,
+            });
+        } finally {
+            setIsSendingReminders(false);
+        }
     }
 
     const handleCopyToken = () => {
@@ -264,6 +286,11 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                 <Copy className="h-4 w-4" />
                             </Button>
                         </div>
+                    )}
+                    {process.env.NODE_ENV === 'development' && (
+                        <Button variant="secondary" onClick={handleSendReminders} disabled={isSendingReminders} className="w-full">
+                           <Send className="mr-2 h-4 w-4" /> {isSendingReminders ? 'Sending...' : 'Manually Send Reminders'}
+                        </Button>
                     )}
                 </div>
 
