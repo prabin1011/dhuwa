@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { BreathingExercise } from "./breathing-exercise";
 import { useState } from "react";
+import { UrgeSurfingTimer } from "./urge-surfing-timer";
 
 export function SosActionBar() {
     const [isBreathingOpen, setIsBreathingOpen] = useState(false);
@@ -74,10 +75,7 @@ export function SosActionBar() {
                             Urges are like waves. They build, peak, and then crash. They don't last forever. Set a timer and just observe it.
                         </DialogDescription>
                     </DialogHeader>
-                     <div className="py-4 text-center">
-                        <p className="text-5xl font-bold font-mono">5:00</p>
-                        <p className="text-muted-foreground">You are stronger than this feeling.</p>
-                    </div>
+                    <UrgeSurfingTimer />
                 </DialogContent>
             </Dialog>
         </div>
