@@ -40,11 +40,19 @@ export const notificationTemplates = {
   congratulations: [
     {
       title: "You're doing it!",
-      body: "It's been {{timeSinceLast}} since your last smoke. Keep that streak going!",
+      body: "It's been over 24 hours since your last smoke. Keep that streak going!",
+    },
+    {
+      title: "One Day Down!",
+      body: "You made it a full day without a smoke. This is a huge first step. Be proud.",
+    },
+     {
+      title: "Momentum is Building!",
+      body: "Over 48 hours smoke-free! You are proving to yourself that you can do this.",
     },
     {
       title: "Look at your progress!",
-      body: "You've saved ${{amountSaved}} so far. Think of what you can do with that!",
+      body: "Every hour you don't smoke is a victory for your health and your wallet.",
     },
     {
       title: "One Day at a Time",

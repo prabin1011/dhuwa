@@ -1,22 +1,20 @@
 
 import * as admin from 'firebase-admin';
 import { getApps, initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
-import { addMinutes, isAfter, isBefore, parse } from 'date-fns';
+import { addMinutes, isAfter, isBefore, parse, differenceInHours } from 'date-fns';
 import * as fs from 'fs';
 import * as path from 'path';
 import { notificationTemplates } from '../lib/notification-templates';
 
 if (!getApps().length) {
     try {
-        // This is the most robust way for this environment
         const serviceAccount = JSON.parse(fs.readFileSync('service-account.json', 'utf8'));
         initializeApp({ credential: cert(serviceAccount) });
         console.log('Firebase Admin SDK initialized using service-account.json');
     } catch (e: any) {
         console.error('Failed to initialize Firebase Admin SDK from file:', e.message);
-        // Fallback for environment variable, though file is preferred
         try {
             const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
             if (!serviceAccountKey) throw new Error('service-account.json not found and FIREBASE_SERVICE_ACCOUNT_KEY is not set.');
@@ -34,76 +32,114 @@ if (!getApps().length) {
 const db = getFirestore();
 const messaging = getMessaging();
 
-// Helper to get a random template
 const getRandomTemplate = (templateArray: {title: string, body: string}[]) => {
     return templateArray[Math.floor(Math.random() * templateArray.length)];
 }
 
+const sendNotification = async (userId: string, tokens: string[], template: {title: string, body: string}) => {
+    try {
+        const notificationPayload = {
+            title: template.title,
+            body: template.body,
+            timestamp: FieldValue.serverTimestamp(),
+            read: false,
+            link: '/'
+        };
+        await messaging.sendEachForMulticast({
+          tokens,
+          notification: { title: template.title, body: template.body },
+          webpush: { fcmOptions: { link: '/' } },
+        });
+        await db.collection(`users/${userId}/notifications`).add(notificationPayload);
+        return true;
+    } catch (e) {
+        console.error(`Error sending notification to user ${userId}:`, e);
+        return false;
+    }
+}
+
+const handleUpcomingMomentReminders = async (userId: string, profile: any, tokens: string[], now: Date) => {
+    let sentCount = 0;
+    const end = addMinutes(now, 15);
+    const moments = Array.isArray(profile.moments) ? profile.moments : [];
+    if (!moments.length) return sentCount;
+
+    const upcoming = moments.filter((m: any) => {
+      try {
+        const t = parse(m.time, 'HH:mm', now);
+        return isAfter(t, now) && isBefore(t, end);
+      } catch (error) { return false; }
+    });
+
+    for (const m of upcoming) {
+      const template = getRandomTemplate(notificationTemplates.upcomingMoment);
+      const title = template.title.replace('{{time}}', m.time).replace('{{label}}', m.label || 'your moment');
+      const success = await sendNotification(userId, tokens, { title, body: template.body });
+      if (success) sentCount++;
+    }
+    return sentCount;
+}
+
+const handleMilestoneNotifications = async (userId: string, profile: any, tokens: string[], now: Date) => {
+    // Only send if the last notification for this type was > 24h ago
+    const lastMilestoneSent = profile.lastMilestoneNotificationSent?.toDate();
+    if (lastMilestoneSent && differenceInHours(now, lastMilestoneSent) < 24) {
+        return 0;
+    }
+
+    const urgesSnap = await db.collection(`users/${userId}/urges`).orderBy('timestamp', 'desc').limit(1).get();
+    if (urgesSnap.empty) return 0; // No urges logged, no milestone to celebrate
+
+    const lastUrgeTimestamp = (urgesSnap.docs[0].data().timestamp as Timestamp).toDate();
+    const hoursSinceLastUrge = differenceInHours(now, lastUrgeTimestamp);
+
+    let template: {title: string, body: string} | null = null;
+
+    if (hoursSinceLastUrge >= 48) {
+        template = getRandomTemplate(notificationTemplates.congratulations);
+    } else if (hoursSinceLastUrge >= 24) {
+        template = getRandomTemplate(notificationTemplates.congratulations.filter(q => q.body.includes('24 hours') || q.body.includes('One Day')));
+    }
+
+    if (template) {
+        const success = await sendNotification(userId, tokens, template);
+        if (success) {
+            await db.doc(`users/${userId}/profile/main`).update({
+                lastMilestoneNotificationSent: FieldValue.serverTimestamp()
+            });
+            return 1;
+        }
+    }
+    return 0;
+};
+
+
 export async function sendMomentReminders() {
   const now = new Date();
-  const end = addMinutes(now, 15);
-
   const profiles = await db.collectionGroup('main').get();
 
   let notificationsSent = 0;
   let errors = 0;
 
   for (const docSnap of profiles.docs) {
-    const p = docSnap.data() as any;
+    const profile = docSnap.data() as any;
     const userId = docSnap.ref.parent.parent?.id;
 
-    if (!userId || p.reminders !== 'yes') {
-      continue; // Skip if no user ID or opted out
-    }
+    if (!userId || profile.reminders !== 'yes') continue;
 
-    const tokens: string[] = Array.isArray(p.fcmTokens) ? p.fcmTokens : [];
-    if (!tokens.length) {
-      continue; // Skip if no tokens
-    }
+    const tokens: string[] = Array.isArray(profile.fcmTokens) ? profile.fcmTokens : [];
+    if (!tokens.length) continue;
 
-    const moments = Array.isArray(p.moments) ? p.moments : [];
-    if (!moments.length) {
-      continue; // Skip if no planned moments
-    }
+    try {
+        const momentReminders = await handleUpcomingMomentReminders(userId, profile, tokens, now);
+        notificationsSent += momentReminders;
 
-    const upcoming = moments.filter((m: any) => {
-      try {
-        const t = parse(m.time, 'HH:mm', now);
-        return isAfter(t, now) && isBefore(t, end);
-      } catch (error) {
-        return false;
-      }
-    });
+        const milestoneReminders = await handleMilestoneNotifications(userId, profile, tokens, now);
+        notificationsSent += milestoneReminders;
 
-    for (const m of upcoming) {
-      try {
-        const template = getRandomTemplate(notificationTemplates.upcomingMoment);
-        const title = template.title.replace('{{time}}', m.time).replace('{{label}}', m.label || 'your moment');
-        const body = template.body;
-
-        const notificationPayload = {
-            title,
-            body,
-            timestamp: FieldValue.serverTimestamp(),
-            read: false,
-            link: '/'
-        };
-
-        // 1. Send the push notification
-        await messaging.sendEachForMulticast({
-          tokens,
-          notification: { title, body },
-          webpush: { fcmOptions: { link: '/' } },
-        });
-
-        // 2. Save the notification to Firestore for history
-        await db.collection(`users/${userId}/notifications`).add(notificationPayload);
-
-        notificationsSent++;
-      } catch (e) {
-        console.error(`Error processing notification for user ${userId}:`, e);
+    } catch(e) {
+        console.error(`Error processing notifications for user ${userId}:`, e);
         errors++;
-      }
     }
   }
 
