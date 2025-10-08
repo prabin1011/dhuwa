@@ -2,7 +2,7 @@
 
 export function AnimatedWave() {
     return (
-        <div className="absolute inset-x-0 bottom-0 w-full h-1/2 z-0 pointer-events-none">
+        <div className="absolute inset-x-0 bottom-0 w-full h-full z-0 pointer-events-none">
             <div className="ocean pointer-events-none">
                 <div className="wave"></div>
                 <div className="wave"></div>
