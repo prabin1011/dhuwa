@@ -123,13 +123,15 @@ export function Dashboard({ userProfile }: DashboardProps) {
             <div className="w-full max-w-md">
                 <header className="mb-6 flex justify-between items-start">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tighter font-heading">
-                        Dhuwa
-                        </h1>
+                        <div className="flex items-baseline gap-2">
+                             <h1 className="text-3xl font-bold tracking-tighter font-heading lowercase">
+                                dhuwa
+                            </h1>
+                            <p className="text-xs text-muted-foreground/80 italic relative top-[-2px]">by smokers for smokers</p>
+                        </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                          Welcome, {userProfile.username || user?.email || "Guest"}.
+                          Welcome, {userProfile.username || user?.email || "Guest"}. Your freedom starts with awareness.
                         </p>
-                        <p className="text-xs text-muted-foreground/80 mt-2 italic">Freedom starts with awareness.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <NotificationBell messages={messages} clearMessages={clearMessages} />
