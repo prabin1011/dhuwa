@@ -1,30 +1,36 @@
+
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About Us',
+  title: 'About Dhuwa',
 };
 
 export default function AboutPage() {
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">About "The Easy Way Out"</h2>
+      <h2 className="text-2xl font-bold">About Dhuwa</h2>
+      <div className="space-y-4 text-base italic text-foreground/90">
+          <p>
+              In Nepali, "Dhuwa" means smoke. It is the ghost we are chasing away.
+          </p>
+          <p>
+              In the language of the Yolŋu people of Australia, "Dhuwa" is one half of everything; a cosmic balance. It represents a fundamental part of the whole, a piece of a larger story.
+          </p>
+          <p>
+              In the Bidjara tongue, it means "to feel alive."
+          </p>
+          <p>
+              This app is built on that poetry.
+          </p>
+      </div>
       <p>
-        Welcome to your personal companion on the journey to becoming smoke-free. Inspired by the principles of understanding and awareness, our app is designed not as a tool of force, but as a guide to help you see the smoking trap for what it is.
+        It is a companion to help you see the smoke for what it is, to find the balance in your life that it has disturbed, and to step back into the vibrant, beautiful feeling of being truly alive.
       </p>
       <p>
-        Our mission is to empower you with data and insights about your own habits. By tracking your urges, moods, and the moments you choose to smoke or not to smoke, you begin to unravel the psychological puzzle of addiction. We believe that with the right information and a supportive mindset, quitting doesn't have to be a struggle filled with willpower battles. Instead, it can be a joyful release.
+        Here, we don’t fight with willpower. We don’t count days as if they are a prison sentence. Instead, we observe. We understand. We dismantle the trap, piece by piece, until we can simply walk away, not as someone who is "quitting," but as someone who is free.
       </p>
-      <p>
-        This app provides:
-      </p>
-      <ul className="space-y-2 list-disc list-inside">
-        <li><strong>Personalized Tracking:</strong> Log your smokes, urges, and moods to see clear patterns emerge.</li>
-        <li><strong>AI-Powered Insights:</strong> Get non-judgmental, personalized feedback that helps you understand your triggers and celebrate your victories.</li>
-        <li><strong>Goal-Oriented Planning:</strong> Whether you want to quit or cut down, you set the pace. Plan your smokes and challenge yourself to replace them with positive activities.</li>
-        <li><strong>Progress at a Glance:</strong> See how much time and money you're saving, and watch your smoke-free streaks grow.</li>
-      </ul>
-      <p>
-        You've already taken the most important step by deciding to explore your habits. We're here to support you on the rest of your journey to freedom.
+       <p>
+        Welcome to your journey. Welcome to Dhuwa.
       </p>
     </div>
   );

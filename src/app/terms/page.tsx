@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -13,7 +14,7 @@ export default function TermsPage() {
       <div className="space-y-2">
         <h3 className="text-xl font-semibold">1. Introduction</h3>
         <p>
-          Welcome to "The Easy Way Out" ("App"). This App is provided to you as a tool to help you understand and change your smoking habits. By using our App, you agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, do not use the App.
+          Welcome to "Dhuwa" ("App"). This App is provided to you as a tool to help you understand and change your smoking habits. By using our App, you agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, do not use the App.
         </p>
       </div>
       

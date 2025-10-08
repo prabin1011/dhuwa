@@ -96,7 +96,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                 <header className="mb-6 flex justify-between items-center">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tighter font-heading">
-                            The Easy Way Out
+                            Dhuwa
                         </h1>
                         <Skeleton className="h-5 w-48 mt-2" />
                     </div>
@@ -124,7 +124,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                 <header className="mb-6 flex justify-between items-start">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tighter font-heading">
-                        The Easy Way Out
+                        Dhuwa
                         </h1>
                         <p className="text-sm text-muted-foreground mt-1">
                           Welcome, {userProfile.username || user?.email || "Guest"}.

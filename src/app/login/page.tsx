@@ -171,7 +171,7 @@ export default function LoginPage() {
       <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-8 text-center">
         <div className="flex-1 flex flex-col justify-center items-center">
             <WelcomeIllustration className="w-64 h-64" />
-            <h1 className="text-3xl font-bold mt-8 font-heading">Welcome to The Easy Way Out</h1>
+            <h1 className="text-3xl font-bold mt-8 font-heading">Welcome to Dhuwa</h1>
              <p className="text-muted-foreground mt-2">
               {user?.isAnonymous ? `Continuing as ${user.displayName}.` : 'Start your journey with a guest account.'}
              </p>
@@ -211,7 +211,7 @@ export default function LoginPage() {
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-4">
       <h1 className="text-4xl font-bold tracking-tighter mb-8 font-heading">
-          The Easy Way Out
+          Dhuwa
       </h1>
       <Tabs defaultValue="signup" className="w-full max-w-sm">
         <TabsList className="grid w-full grid-cols-2">
