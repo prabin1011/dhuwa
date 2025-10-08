@@ -19,7 +19,7 @@ export function AnimatedWave() {
                 }
 
                 .wave {
-                    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='rgba(45, 212, 191,0.5)' d='M0,160 C240,200 720,80 1440,160 L1440,320 L0,320 Z'%3e%3c/path%3e%3c/svg%3e");
+                    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='rgba(45, 212, 191,0.5)' d='M0,160 C360,200 1080,120 1440,160 L1440,320 L0,320 Z'%3e%3c/path%3e%3c/svg%3e");
                     position: absolute;
                     width: 200%;
                     height: 100%;
@@ -33,35 +33,25 @@ export function AnimatedWave() {
                 }
 
                 .wave:nth-of-type(1) {
-                    animation: wave 12s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite, swell 8s ease-in-out infinite;
+                    animation: wave 14s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite, swell 6s ease-in-out infinite;
                     opacity: 1;
                 }
 
                 .wave:nth-of-type(2) {
-                    animation: wave 18s linear reverse infinite, swell 10s ease-in-out infinite;
-                    opacity: 0.7;
+                    animation: wave 20s linear reverse infinite, swell 8s ease-in-out infinite;
+                    opacity: 0.6;
                     animation-delay: -3s;
                 }
 
                 @keyframes wave {
-                    0% {
-                        transform: translateX(0);
-                    }
-                    50% {
-                        transform: translateX(-25%);
-                    }
-                    100% {
-                        transform: translateX(0);
-                    }
+                    0% { transform: translateX(0); }
+                    50% { transform: translateX(-25%); }
+                    100% { transform: translateX(0); }
                 }
-                
+
                 @keyframes swell {
-                     0%, 100% {
-                        transform: translateY(0);
-                    }
-                    50% {
-                        transform: translateY(-10px);
-                    }
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-15px); } /* gently crashes up */
                 }
             `}</style>
         </div>
