@@ -1,12 +1,11 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Bell, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetTrigger } from '@/components/ui/sheet';
 import type { MessagePayload } from 'firebase/messaging';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { useFirebase, useCollection, useMemoFirebase, type WithId } from '@/firebase';
 import { collection, writeBatch, doc, query, orderBy, limit } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
@@ -19,6 +18,7 @@ interface StoredNotification {
   read: boolean;
   link?: string;
 }
+
 interface NotificationBellProps {
   messages: MessagePayload[];
   clearMessages: () => void;
@@ -28,6 +28,7 @@ export function NotificationBell({ messages, clearMessages }: NotificationBellPr
   const { firestore, user } = useFirebase();
   const [isOpen, setIsOpen] = useState(false);
 
+  // This query fetches the last 20 notifications from Firestore.
   const notificationsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(
@@ -38,8 +39,9 @@ export function NotificationBell({ messages, clearMessages }: NotificationBellPr
   }, [firestore, user]);
 
   const { data: storedNotifications } = useCollection<StoredNotification>(notificationsQuery);
-  const unreadCount = storedNotifications?.filter(n => !n.read).length || 0;
+  const unreadCount = useMemo(() => storedNotifications?.filter(n => !n.read).length || 0, [storedNotifications]);
 
+  // Marks all unread notifications in Firestore as read.
   const markAllAsRead = async () => {
     if (!firestore || !user || !storedNotifications || unreadCount === 0) return;
 
@@ -58,8 +60,9 @@ export function NotificationBell({ messages, clearMessages }: NotificationBellPr
     }
   };
   
+  // Deletes all notifications shown in the history from Firestore.
   const handleClearHistory = async () => {
-    if (!firestore || !user || !storedNotifications) return;
+    if (!firestore || !user || !storedNotifications || storedNotifications.length === 0) return;
 
     const batch = writeBatch(firestore);
     storedNotifications.forEach(notif => {
@@ -73,7 +76,7 @@ export function NotificationBell({ messages, clearMessages }: NotificationBellPr
     }
   }
 
-
+  // When the sheet is opened, mark all notifications as read.
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (open && unreadCount > 0) {
@@ -81,22 +84,33 @@ export function NotificationBell({ messages, clearMessages }: NotificationBellPr
     }
   };
 
-  const allNotifications = [
-    ...(messages.map(msg => ({
+  // Combine real-time messages with stored notifications.
+  const allNotifications = useMemo(() => {
+    // New messages from the current session (not yet in Firestore)
+    const newMessages = messages.map(msg => ({
         id: msg.messageId || new Date().toISOString(),
         title: msg.notification?.title || 'Notification',
         body: msg.notification?.body || '',
         timestamp: msg.sentTime ? new Date(Number(msg.sentTime)) : new Date(),
-        isNew: true
-    }))),
-    ...(storedNotifications?.map(n => ({
+        read: false // They are new by definition
+    }));
+
+    // Historical notifications from Firestore
+    const historicalNotifications = storedNotifications?.map(n => ({
         id: n.id,
         title: n.title,
         body: n.body,
         timestamp: n.timestamp?.toDate() || new Date(),
-        isNew: !n.read
-    })) || [])
-  ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        read: n.read
+    })) || [];
+    
+    // Combine, de-duplicate, and sort
+    const combined = [...newMessages, ...historicalNotifications];
+    const uniqueNotifications = Array.from(new Map(combined.map(item => [item.id, item])).values());
+    
+    return uniqueNotifications.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+  }, [messages, storedNotifications]);
 
 
   return (
@@ -121,7 +135,7 @@ export function NotificationBell({ messages, clearMessages }: NotificationBellPr
               <div className="space-y-3">
                 {allNotifications.map((notif) => (
                   <div key={notif.id} className="p-3 rounded-md bg-secondary relative">
-                    {notif.isNew && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary"></div>}
+                    {!notif.read && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary animate-pulse"></div>}
                     <p className="font-semibold text-sm">{notif.title}</p>
                     <p className="text-xs text-secondary-foreground">{notif.body}</p>
                     <p className="text-xs text-muted-foreground mt-2">
@@ -137,12 +151,14 @@ export function NotificationBell({ messages, clearMessages }: NotificationBellPr
             )}
           </div>
         </ScrollArea>
-        <SheetFooter>
-          <Button variant="outline" onClick={handleClearHistory} disabled={!allNotifications || allNotifications.length === 0}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Clear History
-          </Button>
-        </SheetFooter>
+        {allNotifications.length > 0 && (
+            <SheetFooter>
+                <Button variant="outline" onClick={handleClearHistory} disabled={!allNotifications || allNotifications.length === 0}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Clear History
+                </Button>
+            </SheetFooter>
+        )}
       </SheetContent>
     </Sheet>
   );

@@ -5,7 +5,7 @@ import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
 import { useUser } from "@/firebase/provider";
 import { UrgeHistory } from "./urge-history";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { WithId } from "@/firebase";
 import { RealTimeTimer } from "./real-time-timer";
 import { SavingsStats } from "./savings-stats";
@@ -37,6 +37,7 @@ interface UserProfile {
     preferredTone?: string;
     username?: string;
     breakDuration?: string;
+    reminders?: string;
 }
 
 interface DashboardProps {
@@ -52,6 +53,13 @@ export function Dashboard({ userProfile }: DashboardProps) {
   
   // Initialize notifications hook
   const { requestPermissionAndToken, messages, clearMessages } = useNotifications();
+
+  // On first load, if user wants reminders, ask for permission
+  useEffect(() => {
+    if (userProfile.reminders === 'yes' && Notification.permission === 'default') {
+        requestPermissionAndToken();
+    }
+  }, [userProfile.reminders, requestPermissionAndToken]);
 
 
   const urgesQuery = useMemoFirebase(() => {
