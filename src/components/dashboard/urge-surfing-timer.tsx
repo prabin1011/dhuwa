@@ -52,7 +52,7 @@ export function UrgeSurfingTimer() {
     };
 
     const reset = () => {
-        setSecondsRemaining(INITIAL_time);
+        setSecondsRemaining(INITIAL_TIME);
         setIsActive(false);
         setQuoteIndex(0); // Reset to the first quote
     };
@@ -66,7 +66,7 @@ export function UrgeSurfingTimer() {
     const isFinished = secondsRemaining === 0;
 
     return (
-        <div className="relative w-full h-full flex flex-col items-center text-center overflow-hidden rounded-lg bg-background">
+        <div className="relative w-full h-full flex flex-col items-center text-center overflow-hidden rounded-lg bg-background text-foreground">
             <DialogHeader className="pt-6 px-6 pb-0 text-center items-center z-20">
                  <DialogTitle>Ride the Urge Wave</DialogTitle>
                 <DialogDescription>
@@ -74,7 +74,7 @@ export function UrgeSurfingTimer() {
                 </DialogDescription>
             </DialogHeader>
 
-            <div className="relative z-10 flex flex-1 flex-col items-center justify-between h-full w-full p-6 text-foreground">
+            <div className="relative z-10 flex flex-1 flex-col items-center justify-between h-full w-full p-6">
                  <p 
                     key={quoteIndex}
                     className={cn(
@@ -88,7 +88,7 @@ export function UrgeSurfingTimer() {
                 <AnimatedWave />
 
                 <div className="flex flex-col items-center gap-4">
-                     <p className="text-7xl font-bold font-mono tracking-tighter drop-shadow-lg">
+                     <p className="text-5xl font-bold font-mono tracking-tighter drop-shadow-lg">
                         {formatTime(secondsRemaining)}
                     </p>
                     
