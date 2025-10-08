@@ -5,7 +5,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { NarrateUrgeInputSchema, type NarrateUrgeInput } from '@/ai/types/narrate-urge-types';
-import { gemini20Flash } from '@genkit-ai/googleai';
+import { geminiPro } from '@genkit-ai/google-genai';
 
 const narrateUrgePrompt = ai.definePrompt(
   {
@@ -25,12 +25,16 @@ const narrateUrgeFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const res = await narrateUrgePrompt(input, {
-      model: gemini20Flash,
-      temperature: 0.3,
-      maxOutputTokens: 60,
+    const {text} = await ai.generate({
+      model: geminiPro,
+      prompt: narrateUrgePrompt.prompt,
+      config: {
+        temperature: 0.3,
+        maxOutputTokens: 60,
+      },
+      input: input,
     });
-    return res.text.trim();
+    return text.trim();
   }
 );
 

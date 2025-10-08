@@ -5,7 +5,7 @@
 import { ai } from '@/ai/genkit';
 import { DailyInsightInputSchema, type DailyInsightInput } from '@/ai/types/daily-insight-types';
 import { z } from 'zod';
-import { gemini20Flash } from '@genkit-ai/googleai';
+import { geminiPro } from '@genkit-ai/google-genai';
 
 // Genkit Prompt
 const insightPrompt = ai.definePrompt({
@@ -44,13 +44,17 @@ const dailyInsightFlow = ai.defineFlow(
         }
     };
     
-    const res = await insightPrompt(sanitizedInput, {
-      model: gemini20Flash,
-      temperature: 0.3,
-      maxOutputTokens: 160,
+    const {text} = await ai.generate({
+      model: geminiPro,
+      prompt: insightPrompt.prompt,
+      config: {
+        temperature: 0.3,
+        maxOutputTokens: 160,
+      },
+      input: sanitizedInput,
     });
 
-    return res.text.trim();
+    return text.trim();
   }
 );
 

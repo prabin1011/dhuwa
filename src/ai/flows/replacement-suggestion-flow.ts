@@ -5,7 +5,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { ReplacementSuggestionInputSchema, type ReplacementSuggestionInput } from '@/ai/types/replacement-suggestion-types';
-import { gemini20Flash } from '@genkit-ai/googleai';
+import { geminiPro } from '@genkit-ai/google-genai';
 
 // THIS FLOW IS DEPRECATED AND NOT IN USE.
 
