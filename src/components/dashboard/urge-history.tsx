@@ -32,9 +32,9 @@ interface Urge {
 }
 
 interface UserProfile {
-    packCost?: number;
-    itemsPerPack?: number;
+    habitDetails?: Record<string, { packCost?: number; itemsPerPack?: number; }>;
     breakDuration?: string;
+    currency?: string;
 }
 
 interface UrgeHistoryProps {
@@ -76,12 +76,6 @@ const formatTimeSpent = (totalMinutes: number): string => {
 
 export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps) {
 
-    const costPerItem = useMemo(() => {
-        const { packCost = 0, itemsPerPack = 1 } = userProfile;
-        if (!itemsPerPack || itemsPerPack === 0) return 0;
-        return packCost / itemsPerPack;
-    }, [userProfile]);
-
     const timePerSmoke = useMemo(() => parseBreakDuration(userProfile.breakDuration), [userProfile.breakDuration]);
 
     const groupedUrges = useMemo(() => {
@@ -101,7 +95,18 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
         return Object.keys(groupedUrges).sort((a, b) => b.localeCompare(a));
     }, [groupedUrges]);
 
-    const formatMoney = (amount: number) => `$${amount.toFixed(2)}`;
+    const formatMoney = useMemo(() => {
+        const currency = userProfile.currency || 'USD';
+        const formatter = new Intl.NumberFormat(undefined, { style: 'currency', currency });
+        return (amount: number) => formatter.format(amount);
+    }, [userProfile.currency]);
+    
+    const getCostPerItem = (habitType?: string) => {
+        if (!habitType) return 0;
+        const details = userProfile.habitDetails?.[habitType];
+        if (!details || !details.packCost || !details.itemsPerPack) return 0;
+        return details.packCost / details.itemsPerPack;
+    }
 
     return (
         <Card>
@@ -140,7 +145,10 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
                                     <Accordion type="multiple" className="space-y-2">
                                         {sortedGroupKeys.map((dateStr) => {
                                             const dailySmokes = groupedUrges[dateStr].reduce((sum, urge) => sum + (urge.count || 1), 0);
-                                            const dailyCost = dailySmokes * costPerItem;
+                                            const dailyCost = groupedUrges[dateStr].reduce((sum, urge) => {
+                                                const costPer = getCostPerItem(urge.type);
+                                                return sum + ((urge.count || 1) * costPer);
+                                            }, 0);
                                             const dailyTimeSpent = dailySmokes * timePerSmoke;
     
                                             return (
