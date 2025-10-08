@@ -129,6 +129,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                         <p className="text-sm text-muted-foreground mt-1">
                           Welcome, {userProfile.username || user?.email || "Guest"}.
                         </p>
+                        <p className="text-xs text-muted-foreground/80 mt-2 italic">Freedom starts with awareness.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <NotificationBell messages={messages} clearMessages={clearMessages} />

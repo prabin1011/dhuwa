@@ -181,7 +181,7 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
                                     </Accordion>
                                 ) : (
                                     <div className="flex h-full items-center justify-center">
-                                        <p className="text-muted-foreground text-center">No smokes logged yet. Keep it up!</p>
+                                        <p className="text-muted-foreground text-center">Your day is a blank canvas. Dhuwa helps you fill it smoke-free.</p>
                                     </div>
                                 )}
                             </ScrollArea>

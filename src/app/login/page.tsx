@@ -175,6 +175,7 @@ export default function LoginPage() {
              <p className="text-muted-foreground mt-2">
               {user?.isAnonymous ? `Continuing as ${user.displayName}.` : 'Start your journey with a guest account.'}
              </p>
+             <p className="text-xs text-muted-foreground/80 mt-4 italic">By Smokers, For Smokers</p>
         </div>
         <div className="w-full max-w-sm space-y-4">
             {/* Only show username input if there is no user yet */}
