@@ -6,7 +6,6 @@ export function AnimatedWave() {
             <div className="ocean">
                 <div className="wave"></div>
                 <div className="wave"></div>
-                <div className="wave"></div>
             </div>
             <style jsx>{`
                 .ocean {
@@ -15,7 +14,7 @@ export function AnimatedWave() {
                     position: absolute;
                     bottom: 0;
                     left: 0;
-                    background: hsl(var(--primary) / 0.5); /* Semi-transparent base color */
+                    background: hsl(var(--primary));
                 }
 
                 .wave {
@@ -23,40 +22,40 @@ export function AnimatedWave() {
                     position: absolute;
                     width: 200%;
                     height: 100%;
-                    bottom: 0;
+                    background-repeat: no-repeat;
+                    background-position: center bottom;
+                    background-size: 100% 120px;
+                    bottom: -5px;
                     left: 0;
-                    background-repeat: repeat-x;
-                    background-size: 50% 140px;
                 }
 
                 .wave:nth-of-type(1) {
-                    animation: wave 10s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
-                    animation-delay: -2s;
-                    bottom: 10px;
+                    animation: wave 10s cubic-bezier(0.36, 0.45, 0.63, 0.53) -.125s infinite, swell 7s ease -1.25s infinite;
+                    transform: translate3d(0, 0, 0);
+                    opacity: 1;
                 }
 
                 .wave:nth-of-type(2) {
-                    animation: wave 18s cubic-bezier(0.36, 0.45, 0.63, 0.53) -0.125s infinite, swell 7s ease -1.25s infinite;
-                    bottom: 20px;
-                }
-
-                 .wave:nth-of-type(3) {
-                    animation: wave 20s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
-                    bottom: 0;
+                   animation: wave 18s linear reverse infinite;
+                   opacity: 0.7;
+                   animation-delay: -2s;
                 }
 
                 @keyframes wave {
                     0% {
                         transform: translateX(0);
                     }
+                    50% {
+                        transform: translateX(-25%);
+                    }
                     100% {
-                        transform: translateX(-50%);
+                        transform: translateX(0);
                     }
                 }
-
+                
                 @keyframes swell {
                     0%, 100% {
-                        transform: translate3d(0,-15px,0);
+                        transform: translate3d(0,-20px,0);
                     }
                     50% {
                         transform: translate3d(0,5px,0);
