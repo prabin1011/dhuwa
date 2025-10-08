@@ -4,30 +4,23 @@ import { getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
 import { addMinutes, isAfter, isBefore, parse, differenceInHours } from 'date-fns';
-import * as fs from 'fs';
-import * as path from 'path';
 import { notificationTemplates } from '../lib/notification-templates';
 
+// Simplified initialization for Vercel environment
 if (!getApps().length) {
     try {
-        const serviceAccount = JSON.parse(fs.readFileSync('service-account.json', 'utf8'));
+        const serviceAccount = JSON.parse(
+            process.env.FIREBASE_SERVICE_ACCOUNT_KEY ||
+            Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS || '', 'base64').toString('utf-8')
+        );
         initializeApp({ credential: cert(serviceAccount) });
-        console.log('Firebase Admin SDK initialized using service-account.json');
+        console.log('Firebase Admin SDK initialized.');
     } catch (e: any) {
-        console.error('Failed to initialize Firebase Admin SDK from file:', e.message);
-        try {
-            const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-            if (!serviceAccountKey) throw new Error('service-account.json not found and FIREBASE_SERVICE_ACCOUNT_KEY is not set.');
-            
-            const serviceAccount = JSON.parse(serviceAccountKey);
-            initializeApp({ credential: cert(serviceAccount) });
-            console.log('Firebase Admin SDK initialized using environment variable.');
-        } catch (e2: any) {
-             console.error('Failed to initialize Firebase Admin SDK from env var:', e2.message);
-             throw new Error(`Could not initialize Firebase Admin. Details: ${e2.message}`);
-        }
+        console.error('Failed to initialize Firebase Admin SDK:', e.message);
+        throw new Error(`Could not initialize Firebase Admin. Details: ${e.message}`);
     }
 }
+
 
 const db = getFirestore();
 const messaging = getMessaging();
@@ -49,12 +42,16 @@ const sendNotification = async (userId: string, tokens: string[], template: {tit
             read: false,
             link: '/'
         };
+        
         await messaging.sendEachForMulticast({
           tokens,
           notification: { title: template.title, body: template.body },
           webpush: { fcmOptions: { link: '/' } },
         });
+
+        // FIX: Actually save the notification to the user's history
         await db.collection(`users/${userId}/notifications`).add(notificationPayload);
+
         return true;
     } catch (e) {
         console.error(`Error sending notification to user ${userId}:`, e);

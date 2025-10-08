@@ -20,12 +20,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useRouter } from "next/navigation";
 import { deleteUser } from "firebase/auth";
 import { useNotifications } from '@/hooks/use-notifications';
-import { Copy, Send } from 'lucide-react';
 import { Separator } from '../ui/separator';
 import { Switch } from '../ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
-const CURRENCIES = ["USD", "EUR", "GBP", "INR", "JPY", "CAD", "AUD"];
+const CURRENCIES = ["USD", "EUR", "GBP", "INR", "JPY", "CAD", "AUD", "CNY", "CHF", "NZD", "BRL", "HKD", "SGD", "SEK", "KRW", "NOK", "MXN", "RUB", "ZAR", "TRY", "NPR"];
 
 
 interface UserProfile extends Partial<OnboardingData> {
@@ -44,7 +43,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const { firestore, user, auth } = useFirebase();
     const router = useRouter();
     const { toast } = useToast();
-    const { requestPermissionAndToken, fcmToken, permissionStatus: initialPermissionStatus } = useNotifications();
+    const { requestPermissionAndToken, permissionStatus: initialPermissionStatus } = useNotifications();
     const [permissionStatus, setPermissionStatus] = useState(initialPermissionStatus);
     
     useEffect(() => {
@@ -104,17 +103,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             setPermissionStatus(Notification.permission); // Re-check permission status after request
         }
     }
-
-    const handleCopyToken = () => {
-        if (fcmToken) {
-            navigator.clipboard.writeText(fcmToken);
-            toast({ title: 'Token Copied!', description: 'FCM token has been copied to your clipboard.' });
-        }
-    }
     
     const isPermissionDenied = permissionStatus === 'denied';
-    const remindersEnabled = getValues('reminders') === 'yes';
-
 
     const handleDeleteAccount = async () => {
         if (!user) {
@@ -320,14 +310,6 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                             )}
                          />
                     </div>
-                     {fcmToken && (
-                        <div className="flex items-center gap-2">
-                            <Input value={fcmToken} readOnly className="text-xs" />
-                            <Button variant="outline" size="icon" onClick={handleCopyToken}>
-                                <Copy className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    )}
                 </div>
 
             </div>
