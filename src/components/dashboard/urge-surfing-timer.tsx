@@ -62,14 +62,14 @@ export function UrgeSurfingTimer() {
                 </DialogDescription>
             </DialogHeader>
 
+            {/* The AnimatedWave is placed here, behind the main content container */}
+            <AnimatedWave />
+
             <div className="relative z-10 flex flex-1 flex-col items-center justify-between h-full w-full p-6">
                 {/* Top quotes */}
                 <p key={quoteIndex} className={cn("text-base font-medium text-center text-white/90 max-w-sm transition-opacity duration-1000", isActive ? "animate-fade-in" : "opacity-100")}>
                     "{shuffledQuotes[quoteIndex]}"
                 </p>
-
-                {/* Wave animation */}
-                <AnimatedWave />
 
                 {/* Bottom timer & controls */}
                 <div className="flex flex-col items-center gap-4 z-10">
