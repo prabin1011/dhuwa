@@ -18,7 +18,7 @@ export function AnimatedWave() {
                 }
 
                 .wave {
-                    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 24 150 28' preserveAspectRatio='none' shape-rendering='auto'%3e%3cdefs%3e%3cpath id='gentle-wave' d='M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z' /%3e%3c/defs%3e%3cg class='parallax'%3e%3cuse xlink:href='%23gentle-wave' x='48' y='0' fill='rgba(255,255,255,0.1)' /%3e%3cuse xlink:href='%23gentle-wave' x='48' y='3' fill='rgba(255,255,255,0.15)' /%3e%3cuse xlink:href='%23gentle-wave' x='48' y='5' fill='rgba(255,255,255,0.2)' /%3e%3cuse xlink:href='%23gentle-wave' x='48' y='7' fill='rgba(255,255,255,0.25)' /%3e%3c/g%3e%3c/svg%3e");
+                    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 24 150 28' preserveAspectRatio='none' shape-rendering='auto'%3e%3cdefs%3e%3cpath id='gentle-wave' d='M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z' /%3e%3c/defs%3e%3cg class='parallax'%3e%3cuse xlink:href='%23gentle-wave' x='48' y='0' fill='hsla(var(--primary), 0.2)' /%3e%3cuse xlink:href='%23gentle-wave' x='48' y='3' fill='hsla(var(--primary), 0.3)' /%3e%3cuse xlink:href='%23gentle-wave' x='48' y='5' fill='hsla(var(--primary), 0.4)' /%3e%3cuse xlink:href='%23gentle-wave' x='48' y='7' fill='hsla(var(--primary), 0.5)' /%3e%3c/g%3e%3c/svg%3e");
                     position: absolute;
                     width: 200%;
                     height: 100%;
@@ -27,6 +27,7 @@ export function AnimatedWave() {
                     background-size: 100% 120px;
                     bottom: -5px;
                     left: 0;
+                    opacity: 0.8;
                 }
 
                 .wave:nth-of-type(1) {

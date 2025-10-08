@@ -52,7 +52,7 @@ export function UrgeSurfingTimer() {
     };
 
     const reset = () => {
-        setSecondsRemaining(INITIAL_TIME);
+        setSecondsRemaining(INITIAL_time);
         setIsActive(false);
         setQuoteIndex(0); // Reset to the first quote
     };
@@ -67,7 +67,7 @@ export function UrgeSurfingTimer() {
 
     return (
         <div className="relative w-full h-full flex flex-col items-center text-center overflow-hidden rounded-lg bg-background">
-            <DialogHeader className="pt-6 px-6 pb-0 text-center items-center">
+            <DialogHeader className="pt-6 px-6 pb-0 text-center items-center z-20">
                  <DialogTitle>Ride the Urge Wave</DialogTitle>
                 <DialogDescription>
                     Urges are like waves. They build, peak, and then crash. They don't last forever. Just observe it.
@@ -78,15 +78,17 @@ export function UrgeSurfingTimer() {
                  <p 
                     key={quoteIndex}
                     className={cn(
-                        "text-xl font-medium text-center text-foreground/90 max-w-sm transition-opacity duration-1000",
+                        "text-lg font-medium text-center text-foreground/90 max-w-sm transition-opacity duration-1000",
                         isActive ? "animate-fade-in" : "opacity-100"
                     )}
                 >
                    "{shuffledQuotes[quoteIndex]}"
                 </p>
+                
+                <AnimatedWave />
 
                 <div className="flex flex-col items-center gap-4">
-                     <p className="text-8xl font-bold font-mono tracking-tighter drop-shadow-lg">
+                     <p className="text-7xl font-bold font-mono tracking-tighter drop-shadow-lg">
                         {formatTime(secondsRemaining)}
                     </p>
                     
@@ -95,7 +97,7 @@ export function UrgeSurfingTimer() {
                             {isActive ? <Pause className="mr-2" /> : <Play className="mr-2" />}
                             {isActive ? 'Pause' : 'Start'}
                         </Button>
-                        <Button onClick={reset} variant="outline" size="icon" className="text-foreground border-border bg-transparent hover:bg-secondary hover:text-secondary-foreground" aria-label="Reset timer">
+                        <Button onClick={reset} variant="outline" size="icon" className="text-foreground border-border bg-background/50 hover:bg-secondary hover:text-secondary-foreground" aria-label="Reset timer">
                             <RotateCcw className="h-5 w-5" />
                         </Button>
                     </div>
@@ -104,7 +106,6 @@ export function UrgeSurfingTimer() {
                     )}
                 </div>
             </div>
-             <AnimatedWave />
         </div>
     );
 }
