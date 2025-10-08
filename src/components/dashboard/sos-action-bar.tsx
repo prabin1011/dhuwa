@@ -70,13 +70,7 @@ export function SosActionBar() {
                         Urge Surf
                     </Button>
                 </DialogTrigger>
-                <DialogContent data-full-bleed="true">
-                    <DialogHeader>
-                         <DialogTitle>Ride the Urge Wave</DialogTitle>
-                        <DialogDescription>
-                            Urges are like waves. They build, peak, and then crash. They don't last forever. Just observe it.
-                        </DialogDescription>
-                    </DialogHeader>
+                <DialogContent data-full-bleed="true" className="w-[calc(100vw-2rem)] sm:w-full max-w-lg h-[80vh] max-h-[600px] p-0">
                     <UrgeSurfingTimer />
                 </DialogContent>
             </Dialog>
