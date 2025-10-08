@@ -67,32 +67,39 @@ export function UrgeSurfingTimer() {
     return (
         <div className="relative w-full h-96 flex flex-col items-center justify-center text-center overflow-hidden rounded-lg bg-background">
             <AnimatedWave />
-            <div className="relative z-10 flex flex-col items-center justify-center h-full p-6 text-white gap-4">
-                <p 
-                    key={quoteIndex}
-                    className={cn(
-                        "text-lg font-medium text-center text-white/90 max-w-sm transition-opacity duration-1000",
-                        isActive ? "animate-fade-in" : "opacity-100"
-                    )}
-                >
-                   "{shuffledQuotes[quoteIndex]}"
-                </p>
-                <p className="text-6xl font-bold font-mono tracking-tighter drop-shadow-lg">
-                    {formatTime(secondsRemaining)}
-                </p>
-                
-                <div className="flex items-center gap-4 mt-4">
-                    <Button onClick={toggle} size="lg" className="w-32 bg-white/90 text-black hover:bg-white disabled:opacity-70" disabled={isFinished}>
-                        {isActive ? <Pause className="mr-2" /> : <Play className="mr-2" />}
-                        {isActive ? 'Pause' : 'Start'}
-                    </Button>
-                    <Button onClick={reset} variant="outline" size="icon" className="text-white border-white/50 bg-transparent hover:bg-white/10 hover:text-white" aria-label="Reset timer">
-                        <RotateCcw className="h-5 w-5" />
-                    </Button>
+            <div className="relative z-10 flex flex-col items-center justify-between h-full w-full p-6 text-white gap-4">
+                {/* Top Section for Quote */}
+                <div className="flex-1 flex items-center justify-center">
+                    <p 
+                        key={quoteIndex}
+                        className={cn(
+                            "text-lg font-medium text-center text-white/90 max-w-sm transition-opacity duration-1000",
+                            isActive ? "animate-fade-in" : "opacity-100"
+                        )}
+                    >
+                       "{shuffledQuotes[quoteIndex]}"
+                    </p>
                 </div>
-                {isFinished && (
-                    <p className="mt-4 text-lg font-semibold animate-fade-in">You did it. The wave has passed.</p>
-                )}
+
+                {/* Bottom Section for Timer and Controls */}
+                <div className="flex flex-col items-center gap-4">
+                     <p className="text-6xl font-bold font-mono tracking-tighter drop-shadow-lg">
+                        {formatTime(secondsRemaining)}
+                    </p>
+                    
+                    <div className="flex items-center gap-4">
+                        <Button onClick={toggle} size="lg" className="w-32 bg-white/90 text-black hover:bg-white disabled:opacity-70" disabled={isFinished}>
+                            {isActive ? <Pause className="mr-2" /> : <Play className="mr-2" />}
+                            {isActive ? 'Pause' : 'Start'}
+                        </Button>
+                        <Button onClick={reset} variant="outline" size="icon" className="text-white border-white/50 bg-transparent hover:bg-white/10 hover:text-white" aria-label="Reset timer">
+                            <RotateCcw className="h-5 w-5" />
+                        </Button>
+                    </div>
+                    {isFinished && (
+                        <p className="mt-2 text-lg font-semibold animate-fade-in">You did it. The wave has passed.</p>
+                    )}
+                </div>
             </div>
         </div>
     );

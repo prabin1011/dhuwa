@@ -19,27 +19,30 @@ export function AnimatedWave() {
                 }
 
                 .wave {
-                    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMTI4MCAxNDAiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0iaHNsKDIyMCAyMCUgNyUpIj48cGF0aCBkPSJNMTI4MCAzMS43NUMxMTAyLjMgMzEuNzUgOTU5LjYgMTE1LjE1IDc3My4yIDExNS4xNVM0NDYgNjUgMjU5LjcgNjVDNzMuMiA2NSAtNjEgMzEuNzUgLTEyNi4yIDMxLjc1djEwOEgxMjgweiIgZmlsbC1vcGFjaXR5PSIwLjUiLz48cGF0aCBkPSJNMTI4MCAzMS43NUMxMDkwLjMgMzEuNzUgOTQ4LjggMTE1LjIgNzYzLjcgMTE1LjJTNDM2LjMgNjUgMjQ5LjMgNjVDNjIgNjUgLTg0LjIgMzEuNzUgLTE1MS4yIDMxLjc1djEwOEgxMjgweiIvPjwvZz48L3N2Zz4=);
+                    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 24 150 28' preserveAspectRatio='none' shape-rendering='auto'%3e%3cdefs%3e%3cpath id='gentle-wave' d='M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z' /%3e%3c/defs%3e%3cg class='parallax'%3e%3cuse xlink:href='%23gentle-wave' x='48' y='0' fill='hsla(var(--background), 0.7)' /%3e%3cuse xlink:href='%23gentle-wave' x='48' y='3' fill='hsla(var(--background), 0.5)' /%3e%3cuse xlink:href='%23gentle-wave' x='48' y='5' fill='hsla(var(--background), 0.3)' /%3e%3cuse xlink:href='%23gentle-wave' x='48' y='7' fill='hsl(var(--background))' /%3e%3c/g%3e%3c/svg%3e");
                     position: absolute;
                     width: 200%;
                     height: 100%;
                     bottom: 0;
                     left: 0;
                     background-repeat: repeat-x;
-                    background-size: 50% 100%;
+                    background-size: 50% 140px;
+                }
+
+                .wave:nth-of-type(1) {
                     animation: wave 10s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+                    animation-delay: -2s;
+                    bottom: 10px;
                 }
 
                 .wave:nth-of-type(2) {
-                    bottom: -1.25em;
                     animation: wave 18s cubic-bezier(0.36, 0.45, 0.63, 0.53) -0.125s infinite, swell 7s ease -1.25s infinite;
-                    opacity: 1;
+                    bottom: 20px;
                 }
 
                  .wave:nth-of-type(3) {
-                    bottom: -2.5em;
-                    animation: wave 20s cubic-bezier(0.36, 0.45, 0.63, 0.53) -0.125s infinite, swell 7s ease -1.25s infinite;
-                    opacity: 0.8;
+                    animation: wave 20s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+                    bottom: 0;
                 }
 
                 @keyframes wave {
@@ -53,10 +56,10 @@ export function AnimatedWave() {
 
                 @keyframes swell {
                     0%, 100% {
-                        transform: translateY(-10px);
+                        transform: translate3d(0,-15px,0);
                     }
                     50% {
-                        transform: translateY(5px);
+                        transform: translate3d(0,5px,0);
                     }
                 }
             `}</style>
