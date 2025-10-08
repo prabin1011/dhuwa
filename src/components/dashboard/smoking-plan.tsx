@@ -28,7 +28,7 @@ const PREMADE_REPLACEMENTS = [
     "Walk around the block",
     "Read a page of a book",
     "Listen to one song",
-    "5 minutes of deep breathing"
+    "5 mins deep breathing"
 ];
 
 
@@ -59,6 +59,7 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
     const [newMomentLabel, setNewMomentLabel] = useState('');
     const [customReplacement, setCustomReplacement] = useState("");
     const [selectedReplacement, setSelectedReplacement] = useState("");
+    const [activeDialog, setActiveDialog] = useState<string | null>(null);
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
@@ -174,6 +175,7 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
             toast({ title: "Replacement Logged!", description: `Great choice!` });
             setCustomReplacement("");
             setSelectedReplacement("");
+            setActiveDialog(null); // Close the dialog
         } catch (e) {
             // Error handled in updateMoments
         }
@@ -238,9 +240,9 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                                                                         <Cigarette className="w-4 h-4" />
                                                                     </Button>
                                                                     
-                                                                    <Dialog>
+                                                                    <Dialog open={activeDialog === moment.id} onOpenChange={(isOpen) => !isOpen && setActiveDialog(null)}>
                                                                         <DialogTrigger asChild>
-                                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/20 text-primary">
+                                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/20 text-primary" onClick={() => setActiveDialog(moment.id)}>
                                                                                 <Replace className="w-4 h-4" />
                                                                             </Button>
                                                                         </DialogTrigger>
@@ -258,6 +260,7 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                                                                                             key={item}
                                                                                             variant={selectedReplacement === item ? "default" : "outline"}
                                                                                             onClick={() => { setSelectedReplacement(item); setCustomReplacement(""); }}
+                                                                                            className="h-auto min-h-10 py-2 whitespace-normal"
                                                                                         >
                                                                                             {item}
                                                                                         </Button>
@@ -271,14 +274,7 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                                                                             </div>
                                                                             <DialogFooter>
                                                                                 <Button 
-                                                                                    onClick={async () => {
-                                                                                        await handleSaveReplacement(moment.id);
-                                                                                        // find the dialog's close button and click it programmatically
-                                                                                        const closeButton = document.querySelector('[aria-label="Close"]');
-                                                                                        if (closeButton instanceof HTMLElement) {
-                                                                                            closeButton.click();
-                                                                                        }
-                                                                                    }} 
+                                                                                    onClick={() => handleSaveReplacement(moment.id)} 
                                                                                     disabled={!selectedReplacement && !customReplacement}>
                                                                                     Save Replacement
                                                                                 </Button>

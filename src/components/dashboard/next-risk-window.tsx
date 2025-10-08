@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect } from "react";
@@ -39,7 +40,7 @@ const PREMADE_REPLACEMENTS = [
     "Walk around the block",
     "Read a page of a book",
     "Listen to one song",
-    "5 minutes of deep breathing"
+    "5 mins deep breathing"
 ];
 
 export function NextRiskWindow({ userProfile, urges }: NextRiskWindowProps) {
@@ -160,6 +161,7 @@ export function NextRiskWindow({ userProfile, urges }: NextRiskWindowProps) {
                                         key={item}
                                         variant={selectedReplacement === item ? "default" : "outline"}
                                         onClick={() => { setSelectedReplacement(item); setCustomReplacement(""); }}
+                                        className="h-auto min-h-10 py-2 whitespace-normal"
                                     >
                                         {item}
                                     </Button>
