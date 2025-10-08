@@ -55,17 +55,15 @@ export function UrgeSurfingTimer() {
 
     return (
         <div className="relative w-full h-full flex flex-col items-center text-center overflow-hidden rounded-lg bg-black text-white">
-            <DialogHeader className="pt-6 px-6 pb-0 text-center items-center z-20">
-                <DialogTitle>Ride the Urge Wave</DialogTitle>
-                <DialogDescription>
-                    Urges are like waves. They build, peak, and then crash. They don't last forever. Just observe it.
-                </DialogDescription>
-            </DialogHeader>
-
-            {/* The AnimatedWave is placed here, behind the main content container */}
             <AnimatedWave />
-
             <div className="relative z-10 flex flex-1 flex-col items-center justify-between h-full w-full p-6">
+                 <DialogHeader className="pt-0 px-6 pb-0 text-center items-center z-20">
+                    <DialogTitle>Ride the Urge Wave</DialogTitle>
+                    <DialogDescription>
+                        Urges are like waves. They build, peak, and then crash. They don't last forever. Just observe it.
+                    </DialogDescription>
+                </DialogHeader>
+
                 {/* Top quotes */}
                 <p key={quoteIndex} className={cn("text-base font-medium text-center text-white/90 max-w-sm transition-opacity duration-1000", isActive ? "animate-fade-in" : "opacity-100")}>
                     "{shuffledQuotes[quoteIndex]}"
