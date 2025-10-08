@@ -17,7 +17,7 @@ import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
-import { MoodAfterToastAction } from "./mood-after-toast-action";
+import { MoodAfterDialogAction } from "./mood-after-toast-action";
 import { getNarrative } from "@/lib/narrative-vault";
 
 
@@ -40,7 +40,9 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
   const { toast } = useToast();
   const [selectedHabit, setSelectedHabit] = useState(habits[0]);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isMoodDialogOpen, setIsMoodDialogOpen] = useState(false);
+  const [isAfterMoodDialogOpen, setIsAfterMoodDialogOpen] = useState(false);
+  const [lastUrgeId, setLastUrgeId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
 
@@ -54,10 +56,12 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
         return;
     }
     
+    // Close the initial mood dialog
+    setIsMoodDialogOpen(false);
+    
     const urgesCollection = collection(firestore, 'users', user.uid, 'urges');
     
     try {
-        // Generate narrative and short message locally
         const { long, short } = getNarrative(selectedMood);
 
         const urgeData = {
@@ -71,13 +75,10 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
         };
 
         const docRef = await addDoc(urgesCollection, urgeData);
-
-        toast({
-          title: `Smoke${quantity > 1 ? 's' : ''} Logged!`,
-          description: `Your moment of awareness has been recorded.`,
-          duration: 10000,
-          action: <MoodAfterToastAction urgeId={docRef.id} />,
-        });
+        setLastUrgeId(docRef.id);
+        
+        // Immediately open the second dialog
+        setIsAfterMoodDialogOpen(true);
         
     } catch(e) {
         console.error("Error logging smoke: ", e);
@@ -86,16 +87,21 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
             title: "Logging failed",
             description: "Could not save your smoke log. Please try again."
         })
+        // Reset state on failure
+        setSelectedMood(null);
+        setQuantity(1);
     }
-
-
-    // Reset state and close dialog
-    setSelectedMood(null);
-    setQuantity(1);
-    setIsDialogOpen(false);
   };
 
   const Icon = selectedHabit === 'Weed' ? Leaf : Cigarette;
+  
+  const resetForms = () => {
+    setSelectedMood(null);
+    setQuantity(1);
+    setIsMoodDialogOpen(false);
+    setIsAfterMoodDialogOpen(false);
+    setLastUrgeId(null);
+  }
 
   return (
     <div className="flex items-center gap-2">
@@ -111,7 +117,7 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
               </SelectContent>
             </Select>
         )}
-        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialog open={isMoodDialogOpen} onOpenChange={setIsMoodDialogOpen}>
             <AlertDialogTrigger asChild>
                 <Button size="lg" className="w-full">
                     <Icon className="w-5 h-5 mr-2" />
@@ -148,11 +154,24 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
                     </div>
                 </div>
                 <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => {setSelectedMood(null); setQuantity(1)}}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel onClick={resetForms}>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleLogSmoke} disabled={!selectedMood}>
                         Log Smoke
                     </AlertDialogAction>
                 </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        {/* This is the second, mandatory dialog for "mood after" */}
+         <AlertDialog open={isAfterMoodDialogOpen} onOpenChange={setIsAfterMoodDialogOpen}>
+            <AlertDialogContent>
+                 <AlertDialogHeader>
+                    <AlertDialogTitle>Moment Recorded</AlertDialogTitle>
+                    <AlertDialogDescription>
+                       Your moment of awareness has been logged. One last thing...
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                {lastUrgeId && <MoodAfterDialogAction urgeId={lastUrgeId} onMoodSelect={resetForms} />}
             </AlertDialogContent>
         </AlertDialog>
     </div>

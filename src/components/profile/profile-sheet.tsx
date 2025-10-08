@@ -23,10 +23,15 @@ import { useNotifications } from '@/hooks/use-notifications';
 import { Copy, Send } from 'lucide-react';
 import { Separator } from '../ui/separator';
 import { Switch } from '../ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+
+const CURRENCIES = ["USD", "EUR", "GBP", "INR", "JPY", "CAD", "AUD"];
+
 
 interface UserProfile extends Partial<OnboardingData> {
     username?: string;
     fcmTokens?: string[];
+    currency?: string;
 }
 
 interface ProfileSheetProps {
@@ -49,7 +54,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const { control, handleSubmit, reset, getValues, setValue, formState: { isSubmitting, isDirty } } = useForm<OnboardingData>({
         defaultValues: {
             ...userProfile,
-            habitDetails: userProfile.habitDetails || {}
+            habitDetails: userProfile.habitDetails || {},
+            currency: userProfile.currency || 'USD'
         },
     });
 
@@ -266,6 +272,30 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                         </form>
                     </div>
                 ))}
+                
+                <div className="space-y-4">
+                    <h3 className="text-lg font-semibold tracking-tight">Financials</h3>
+                     <div className="space-y-2">
+                        <Label>Currency</Label>
+                        <Controller
+                            name="currency"
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {CURRENCIES.map(c => (
+                                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                    </div>
+                </div>
+
                  <div className="space-y-4">
                     <h3 className="text-lg font-semibold tracking-tight">Notifications</h3>
                     <div className="flex items-center justify-between rounded-lg border p-4">

@@ -7,6 +7,7 @@ export type OnboardingData = {
     itemsPerPack?: string;
     itemsPerDay?: string;
   }>;
+  currency: string;
   frequency: string;
   started: string;
   goal: string;
@@ -34,7 +35,7 @@ export type Step = {
   title: string;
   field: keyof OnboardingData | `habitDetails.${string}.${'packCost' | 'itemsPerPack' | 'itemsPerDay'}`;
   question: string;
-  type: 'checkbox' | 'radio' | 'number' | 'summary' | 'dynamic';
+  type: 'checkbox' | 'radio' | 'number' | 'summary' | 'dynamic' | 'currency';
   options?: { value: string; label: string; description?: string }[];
   optional?: boolean;
   dependsOn?: keyof OnboardingData;

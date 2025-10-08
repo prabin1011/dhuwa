@@ -3,11 +3,11 @@
 import { doc, updateDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import { Button } from '../ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 
-interface MoodAfterToastActionProps {
+interface MoodAfterDialogActionProps {
     urgeId: string;
+    onMoodSelect: () => void; // Callback to close the dialog
 }
 
 const AFTER_MOOD_OPTIONS = [
@@ -16,9 +16,8 @@ const AFTER_MOOD_OPTIONS = [
     { value: 'same', label: 'Same', emoji: '😐' },
 ]
 
-export function MoodAfterToastAction({ urgeId }: MoodAfterToastActionProps) {
+export function MoodAfterDialogAction({ urgeId, onMoodSelect }: MoodAfterDialogActionProps) {
     const { firestore, user } = useFirebase();
-    const { dismiss } = useToast();
     const [isSubmitted, setIsSubmitted] = useState(false);
 
     const handleMoodSelect = async (mood: string) => {
@@ -29,10 +28,10 @@ export function MoodAfterToastAction({ urgeId }: MoodAfterToastActionProps) {
         
         try {
             await updateDoc(urgeRef, { moodAfter: mood });
-             setTimeout(() => dismiss(), 500); // Dismiss toast after a short delay
+             setTimeout(() => onMoodSelect(), 300); // Close dialog after a short delay
         } catch (error) {
             console.error("Failed to update moodAfter:", error);
-            // Optionally show another toast for failure
+             onMoodSelect(); // Close dialog even on error
         }
     };
 

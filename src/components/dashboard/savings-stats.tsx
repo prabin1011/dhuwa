@@ -18,6 +18,7 @@ interface Urge {
 }
 
 interface UserProfile {
+    currency?: string;
     habitDetails?: Record<string, { packCost?: number; itemsPerPack?: number; itemsPerDay?: string | number }>;
 }
 
@@ -69,10 +70,15 @@ function parseItemsPerDay(itemsPerDay?: string | number): number {
   return Number.isNaN(num) ? 0 : num;
 }
 
-const fmtMoney = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' });
-const formatMoney = (amount: number) => (amount < 0 ? '-' : '') + fmtMoney.format(Math.abs(amount));
 
 export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: SavingsStatsProps) {
+
+    const formatMoney = useMemo(() => {
+        const currency = userProfile.currency || 'USD';
+        const formatter = new Intl.NumberFormat(undefined, { style: 'currency', currency });
+        return (amount: number) => (amount < 0 ? '-' : '') + formatter.format(Math.abs(amount));
+    }, [userProfile.currency]);
+
 
     const { stats, description } = useMemo(() => {
         const date = selectedDate || new Date();
@@ -180,7 +186,7 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
                 savings: savingsDescription
             }
         };
-    }, [urges, userProfile, activeHabit, selectedDate]);
+    }, [urges, userProfile, activeHabit, selectedDate, formatMoney]);
 
     return (
         <Card>
