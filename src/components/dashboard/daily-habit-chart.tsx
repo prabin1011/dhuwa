@@ -15,6 +15,7 @@ import { Button } from '../ui/button';
 interface Urge {
     timestamp: Timestamp;
     count?: number;
+    type?: string;
 }
 
 interface DailyHabitChartProps {

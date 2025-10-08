@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -11,6 +12,7 @@ import { Calendar } from '../ui/calendar';
 
 interface Urge {
   timestamp: Timestamp;
+  type?: string;
 }
 interface RealTimeTimerProps {
   sortedUrges: WithId<Urge>[];

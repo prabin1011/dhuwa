@@ -1,3 +1,4 @@
+
 'use client';
 
 import { SmokeLogger } from "@/components/dashboard/smoke-logger";
@@ -24,6 +25,7 @@ import { SosActionBar } from "./sos-action-bar";
 import { NextRiskWindow } from "./next-risk-window";
 import { NotificationBell } from "./notification-bell";
 import { User } from 'firebase/auth';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 
 interface UserProfile {
@@ -50,6 +52,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
   const { user } = useUser();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [activeHabit, setActiveHabit] = useState<string>('All');
   
   // Initialize notifications hook
   const { requestPermissionAndToken, messages, clearMessages } = useNotifications();
@@ -75,6 +78,11 @@ export function Dashboard({ userProfile }: DashboardProps) {
       .filter(urge => urge.timestamp) 
       .sort((a, b) => b.timestamp.toDate().getTime() - a.timestamp.toDate().getTime());
   }, [urges]);
+
+  const filteredUrges = useMemo(() => {
+    if (activeHabit === 'All') return sortedUrges;
+    return sortedUrges.filter(urge => urge.type === activeHabit);
+  }, [sortedUrges, activeHabit]);
   
   const lastUrgeTime = sortedUrges?.[0]?.timestamp?.toDate();
   
@@ -102,6 +110,8 @@ export function Dashboard({ userProfile }: DashboardProps) {
     )
   }
 
+  const habitTabs = ['All', ...(userProfile.habits || [])];
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
         <main className="flex-1 flex flex-col items-center p-4 md:p-6 pb-28">
@@ -121,22 +131,32 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     </div>
                 </header>
 
+                {habitTabs.length > 2 && (
+                    <Tabs value={activeHabit} onValueChange={setActiveHabit} className="w-full mb-6">
+                        <TabsList className="grid w-full grid-cols-3">
+                            {habitTabs.map(habit => (
+                                <TabsTrigger key={habit} value={habit}>{habit}</TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </Tabs>
+                )}
+
                 <div className="space-y-6">
-                    <DailyInsight userProfile={userProfile} urges={sortedUrges} lastUrgeTime={lastUrgeTime}/>
+                    <DailyInsight userProfile={userProfile} urges={filteredUrges} lastUrgeTime={lastUrgeTime}/>
                     <RealTimeTimer 
-                      sortedUrges={sortedUrges} 
+                      sortedUrges={filteredUrges} 
                       selectedDate={selectedDate}
                       onSelectDate={setSelectedDate}
                     />
-                    <NextRiskWindow userProfile={userProfile} urges={sortedUrges} />
+                    <NextRiskWindow userProfile={userProfile} urges={filteredUrges} />
                     <SmokingPlan user={user} userProfile={userProfile} selectedDate={selectedDate || new Date()} />
-                    <SavingsStats urges={sortedUrges} userProfile={userProfile} selectedDate={selectedDate} />
+                    <SavingsStats urges={filteredUrges} userProfile={userProfile} selectedDate={selectedDate} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />
-                    <MoodReport urges={sortedUrges} selectedDate={selectedDate || new Date()} />
-                    <DailyHabitChart urges={sortedUrges} selectedDate={selectedDate} />
-                    <HourlyChart urges={sortedUrges} />
-                    <UrgeHistory urges={sortedUrges} isLoading={isLoading} userProfile={userProfile} />
+                    <MoodReport urges={filteredUrges} selectedDate={selectedDate || new Date()} />
+                    <DailyHabitChart urges={filteredUrges} selectedDate={selectedDate} />
+                    <HourlyChart urges={filteredUrges} />
+                    <UrgeHistory urges={filteredUrges} isLoading={isLoading} userProfile={userProfile} />
                 </div>
             </div>
         </main>
@@ -149,3 +169,4 @@ export function Dashboard({ userProfile }: DashboardProps) {
     </div>
   );
 }
+

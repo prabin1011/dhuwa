@@ -16,6 +16,7 @@ interface Urge {
     timestamp: Timestamp;
     moodBefore?: string;
     moodAfter?: string;
+    type?: string;
 }
 
 interface MoodReportProps {
