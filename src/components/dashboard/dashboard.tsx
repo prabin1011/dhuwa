@@ -120,7 +120,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
         <main className="flex-1 flex flex-col items-center p-4 md:p-6 pb-28">
-            <div className="w-full max-w-md">
+            <div className="w-full max-w-md mx-auto">
                 <header className="mb-6 flex justify-between items-start">
                     <div>
                         <div className="flex items-baseline gap-2">

@@ -187,8 +187,8 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
             <Accordion type="single" collapsible defaultValue="item-1">
                 <AccordionItem value="item-1" className="border-b-0">
                     <AccordionTrigger className="p-4 hover:no-underline [&[data-state=open]]:pb-0">
-                            <div className="flex justify-between items-start w-full">
-                            <div>
+                            <div className="flex justify-between items-start w-full gap-2">
+                            <div className="flex-1">
                                 <CardTitle>{isToday(selectedDate) ? "Today's" : format(selectedDate, 'MMMM d')} Plan</CardTitle>
                                 <CardDescription className="text-left mt-1">
                                     Your scheduled moments for the day.
@@ -197,7 +197,7 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                                             <Info className="w-4 h-4 text-muted-foreground" />
                                         </Button>
                                     </TooltipTrigger>
