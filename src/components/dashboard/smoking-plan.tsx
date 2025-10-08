@@ -10,7 +10,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import type { WithId } from "@/firebase";
 import { Check, Cigarette, Info, Plus, Replace, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format, isToday, parse, isAfter } from "date-fns";
+import { format, isToday, parse } from "date-fns";
 import {
   Accordion,
   AccordionContent,
@@ -57,10 +57,8 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
 
     const [newMomentTime, setNewMomentTime] = useState('');
     const [newMomentLabel, setNewMomentLabel] = useState('');
-    const [dialogState, setDialogState] = useState<{ isOpen: boolean, momentId: string | null }>({ isOpen: false, momentId: null });
-    const [selectedReplacement, setSelectedReplacement] = useState("");
     const [customReplacement, setCustomReplacement] = useState("");
-
+    const [selectedReplacement, setSelectedReplacement] = useState("");
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
@@ -151,9 +149,8 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
         } catch (e) { /* Error handled in updateMoments */ }
     };
     
-    const handleSaveReplacement = async () => {
-        const { momentId } = dialogState;
-        if (!user || !firestore || !momentId) return;
+    const handleSaveReplacement = async (momentId: string) => {
+        if (!user || !firestore) return;
 
         const replacementValue = customReplacement || selectedReplacement;
         if (!replacementValue) {
@@ -175,7 +172,6 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
         try {
             await updateMoments(updatedMoments);
             toast({ title: "Replacement Logged!", description: `Great choice!` });
-            setDialogState({ isOpen: false, momentId: null });
             setCustomReplacement("");
             setSelectedReplacement("");
         } catch (e) {
@@ -187,140 +183,150 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
     return (
         <Card>
             <Accordion type="single" collapsible defaultValue="item-1">
-                <Dialog open={dialogState.isOpen} onOpenChange={(isOpen) => setDialogState({ isOpen, momentId: isOpen ? dialogState.momentId : null })}>
-                    <AccordionItem value="item-1" className="border-b-0">
-                        <AccordionTrigger className="p-4 hover:no-underline [&[data-state=open]]:pb-0">
-                             <div className="flex justify-between items-start w-full">
-                                <div>
-                                    <CardTitle>{isToday(selectedDate) ? "Today's" : format(selectedDate, 'MMMM d')} Plan</CardTitle>
-                                    <CardDescription className="text-left mt-1">
-                                        Your scheduled moments for the day.
-                                    </CardDescription>
-                                </div>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                                <Info className="w-4 h-4 text-muted-foreground" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p className="text-xs max-w-xs">Create a plan for your day. For each moment, you can log that you smoked or that you chose a positive replacement activity.</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                             </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                            <div className="p-4 pt-2">
-                                <div className="space-y-4">
-                                    <div className="space-y-3">
-                                        {sortedMoments.length > 0 ? (
-                                            sortedMoments.map((moment) => {
-                                                const status = moment.completed?.[dateStr]; // true, false, or undefined
-                                                const replacementText = moment.replacementActivity?.[dateStr];
-                                                const isProcessed = status !== undefined;
+                <AccordionItem value="item-1" className="border-b-0">
+                    <AccordionTrigger className="p-4 hover:no-underline [&[data-state=open]]:pb-0">
+                            <div className="flex justify-between items-start w-full">
+                            <div>
+                                <CardTitle>{isToday(selectedDate) ? "Today's" : format(selectedDate, 'MMMM d')} Plan</CardTitle>
+                                <CardDescription className="text-left mt-1">
+                                    Your scheduled moments for the day.
+                                </CardDescription>
+                            </div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                            <Info className="w-4 h-4 text-muted-foreground" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="text-xs max-w-xs">Create a plan for your day. For each moment, you can log that you smoked or that you chose a positive replacement activity.</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <div className="p-4 pt-2">
+                            <div className="space-y-4">
+                                <div className="space-y-3">
+                                    {sortedMoments.length > 0 ? (
+                                        sortedMoments.map((moment) => {
+                                            const status = moment.completed?.[dateStr]; // true, false, or undefined
+                                            const replacementText = moment.replacementActivity?.[dateStr];
+                                            const isProcessed = status !== undefined;
 
-                                                return (
-                                                    <div key={moment.id} className="p-3 rounded-md bg-secondary/30 text-left">
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex flex-col">
-                                                                <div className="flex items-center gap-2">
-                                                                     <span className={cn('font-mono text-sm', isProcessed && 'line-through text-muted-foreground')}>{moment.time}</span>
-                                                                    <span className={cn('text-sm font-medium', isProcessed && 'line-through text-muted-foreground')}>{moment.label}</span>
-                                                                </div>
-                                                                {replacementText && (
-                                                                    <div className="mt-2 text-xs pl-1">Replaced with: <span className="font-semibold text-foreground">{replacementText}</span></div>
-                                                                )}
+                                            return (
+                                                <div key={moment.id} className="p-3 rounded-md bg-secondary/30 text-left">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex flex-col">
+                                                            <div className="flex items-center gap-2">
+                                                                    <span className={cn('font-mono text-sm', isProcessed && 'line-through text-muted-foreground')}>{moment.time}</span>
+                                                                <span className={cn('text-sm font-medium', isProcessed && 'line-through text-muted-foreground')}>{moment.label}</span>
                                                             </div>
-                                                            <div className="flex items-center gap-1">
-                                                                {status === true && <Check className="w-4 h-4 text-green-500" />}
-                                                                {status === false && !replacementText && <Replace className="w-4 h-4 text-blue-500" />}
-                                                                
-                                                                {!isProcessed && isToday(selectedDate) && (
-                                                                    <>
-                                                                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/20 text-destructive" onClick={() => handleMarkMoment(moment.id, true)}>
-                                                                            <Cigarette className="w-4 h-4" />
-                                                                        </Button>
+                                                            {replacementText && (
+                                                                <div className="mt-2 text-xs pl-1">Replaced with: <span className="font-semibold text-foreground">{replacementText}</span></div>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            {status === true && <Check className="w-4 h-4 text-green-500" />}
+                                                            {status === false && !replacementText && <Replace className="w-4 h-4 text-blue-500" />}
+                                                            
+                                                            {!isProcessed && isToday(selectedDate) && (
+                                                                <>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/20 text-destructive" onClick={() => handleMarkMoment(moment.id, true)}>
+                                                                        <Cigarette className="w-4 h-4" />
+                                                                    </Button>
+                                                                    
+                                                                    <Dialog>
                                                                         <DialogTrigger asChild>
-                                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/20 text-primary" onClick={() => setDialogState({ isOpen: true, momentId: moment.id })}>
+                                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/20 text-primary">
                                                                                 <Replace className="w-4 h-4" />
                                                                             </Button>
                                                                         </DialogTrigger>
-                                                                    </>
-                                                                )}
-                                                                
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted" onClick={() => handleDeleteMoment(moment.id)}>
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </Button>
-                                                            </div>
+                                                                        <DialogContent>
+                                                                            <DialogHeader>
+                                                                                <DialogTitle>Choose Your Replacement</DialogTitle>
+                                                                                <DialogDescription>
+                                                                                    Pick from the list or add your own positive action.
+                                                                                </DialogDescription>
+                                                                            </DialogHeader>
+                                                                            <div className="py-4 space-y-4">
+                                                                                <div className="grid grid-cols-2 gap-2">
+                                                                                    {PREMADE_REPLACEMENTS.map(item => (
+                                                                                        <Button
+                                                                                            key={item}
+                                                                                            variant={selectedReplacement === item ? "default" : "outline"}
+                                                                                            onClick={() => { setSelectedReplacement(item); setCustomReplacement(""); }}
+                                                                                        >
+                                                                                            {item}
+                                                                                        </Button>
+                                                                                    ))}
+                                                                                </div>
+                                                                                <Input
+                                                                                    placeholder="Or type your own replacement..."
+                                                                                    value={customReplacement}
+                                                                                    onChange={(e) => { setCustomReplacement(e.target.value); setSelectedReplacement(""); }}
+                                                                                />
+                                                                            </div>
+                                                                            <DialogFooter>
+                                                                                <Button 
+                                                                                    onClick={async () => {
+                                                                                        await handleSaveReplacement(moment.id);
+                                                                                        // find the dialog's close button and click it programmatically
+                                                                                        const closeButton = document.querySelector('[aria-label="Close"]');
+                                                                                        if (closeButton instanceof HTMLElement) {
+                                                                                            closeButton.click();
+                                                                                        }
+                                                                                    }} 
+                                                                                    disabled={!selectedReplacement && !customReplacement}>
+                                                                                    Save Replacement
+                                                                                </Button>
+                                                                            </DialogFooter>
+                                                                        </DialogContent>
+                                                                    </Dialog>
+                                                                </>
+                                                            )}
+                                                            
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted" onClick={() => handleDeleteMoment(moment.id)}>
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
                                                         </div>
                                                     </div>
-                                                )
-                                            })
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground text-center py-4">No moments planned. Add one to get started!</p>
-                                        )}
-                                    </div>
-
-                                    {isToday(selectedDate) && (
-                                        <div className="flex items-center gap-2 pt-4 border-t">
-                                            <Input
-                                                type="time"
-                                                value={newMomentTime}
-                                                onChange={(e) => setNewMomentTime(e.target.value)}
-                                                className="w-28"
-                                                aria-label="Time"
-                                            />
-                                            <Input
-                                                type="text"
-                                                placeholder="e.g., Morning coffee"
-                                                value={newMomentLabel}
-                                                onChange={(e) => setNewMomentLabel(e.target.value)}
-                                                className="flex-1"
-                                                aria-label="Label"
-                                            />
-                                            <Button onClick={handleAddMoment} size="icon" aria-label="Add moment">
-                                                <Plus className="w-4 h-4" />
-                                            </Button>
-                                        </div>
+                                                </div>
+                                            )
+                                        })
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground text-center py-4">No moments planned. Add one to get started!</p>
                                     )}
                                 </div>
+
+                                {isToday(selectedDate) && (
+                                    <div className="flex items-center gap-2 pt-4 border-t">
+                                        <Input
+                                            type="time"
+                                            value={newMomentTime}
+                                            onChange={(e) => setNewMomentTime(e.target.value)}
+                                            className="w-28"
+                                            aria-label="Time"
+                                        />
+                                        <Input
+                                            type="text"
+                                            placeholder="e.g., Morning coffee"
+                                            value={newMomentLabel}
+                                            onChange={(e) => setNewMomentLabel(e.target.value)}
+                                            className="flex-1"
+                                            aria-label="Label"
+                                        />
+                                        <Button onClick={handleAddMoment} size="icon" aria-label="Add moment">
+                                            <Plus className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                     <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Choose Your Replacement</DialogTitle>
-                            <DialogDescription>
-                                Pick from the list or add your own positive action.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="py-4 space-y-4">
-                            <div className="grid grid-cols-2 gap-2">
-                                {PREMADE_REPLACEMENTS.map(item => (
-                                    <Button
-                                        key={item}
-                                        variant={selectedReplacement === item ? "default" : "outline"}
-                                        onClick={() => { setSelectedReplacement(item); setCustomReplacement(""); }}
-                                    >
-                                        {item}
-                                    </Button>
-                                ))}
-                            </div>
-                            <Input
-                                placeholder="Or type your own replacement..."
-                                value={customReplacement}
-                                onChange={(e) => { setCustomReplacement(e.target.value); setSelectedReplacement(""); }}
-                            />
                         </div>
-                        <DialogFooter>
-                            <Button onClick={handleSaveReplacement} disabled={!selectedReplacement && !customReplacement}>
-                                Save Replacement
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                    </AccordionContent>
+                </AccordionItem>
             </Accordion>
         </Card>
     );
