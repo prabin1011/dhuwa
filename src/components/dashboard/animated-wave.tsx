@@ -2,8 +2,8 @@
 
 export function AnimatedWave() {
     return (
-        <div className="absolute inset-x-0 bottom-0 w-full h-1/2 z-0">
-            <div className="ocean">
+        <div className="absolute inset-x-0 bottom-0 w-full h-1/2 z-0 pointer-events-none">
+            <div className="ocean pointer-events-none">
                 <div className="wave"></div>
                 <div className="wave"></div>
             </div>
@@ -15,31 +15,32 @@ export function AnimatedWave() {
                     bottom: 0;
                     left: 0;
                     background: transparent;
+                    pointer-events: none;
                 }
 
                 .wave {
-                    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 24 150 28' preserveAspectRatio='none' shape-rendering='auto'%3e%3cdefs%3e%3cpath id='gentle-wave' d='M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z' /%3e%3c/defs%3e%3cg class='parallax'%3e%3cuse xlink:href='%23gentle-wave' x='48' y='0' fill='rgba(45, 212, 191, 0.2)' /%3e%3cuse xlink:href='%23gentle-wave' x='48' y='3' fill='rgba(45, 212, 191, 0.3)' /%3e%3cuse xlink:href='%23gentle-wave' x='48' y='5' fill='rgba(45, 212, 191, 0.4)' /%3e%3cuse xlink:href='%23gentle-wave' x='48' y='7' fill='rgba(45, 212, 191, 0.5)' /%3e%3c/g%3e%3c/svg%3e");
+                    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3e%3cpath fill='rgba(45, 212, 191,0.5)' d='M0,160 C240,200 720,80 1440,160 L1440,320 L0,320 Z'%3e%3c/path%3e%3c/svg%3e");
                     position: absolute;
                     width: 200%;
                     height: 100%;
-                    background-repeat: no-repeat;
-                    background-position: center bottom;
-                    background-size: 100% 120px;
-                    bottom: -5px;
+                    background-repeat: repeat-x;
+                    background-position: bottom;
+                    background-size: cover;
+                    bottom: 0;
                     left: 0;
                     opacity: 0.8;
+                    pointer-events: none;
                 }
 
                 .wave:nth-of-type(1) {
-                    animation: wave 10s cubic-bezier(0.36, 0.45, 0.63, 0.53) -.125s infinite, swell 7s ease -1.25s infinite;
-                    transform: translate3d(0, 0, 0);
+                    animation: wave 12s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite, swell 8s ease-in-out infinite;
                     opacity: 1;
                 }
 
                 .wave:nth-of-type(2) {
-                   animation: wave 18s linear reverse infinite;
-                   opacity: 0.7;
-                   animation-delay: -2s;
+                    animation: wave 18s linear reverse infinite, swell 10s ease-in-out infinite;
+                    opacity: 0.7;
+                    animation-delay: -3s;
                 }
 
                 @keyframes wave {
@@ -55,11 +56,11 @@ export function AnimatedWave() {
                 }
                 
                 @keyframes swell {
-                    0%, 100% {
-                        transform: translate3d(0,-15px,0);
+                     0%, 100% {
+                        transform: translateY(0);
                     }
                     50% {
-                        transform: translate3d(0,5px,0);
+                        transform: translateY(-10px);
                     }
                 }
             `}</style>

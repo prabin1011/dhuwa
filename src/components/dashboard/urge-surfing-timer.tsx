@@ -87,7 +87,7 @@ export function UrgeSurfingTimer() {
                 
                 <AnimatedWave />
 
-                <div className="flex flex-col items-center gap-4">
+                <div className="flex flex-col items-center gap-4 z-10">
                      <p className="text-4xl font-bold font-mono tracking-tighter drop-shadow-lg">
                         {formatTime(secondsRemaining)}
                     </p>
