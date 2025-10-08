@@ -33,10 +33,14 @@ const db = getFirestore();
 const messaging = getMessaging();
 
 const getRandomTemplate = (templateArray: {title: string, body: string}[]) => {
+    if (!templateArray || templateArray.length === 0) {
+        return { title: "Keep Going!", body: "You're on the right track." };
+    }
     return templateArray[Math.floor(Math.random() * templateArray.length)];
 }
 
 const sendNotification = async (userId: string, tokens: string[], template: {title: string, body: string}) => {
+    if (!tokens || tokens.length === 0) return false;
     try {
         const notificationPayload = {
             title: template.title,
@@ -66,6 +70,7 @@ const handleUpcomingMomentReminders = async (userId: string, profile: any, token
 
     const upcoming = moments.filter((m: any) => {
       try {
+        if (!m.time) return false;
         const t = parse(m.time, 'HH:mm', now);
         return isAfter(t, now) && isBefore(t, end);
       } catch (error) { return false; }
@@ -81,10 +86,9 @@ const handleUpcomingMomentReminders = async (userId: string, profile: any, token
 }
 
 const handleMilestoneNotifications = async (userId: string, profile: any, tokens: string[], now: Date) => {
-    // Only send if the last notification for this type was > 24h ago
     const lastMilestoneSent = profile.lastMilestoneNotificationSent?.toDate();
-    if (lastMilestoneSent && differenceInHours(now, lastMilestoneSent) < 24) {
-        return 0;
+    if (lastMilestoneSent && differenceInHours(now, lastMilestoneSent) < 23) {
+        return 0; // Cooldown: Only send once every ~24 hours
     }
 
     const urgesSnap = await db.collection(`users/${userId}/urges`).orderBy('timestamp', 'desc').limit(1).get();
@@ -94,18 +98,36 @@ const handleMilestoneNotifications = async (userId: string, profile: any, tokens
     const hoursSinceLastUrge = differenceInHours(now, lastUrgeTimestamp);
 
     let template: {title: string, body: string} | null = null;
+    let milestoneKey: string | null = null;
 
-    if (hoursSinceLastUrge >= 48) {
-        template = getRandomTemplate(notificationTemplates.congratulations);
+    if (hoursSinceLastUrge >= 720) { // 30 days
+        template = getRandomTemplate(notificationTemplates.streakThirtyDays);
+        milestoneKey = '30_days';
+    } else if (hoursSinceLastUrge >= 336) { // 14 days
+        template = getRandomTemplate(notificationTemplates.streakFourteenDays);
+        milestoneKey = '14_days';
+    } else if (hoursSinceLastUrge >= 168) { // 7 days
+        template = getRandomTemplate(notificationTemplates.streakSevenDays);
+        milestoneKey = '7_days';
+    } else if (hoursSinceLastUrge >= 48) {
+        template = getRandomTemplate(notificationTemplates.streakTwoDays);
+         milestoneKey = '48_hours';
     } else if (hoursSinceLastUrge >= 24) {
-        template = getRandomTemplate(notificationTemplates.congratulations.filter(q => q.body.includes('24 hours') || q.body.includes('One Day')));
+        template = getRandomTemplate(notificationTemplates.streakOneDay);
+         milestoneKey = '24_hours';
     }
 
-    if (template) {
+    // Check if this specific milestone was already sent
+    if (milestoneKey && profile.sentMilestones?.includes(milestoneKey)) {
+        return 0;
+    }
+
+    if (template && milestoneKey) {
         const success = await sendNotification(userId, tokens, template);
         if (success) {
             await db.doc(`users/${userId}/profile/main`).update({
-                lastMilestoneNotificationSent: FieldValue.serverTimestamp()
+                lastMilestoneNotificationSent: FieldValue.serverTimestamp(),
+                sentMilestones: FieldValue.arrayUnion(milestoneKey) // Record that this milestone was sent
             });
             return 1;
         }

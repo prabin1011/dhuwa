@@ -124,23 +124,13 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         const monthlyNet = calculateNet(monthStart, endOfDay(date));
 
         // --- Descriptions ---
-        let expenseDescription = expenseMessages.moderate;
-        if (dailyBaseline > 0) {
-            if (dailyUrgeCount > dailyBaseline) {
-                expenseDescription = expenseMessages.over_baseline;
-            } else if (dailyUrgeCount >= dailyBaseline * 0.8) {
-                expenseDescription = expenseMessages.near_baseline;
-            } else if (dailyUrgeCount === 0) {
-                expenseDescription = expenseMessages.zero;
-            } else {
-                expenseDescription = expenseMessages.low;
-            }
-        } else if (dailyUrgeCount > 0) {
-            expenseDescription = expenseMessages.low;
+        let expenseDescription = "Every dollar not spent on smoking is a dollar invested in your freedom.";
+        if (dailyUrgeCount > 0) {
+            expenseDescription = `Is this fleeting relief truly worth the price? Each dollar spent is a vote for the addiction.`;
         } else {
-            expenseDescription = expenseMessages.zero;
+             expenseDescription = `A day of perfect savings. This isn't just money; it's reclaimed time, health, and freedom.`;
         }
-        
+
         let savingsDescription = savingsMessages.moderate;
         if (dailyBaseline === 0) {
             savingsDescription = savingsMessages.no_baseline;

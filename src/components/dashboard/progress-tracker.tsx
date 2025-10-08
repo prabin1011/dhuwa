@@ -73,13 +73,13 @@ export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerPr
         let dynamicDescription = "Your success in skipping planned smokes.";
         if (dailyTotalTracked > 0) {
             if (dailyPercentage === 100) {
-                dynamicDescription = "A perfect day. You met every challenge and chose freedom.";
+                dynamicDescription = "A perfect day. You chose freedom every time. Rejoice in this victory.";
             } else if (dailyPercentage >= 50) {
-                dynamicDescription = "You won more than you lost today. That's a victory. Build on it.";
+                dynamicDescription = "You won more than you lost today. Each skipped cigarette is a step out of the trap.";
             } else if (dailyPercentage > 0) {
-                dynamicDescription = "Progress, not perfection. You proved you can skip. Now, let's aim for more tomorrow.";
+                dynamicDescription = "Progress, not perfection. You proved you don't need it. Build on this.";
             } else {
-                dynamicDescription = "Today was tough. Every craving you logged is a lesson. Let's use it for tomorrow.";
+                dynamicDescription = "Today was a lesson, not a failure. What did you learn from each moment?";
             }
         }
 
