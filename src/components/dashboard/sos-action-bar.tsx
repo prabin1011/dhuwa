@@ -17,6 +17,7 @@ import { UrgeSurfingTimer } from "./urge-surfing-timer";
 
 export function SosActionBar() {
     const [isBreathingOpen, setIsBreathingOpen] = useState(false);
+    const [isUrgeSurfingOpen, setIsUrgeSurfingOpen] = useState(false);
 
     return (
         <div className="grid grid-cols-3 gap-2">
@@ -62,18 +63,18 @@ export function SosActionBar() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog>
+            <Dialog open={isUrgeSurfingOpen} onOpenChange={setIsUrgeSurfingOpen}>
                 <DialogTrigger asChild>
                     <Button variant="outline" className="h-12">
                          <Zap className="w-5 h-5 mr-2" />
                         Urge Surf
                     </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent data-full-bleed="true">
                     <DialogHeader>
                          <DialogTitle>Ride the Urge Wave</DialogTitle>
                         <DialogDescription>
-                            Urges are like waves. They build, peak, and then crash. They don't last forever. Set a timer and just observe it.
+                            Urges are like waves. They build, peak, and then crash. They don't last forever. Just observe it.
                         </DialogDescription>
                     </DialogHeader>
                     <UrgeSurfingTimer />

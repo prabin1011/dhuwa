@@ -1,15 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '../ui/button';
 import { Play, Pause, RotateCcw } from 'lucide-react';
+import { AnimatedWave } from './animated-wave';
+import { alanCarrQuotes } from '@/lib/quotes';
+import { cn } from '@/lib/utils';
 
 const INITIAL_TIME = 300; // 5 minutes in seconds
 
 export function UrgeSurfingTimer() {
     const [secondsRemaining, setSecondsRemaining] = useState(INITIAL_TIME);
     const [isActive, setIsActive] = useState(false);
+    const [quoteIndex, setQuoteIndex] = useState(0);
 
+    // Memoize the quotes to prevent re-shuffling on every render
+    const shuffledQuotes = useMemo(() => alanCarrQuotes.sort(() => 0.5 - Math.random()), []);
+
+    // Timer logic
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null;
 
@@ -17,17 +25,26 @@ export function UrgeSurfingTimer() {
             interval = setInterval(() => {
                 setSecondsRemaining(seconds => seconds - 1);
             }, 1000);
-        } else if (!isActive && secondsRemaining !== 0) {
-            if (interval) clearInterval(interval);
         } else if (secondsRemaining === 0) {
-             if (interval) clearInterval(interval);
-             setIsActive(false);
+            setIsActive(false);
         }
 
         return () => {
             if (interval) clearInterval(interval);
         };
     }, [isActive, secondsRemaining]);
+
+    // Quote rotation logic
+    useEffect(() => {
+        if (!isActive) return;
+
+        const quoteInterval = setInterval(() => {
+            setQuoteIndex(prevIndex => (prevIndex + 1) % shuffledQuotes.length);
+        }, 7000); // Change quote every 7 seconds
+
+        return () => clearInterval(quoteInterval);
+    }, [isActive, shuffledQuotes.length]);
+
 
     const toggle = () => {
         setIsActive(!isActive);
@@ -36,6 +53,7 @@ export function UrgeSurfingTimer() {
     const reset = () => {
         setSecondsRemaining(INITIAL_TIME);
         setIsActive(false);
+        setQuoteIndex(0); // Reset to the first quote
     };
 
     const formatTime = (totalSeconds: number) => {
@@ -44,22 +62,37 @@ export function UrgeSurfingTimer() {
         return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     };
 
+    const isFinished = secondsRemaining === 0;
+
     return (
-        <div className="py-4 text-center flex flex-col items-center gap-6">
-            <p className="text-6xl font-bold font-mono tracking-tighter">
-                {formatTime(secondsRemaining)}
-            </p>
-            <p className="text-muted-foreground text-sm">
-                {secondsRemaining === 0 ? "You did it. The wave has passed." : "You are stronger than this feeling."}
-            </p>
-            <div className="flex items-center gap-4">
-                <Button onClick={toggle} size="lg" className="w-32">
-                    {isActive ? <Pause className="mr-2" /> : <Play className="mr-2" />}
-                    {isActive ? 'Pause' : 'Start'}
-                </Button>
-                <Button onClick={reset} variant="outline" size="icon" aria-label="Reset timer">
-                    <RotateCcw className="h-5 w-5" />
-                </Button>
+        <div className="relative w-full h-96 flex flex-col items-center justify-center text-center overflow-hidden rounded-lg bg-background">
+            <AnimatedWave />
+            <div className="relative z-10 flex flex-col items-center justify-center h-full p-6 text-white gap-4">
+                <p 
+                    key={quoteIndex}
+                    className={cn(
+                        "text-lg font-medium text-center text-white/90 max-w-sm transition-opacity duration-1000",
+                        isActive ? "animate-fade-in" : "opacity-100"
+                    )}
+                >
+                   "{shuffledQuotes[quoteIndex]}"
+                </p>
+                <p className="text-6xl font-bold font-mono tracking-tighter drop-shadow-lg">
+                    {formatTime(secondsRemaining)}
+                </p>
+                
+                <div className="flex items-center gap-4 mt-4">
+                    <Button onClick={toggle} size="lg" className="w-32 bg-white/90 text-black hover:bg-white disabled:opacity-70" disabled={isFinished}>
+                        {isActive ? <Pause className="mr-2" /> : <Play className="mr-2" />}
+                        {isActive ? 'Pause' : 'Start'}
+                    </Button>
+                    <Button onClick={reset} variant="outline" size="icon" className="text-white border-white/50 bg-transparent hover:bg-white/10 hover:text-white" aria-label="Reset timer">
+                        <RotateCcw className="h-5 w-5" />
+                    </Button>
+                </div>
+                {isFinished && (
+                    <p className="mt-4 text-lg font-semibold animate-fade-in">You did it. The wave has passed.</p>
+                )}
             </div>
         </div>
     );
