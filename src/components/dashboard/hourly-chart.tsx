@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import type { WithId } from '@/firebase';
 import type { Timestamp } from 'firebase/firestore';
@@ -20,6 +20,7 @@ interface Urge {
 
 interface HourlyChartProps {
     urges: WithId<Urge>[];
+    habits: string[];
 }
 
 const formatHour = (hour: number) => {
@@ -28,33 +29,35 @@ const formatHour = (hour: number) => {
     return `${h} ${ampm}`;
 };
 
-export function HourlyChart({ urges }: HourlyChartProps) {
+export function HourlyChart({ urges, habits }: HourlyChartProps) {
     const { hourlyData, description } = useMemo(() => {
         const thirtyDaysAgo = subDays(new Date(), 30);
         const recentUrges = urges.filter(u => u.timestamp && isAfter(u.timestamp.toDate(), thirtyDaysAgo));
 
-        const data: { hour: string, count: number }[] = Array.from({ length: 24 }, (_, i) => ({
+        const data: { hour: string, [key: string]: number | string }[] = Array.from({ length: 24 }, (_, i) => ({
             hour: String(i).padStart(2, '0') + ':00',
-            count: 0
+            ...habits.reduce((acc, habit) => ({ ...acc, [habit]: 0 }), {})
         }));
 
         recentUrges.forEach(urge => {
-            if (urge.timestamp) {
+            if (urge.timestamp && urge.type && habits.includes(urge.type)) {
                 const hour = urge.timestamp.toDate().getHours();
-                data[hour].count += urge.count || 1;
+                data[hour][urge.type] = (data[hour][urge.type] as number) + (urge.count || 1);
             }
         });
         
-        let dynamicDescription = "Your smoking pattern by hour, based on the last 30 days.";
+        let dynamicDescription = "Your habit pattern by hour, based on the last 30 days.";
         if (recentUrges.length > 10) { // Only calculate peak if there's enough data
             let maxCount = 0;
             let peakStartHour = -1;
+            
+            const totalCounts = data.map(d => habits.reduce((sum, h) => sum + (d[h] as number), 0));
 
-            // Find the 3-hour window with the most smokes
+            // Find the 3-hour window with the most urges
             for (let i = 0; i < 24; i++) {
                 let currentWindowCount = 0;
                 for (let j = 0; j < 3; j++) {
-                    currentWindowCount += data[(i + j) % 24].count;
+                    currentWindowCount += totalCounts[(i + j) % 24];
                 }
                 if (currentWindowCount > maxCount) {
                     maxCount = currentWindowCount;
@@ -64,15 +67,20 @@ export function HourlyChart({ urges }: HourlyChartProps) {
 
             if (peakStartHour !== -1 && maxCount > recentUrges.length * 0.2) { // Ensure the peak is significant
                 const endHour = (peakStartHour + 2) % 24;
-                dynamicDescription = `Your peak smoking time is between ${formatHour(peakStartHour)} and ${formatHour(endHour)}. Awareness is the first step to changing it.`;
+                dynamicDescription = `Your peak time is between ${formatHour(peakStartHour)} and ${formatHour(endHour)}. Awareness is the first step to changing it.`;
             } else {
-                dynamicDescription = "No clear peak in your smoking times. Your habit seems evenly spread throughout the day.";
+                dynamicDescription = "No clear peak in your usage times. Your habit seems evenly spread throughout the day.";
             }
         }
 
 
         return { hourlyData: data, description: dynamicDescription };
-    }, [urges]);
+    }, [urges, habits]);
+
+     const habitColors: Record<string, string> = {
+        'Cigarettes': 'hsl(var(--primary))',
+        'Weed': 'hsl(var(--chart-6))',
+    };
 
     return (
         <Card>
@@ -92,7 +100,7 @@ export function HourlyChart({ urges }: HourlyChartProps) {
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p className="text-xs max-w-xs">This chart shows the total number of smokes logged for each hour of the day over the last 30 days, helping you identify your peak craving times.</p>
+                                        <p className="text-xs max-w-xs">This chart shows the total number of urges logged for each hour of the day over the last 30 days, helping you identify your peak craving times.</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -130,12 +138,12 @@ export function HourlyChart({ urges }: HourlyChartProps) {
                                       labelStyle={{
                                         color: "hsl(var(--foreground))"
                                       }}
-                                      itemStyle={{
-                                        color: "hsl(var(--primary))"
-                                      }}
-                                       formatter={(value: number) => [`${value} smokes`, 'Count']}
+                                      formatter={(value: number, name: string) => [`${value} ${name.toLowerCase()}`, name]}
                                     />
-                                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                                    <Legend iconType="circle" iconSize={8} wrapperStyle={{fontSize: "12px", paddingBottom: "10px"}} />
+                                    {habits.map(habit => (
+                                        <Bar key={habit} dataKey={habit} stackId="a" fill={habitColors[habit]} radius={habits.length === 1 ? [4, 4, 0, 0] : [0,0,0,0]} />
+                                    ))}
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>

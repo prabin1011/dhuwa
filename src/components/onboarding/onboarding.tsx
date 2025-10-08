@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
@@ -10,8 +11,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
-import { ONBOARDING_STEPS, type OnboardingData, STEPS } from '@/lib/onboarding-questions';
-
+import { ONBOARDING_STEPS, type OnboardingData, type Step } from '@/lib/onboarding-questions';
 
 // Helper components
 const QuestionRadioGroup = ({ value, onValueChange, items, name }: { value: string, onValueChange: (value: string) => void, items: {value: string, label: string, description?: string}[], name: string }) => (
@@ -53,12 +53,9 @@ const NumberKeypad = ({ value, onValueChange }: { value: string, onValueChange: 
 
 const INITIAL_DATA: OnboardingData = {
     habits: [],
+    habitDetails: {},
     frequency: '',
     started: '',
-    packCost: '',
-    itemsPerPack: '',
-    singleCost: '',
-    itemsPerDay: '',
     goal: '',
     motivation: '',
     confidence: '',
@@ -87,9 +84,22 @@ export function Onboarding() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<OnboardingData>(INITIAL_DATA);
 
-  const handleChange = (id: keyof OnboardingData, value: string | string[]) => {
+  const handleChange = (id: keyof OnboardingData, value: string | string[] | OnboardingData['habitDetails']) => {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
+  
+  const handleHabitDetailChange = (habit: string, field: 'packCost' | 'itemsPerPack' | 'itemsPerDay', value: string) => {
+    setFormData(prev => ({
+        ...prev,
+        habitDetails: {
+            ...prev.habitDetails,
+            [habit]: {
+                ...prev.habitDetails[habit],
+                [field]: value
+            }
+        }
+    }));
+  }
 
   const handleHabitChange = (habit: string) => {
     const newHabits = formData.habits.includes(habit)
@@ -98,11 +108,42 @@ export function Onboarding() {
     handleChange('habits', newHabits);
   }
 
+  const dynamicSteps = useMemo(() => {
+    const steps: Step[] = [];
+    formData.habits.forEach(habit => {
+        steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.packCost`, question: `Average cost of a pack of ${habit}?`, type: 'number'});
+        steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerPack`, question: `How many ${habit} in a pack?`, type: 'number' });
+        steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerDay`, question: `Average ${habit} per day?`, type: 'radio', options: [ {value: '1-5', label: '1-5'}, {value: '6-10', label: '6-10'}, {value: '11-15', label: '11-15'}, {value: '16-20', label: '16-20'}, {value: '20+', label: 'More than 20'}, ]});
+    });
+    return steps;
+  }, [formData.habits]);
+  
+  const allSteps = useMemo(() => {
+      const all: Step[] = [];
+      ONBOARDING_STEPS.forEach(step => {
+          if (step.type === 'dynamic') {
+              all.push(...dynamicSteps);
+          } else {
+              all.push(step);
+          }
+      });
+      // Re-assign IDs
+      return all.map((step, index) => ({...step, id: index + 1}));
+  }, [dynamicSteps]);
+
+
   const validateStep = () => {
-    const stepConfig = ONBOARDING_STEPS.find(s => s.id === currentStep);
+    const stepConfig = allSteps.find(s => s.id === currentStep);
     if (!stepConfig || stepConfig.type === 'summary' || stepConfig.optional) return true;
 
-    const value = formData[stepConfig.field];
+    let value: any;
+    if (typeof stepConfig.field === 'string' && stepConfig.field.startsWith('habitDetails')) {
+        const [, habit, field] = stepConfig.field.split('.') as [string, string, keyof OnboardingData['habitDetails'][string]];
+        value = formData.habitDetails[habit]?.[field];
+    } else {
+        value = formData[stepConfig.field as keyof OnboardingData];
+    }
+    
 
     if (Array.isArray(value)) {
         if (value.length === 0) {
@@ -128,7 +169,7 @@ export function Onboarding() {
 
   const nextStep = () => {
     if(validateStep()){
-        setCurrentStep(prev => Math.min(prev + 1, ONBOARDING_STEPS.length));
+        setCurrentStep(prev => Math.min(prev + 1, allSteps.length));
     }
   }
 
@@ -143,13 +184,21 @@ export function Onboarding() {
     }
     setIsSubmitting(true);
     
+    // Convert string numbers to actual numbers
+    const finalHabitDetails: OnboardingData['habitDetails'] = {};
+    for (const habit in formData.habitDetails) {
+        finalHabitDetails[habit] = {
+            packCost: parseFloat(formData.habitDetails[habit].packCost || '0'),
+            itemsPerPack: parseInt(formData.habitDetails[habit].itemsPerPack || '0', 10),
+            itemsPerDay: formData.habitDetails[habit].itemsPerDay
+        }
+    }
+
     const profileData = {
       ...formData,
-      username: user.displayName, // Carry over username
-      createdAt: new Date(), // Add creation timestamp
-      packCost: parseFloat(formData.packCost) || 0,
-      itemsPerPack: parseInt(formData.itemsPerPack, 10) || 0,
-      singleCost: parseFloat(formData.singleCost) || 0,
+      habitDetails: finalHabitDetails,
+      username: user.displayName,
+      createdAt: new Date(),
     };
     
     const profileRef = doc(firestore, `users/${user.uid}/profile/main`);
@@ -175,19 +224,19 @@ export function Onboarding() {
   const getSummaryValue = (key: keyof OnboardingData) => {
     const value = formData[key];
     if (Array.isArray(value)) return value.join(', ');
-    const step = STEPS.find(s => s.field === key);
+    const step = ONBOARDING_STEPS.find(s => s.field === key);
     if (step?.type === 'radio' && step.options) {
         return step.options.find(o => o.value === value)?.label || value;
     }
     return value || 'Not set';
   }
   
-  const currentStepConfig = ONBOARDING_STEPS[currentStep - 1];
+  const currentStepConfig = allSteps[currentStep - 1];
 
   const renderProgressDots = () => {
     return (
         <div className="flex justify-center items-center gap-2">
-            {ONBOARDING_STEPS.map(step => (
+            {allSteps.map(step => (
                 <div key={step.id} className={cn("w-2 h-2 rounded-full transition-all", currentStep === step.id ? "p-1.5 bg-primary" : "bg-secondary/50", currentStep > step.id ? "bg-primary/50" : "bg-secondary/50")}></div>
             ))}
         </div>
@@ -202,7 +251,7 @@ export function Onboarding() {
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
             ) : <div className='w-10'></div>}
-            <div className="text-sm font-bold text-primary">{currentStep} / {ONBOARDING_STEPS.length}</div>
+            <div className="text-sm font-bold text-primary">{currentStep} / {allSteps.length}</div>
        </header>
 
        <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
@@ -224,12 +273,17 @@ export function Onboarding() {
                 )}
                  {currentStepConfig.type === 'radio' && (
                     <QuestionRadioGroup 
-                        name={currentStepConfig.field} 
-                        value={formData[currentStepConfig.field] as string} 
+                        name={currentStepConfig.field as string}
+                        value={(formData[currentStepConfig.field as keyof OnboardingData] as string) || ''}
                         onValueChange={(v) => {
-                            handleChange(currentStepConfig.field, v);
+                            if (currentStepConfig.field.startsWith('habitDetails')) {
+                                const [, habit, field] = currentStepConfig.field.split('.');
+                                handleHabitDetailChange(habit, field as any, v);
+                            } else {
+                                handleChange(currentStepConfig.field as keyof OnboardingData, v);
+                            }
                             setTimeout(nextStep, 200);
-                        }} 
+                        }}
                         items={currentStepConfig.options || []}
                     />
                  )}
@@ -237,21 +291,33 @@ export function Onboarding() {
                      <div className='flex flex-col items-center gap-8'>
                         <div className="text-3xl font-bold">
                             <span className="text-muted-foreground">$</span>
-                            {formData[currentStepConfig.field] || '0'}
+                            {(currentStepConfig.field.startsWith('habitDetails') 
+                                ? formData.habitDetails[currentStepConfig.field.split('.')[1]]?.[currentStepConfig.field.split('.')[2] as 'packCost' | 'itemsPerPack']
+                                : formData[currentStepConfig.field as keyof OnboardingData]) || '0'}
                             <span className="animate-pulse">|</span>
                         </div>
-                        <NumberKeypad value={formData[currentStepConfig.field] as string} onValueChange={(v) => handleChange(currentStepConfig.field, v)} />
+                        <NumberKeypad
+                          value={(currentStepConfig.field.startsWith('habitDetails')
+                            ? formData.habitDetails[currentStepConfig.field.split('.')[1]]?.[currentStepConfig.field.split('.')[2] as 'packCost' | 'itemsPerPack']
+                            : formData[currentStepConfig.field as keyof OnboardingData]) as string || ''
+                          }
+                          onValueChange={(v) => {
+                            const [, habit, field] = currentStepConfig.field.split('.');
+                            handleHabitDetailChange(habit, field as any, v);
+                          }}
+                        />
                      </div>
                  )}
                  {currentStepConfig.type === 'summary' && (
                     <div className="space-y-4 text-left max-w-md mx-auto">
                         <h3 className="text-lg font-bold text-center">Your Baseline</h3>
                         <p className="text-muted-foreground text-center text-xs">You're all set. Hit finish to jump into your personalized dashboard and begin.</p>
-                        <div className="bg-secondary/50 rounded-lg p-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div className="bg-secondary/50 rounded-lg p-4 grid grid-cols-1 gap-y-2 text-sm">
                             <p><strong>Habits:</strong> {getSummaryValue('habits')}</p>
                             <p><strong>Goal:</strong> <span className="capitalize">{getSummaryValue('goal')}</span></p>
-                            <p><strong>Daily Avg:</strong> {getSummaryValue('itemsPerDay')}</p>
-                            <p><strong>Pack Cost:</strong> ${getSummaryValue('packCost')}</p>
+                             {formData.habits.map(habit => (
+                                <div key={habit}><strong>{habit} Avg:</strong> {formData.habitDetails[habit]?.itemsPerDay || 'Not set'}/day</div>
+                             ))}
                         </div>
                     </div>
                  )}
@@ -260,7 +326,7 @@ export function Onboarding() {
        
         <footer className="p-6 space-y-6">
             {renderProgressDots()}
-            {currentStep < ONBOARDING_STEPS.length ? (
+            {currentStep < allSteps.length ? (
             <Button size="lg" className="w-full h-14 text-lg" onClick={nextStep} disabled={isSubmitting}>
               Next
             </Button>

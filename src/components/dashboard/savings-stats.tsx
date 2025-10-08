@@ -18,15 +18,14 @@ interface Urge {
 }
 
 interface UserProfile {
-    packCost?: number;
-    itemsPerPack?: number;
-    itemsPerDay?: string | number;
+    habitDetails?: Record<string, { packCost?: number; itemsPerPack?: number; itemsPerDay?: string | number }>;
 }
 
 interface SavingsStatsProps {
     urges: WithId<Urge>[];
     userProfile: UserProfile;
     selectedDate: Date | undefined;
+    activeHabit: string;
 }
 
 const expenseMessages = {
@@ -61,14 +60,11 @@ function parseItemsPerDay(itemsPerDay?: string | number): number {
 
   const raw = String(itemsPerDay).trim();
 
-  // "10+" -> 10
   if (raw.endsWith('+')) return parseInt(raw, 10) || 0;
 
-  // "8-12" -> 12, "8–12" (en dash) -> 12
   const range = raw.replace('–', '-').split('-').map(s => parseInt(s, 10)).filter(n => !Number.isNaN(n));
   if (range.length === 2) return Math.max(range[0], range[1]);
 
-  // "10/day", "10 per day" -> 10
   const num = parseInt(raw.replace(/[^\d]/g, ''), 10);
   return Number.isNaN(num) ? 0 : num;
 }
@@ -76,16 +72,22 @@ function parseItemsPerDay(itemsPerDay?: string | number): number {
 const fmtMoney = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' });
 const formatMoney = (amount: number) => (amount < 0 ? '-' : '') + fmtMoney.format(Math.abs(amount));
 
-export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsProps) {
-    const costPerItem = useMemo(() => {
-        const { packCost = 0, itemsPerPack = 1 } = userProfile;
-        if (itemsPerPack === 0) return 0;
-        return packCost / itemsPerPack;
-    }, [userProfile]);
+export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: SavingsStatsProps) {
 
     const { stats, description } = useMemo(() => {
         const date = selectedDate || new Date();
-        const dailyBaseline = parseItemsPerDay(userProfile.itemsPerDay);
+        const habitsToCalculate = activeHabit === 'All' ? Object.keys(userProfile.habitDetails || {}) : [activeHabit];
+        
+        const getCostPerItem = (habit: string) => {
+            const details = userProfile.habitDetails?.[habit];
+            if (!details || !details.packCost || !details.itemsPerPack) return 0;
+            return details.packCost / details.itemsPerPack;
+        };
+        
+        const getDailyBaseline = (habit: string) => {
+            const details = userProfile.habitDetails?.[habit];
+            return parseItemsPerDay(details?.itemsPerDay);
+        };
         
         const mappedUrges = urges.map(u => ({ ...u, dt: u.timestamp?.toDate() })).filter(u => u.dt);
 
@@ -93,52 +95,68 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
             return filteredUrges.reduce((sum, urge) => sum + (urge.count || 1), 0);
         }
 
-        // --- Expense Calculations (to-date) ---
+        const calculateExpense = (intervalUrges: typeof mappedUrges) => {
+            let totalCost = 0;
+            let totalCount = 0;
+            intervalUrges.forEach(urge => {
+                if (urge.type && habitsToCalculate.includes(urge.type)) {
+                    const count = urge.count || 1;
+                    totalCount += count;
+                    totalCost += count * getCostPerItem(urge.type);
+                }
+            });
+            return { count: totalCount, money: totalCost };
+        };
+
         const dailyUrges = mappedUrges.filter(u => isSameDay(u.dt, date));
         const weekStart = startOfWeek(date, { weekStartsOn: 1 });
         const weeklyUrges = mappedUrges.filter(u => u.dt >= weekStart && u.dt <= endOfDay(date));
         const monthStart = startOfMonth(date);
         const monthlyUrges = mappedUrges.filter(u => u.dt >= monthStart && u.dt <= endOfDay(date));
         
-        const dailyUrgeCount = getUrgeCount(dailyUrges);
-        const weeklyUrgeCount = getUrgeCount(weeklyUrges);
-        const monthlyUrgeCount = getUrgeCount(monthlyUrges);
-        
-        // --- Net Savings/Deficit Calculation (to-date) ---
-        const calculateNet = (start: Date, end: Date) => {
-            if (dailyBaseline === 0) return { netCount: 0, netMoney: 0 };
-            
-            const daysInInterval = eachDayOfInterval({ start, end });
-            let totalNetCount = 0;
+        const dailyExpense = calculateExpense(dailyUrges);
+        const weeklyExpense = calculateExpense(weeklyUrges);
+        const monthlyExpense = calculateExpense(monthlyUrges);
 
+        const calculateNet = (start: Date, end: Date) => {
+            let totalNetCount = 0;
+            let totalNetMoney = 0;
+
+            const daysInInterval = eachDayOfInterval({ start, end });
             for (const day of daysInInterval) {
-                const smokesOnDay = getUrgeCount(mappedUrges.filter(u => isSameDay(u.dt, day)));
-                totalNetCount += (dailyBaseline - smokesOnDay);
+                habitsToCalculate.forEach(habit => {
+                    const baseline = getDailyBaseline(habit);
+                    if (baseline > 0) {
+                        const costPerItem = getCostPerItem(habit);
+                        const smokesOnDay = getUrgeCount(mappedUrges.filter(u => isSameDay(u.dt, day) && u.type === habit));
+                        const netCount = (baseline - smokesOnDay);
+                        totalNetCount += netCount;
+                        totalNetMoney += netCount * costPerItem;
+                    }
+                });
             }
-            
-            return { netCount: totalNetCount, netMoney: totalNetCount * costPerItem };
+            return { netCount: totalNetCount, netMoney: totalNetMoney };
         }
         
         const dailyNet = calculateNet(startOfDay(date), endOfDay(date));
         const weeklyNet = calculateNet(weekStart, endOfDay(date));
         const monthlyNet = calculateNet(monthStart, endOfDay(date));
 
-        // --- Descriptions ---
-        let expenseDescription = "Every dollar not spent on smoking is a dollar invested in your freedom.";
-        if (dailyUrgeCount > 0) {
+        let expenseDescription = "Every dollar not spent is a dollar invested in your freedom.";
+        if (dailyExpense.count > 0) {
             expenseDescription = `Is this fleeting relief truly worth the price? Each dollar spent is a vote for the addiction.`;
         } else {
              expenseDescription = `A day of perfect savings. This isn't just money; it's reclaimed time, health, and freedom.`;
         }
 
         let savingsDescription = savingsMessages.moderate;
-        if (dailyBaseline === 0) {
+        if (Object.values(userProfile.habitDetails || {}).every(d => parseItemsPerDay(d.itemsPerDay) === 0)) {
             savingsDescription = savingsMessages.no_baseline;
         } else if (dailyNet.netCount < 0) {
             savingsDescription = savingsMessages.debt;
         } else if (dailyNet.netCount === 0) {
             savingsDescription = savingsMessages.zero;
-        } else if (dailyNet.netCount > dailyBaseline * 2) { // Saved more than 2 days worth
+        } else if (dailyNet.netCount > 10) { // arbitrary threshold for high savings
             savingsDescription = savingsMessages.high;
         } else if (dailyNet.netCount > 0) {
             savingsDescription = savingsMessages.low;
@@ -147,14 +165,14 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
         return {
             stats: {
                 expenses: {
-                    daily: { count: dailyUrgeCount, money: formatMoney(dailyUrgeCount * costPerItem) },
-                    weekly: { count: weeklyUrgeCount, money: formatMoney(weeklyUrgeCount * costPerItem) },
-                    monthly: { count: monthlyUrgeCount, money: formatMoney(monthlyUrgeCount * costPerItem) }
+                    daily: { count: dailyExpense.count, money: formatMoney(dailyExpense.money) },
+                    weekly: { count: weeklyExpense.count, money: formatMoney(weeklyExpense.money) },
+                    monthly: { count: monthlyExpense.count, money: formatMoney(monthlyExpense.money) }
                 },
                 savings: {
-                    daily: { count: dailyNet.netCount, money: formatMoney(dailyNet.netMoney) },
-                    weekly: { count: weeklyNet.netCount, money: formatMoney(weeklyNet.netMoney) },
-                    monthly: { count: monthlyNet.netCount, money: formatMoney(monthlyNet.netMoney) }
+                    daily: { count: Math.round(dailyNet.netCount), money: formatMoney(dailyNet.netMoney) },
+                    weekly: { count: Math.round(weeklyNet.netCount), money: formatMoney(weeklyNet.netMoney) },
+                    monthly: { count: Math.round(monthlyNet.netCount), money: formatMoney(monthlyNet.netMoney) }
                 }
             },
             description: {
@@ -162,7 +180,7 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
                 savings: savingsDescription
             }
         };
-    }, [urges, userProfile, costPerItem, selectedDate]);
+    }, [urges, userProfile, activeHabit, selectedDate]);
 
     return (
         <Card>
@@ -184,7 +202,7 @@ export function SavingsStats({ urges, userProfile, selectedDate }: SavingsStatsP
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p className="text-xs max-w-xs">This card estimates your spending and net savings based on your logged smokes and the cost/baseline info from your profile.</p>
+                                        <p className="text-xs max-w-xs">This card estimates your spending and net savings based on your logged urges and the cost/baseline info from your profile.</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>

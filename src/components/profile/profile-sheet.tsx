@@ -48,7 +48,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
 
     const { control, handleSubmit, reset, getValues, setValue, formState: { isSubmitting, isDirty } } = useForm<OnboardingData>({
         defaultValues: {
-            ...userProfile
+            ...userProfile,
+            habitDetails: userProfile.habitDetails || {}
         },
     });
 
@@ -61,11 +62,18 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         if (!user) return;
         const profileRef = doc(firestore, 'users', user.uid, 'profile', 'main');
         try {
+            const finalHabitDetails: OnboardingData['habitDetails'] = {};
+            for (const habit in data.habitDetails) {
+                finalHabitDetails[habit] = {
+                    packCost: parseFloat(String(data.habitDetails[habit].packCost) || '0'),
+                    itemsPerPack: parseInt(String(data.habitDetails[habit].itemsPerPack) || '0', 10),
+                    itemsPerDay: data.habitDetails[habit].itemsPerDay
+                }
+            }
+
             const dataToSave = {
                 ...data,
-                packCost: parseFloat(String(data.packCost)) || 0,
-                itemsPerPack: parseInt(String(data.itemsPerPack), 10) || 0,
-                singleCost: parseFloat(String(data.singleCost)) || 0,
+                habitDetails: finalHabitDetails,
             };
             await updateDoc(profileRef, dataToSave);
             toast({
@@ -163,13 +171,30 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         }
     };
     
-    // Group steps by title
+    // Group steps by title, but handle dynamic habit details
     const groupedSteps = STEPS.reduce((acc, step) => {
         if (step.type === 'summary' || step.field === 'reminders') return acc;
-        if (!acc[step.title]) {
-            acc[step.title] = [];
+        
+        if (step.type === 'dynamic') {
+             (getValues('habits') || []).forEach(habit => {
+                const habitTitle = `${habit} Details`;
+                if (!acc[habitTitle]) {
+                    acc[habitTitle] = [];
+                }
+                 acc[habitTitle].push(
+                    { id: -1, title: habitTitle, field: `habitDetails.${habit}.packCost`, question: `Cost per pack of ${habit}`, type: 'number'},
+                    { id: -2, title: habitTitle, field: `habitDetails.${habit}.itemsPerPack`, question: `Items per pack of ${habit}`, type: 'number'},
+                    { id: -3, title: habitTitle, field: `habitDetails.${habit}.itemsPerDay`, question: `Average ${habit} per day`, type: 'radio', options: [ {value: '1-5', label: '1-5'}, {value: '6-10', label: '6-10'}, {value: '11-15', label: '11-15'}, {value: '16-20', label: '16-20'}, {value: '20+', label: 'More than 20'}, ]}
+                );
+             });
+
+        } else {
+             if (!acc[step.title]) {
+                acc[step.title] = [];
+            }
+            acc[step.title].push(step);
         }
-        acc[step.title].push(step);
+
         return acc;
     }, {} as Record<string, typeof STEPS>);
 
@@ -190,21 +215,21 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                         <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
                         <form id="profile-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                             {steps.map(step => (
-                                <div key={step.field} className="space-y-2">
+                                <div key={String(step.field)} className="space-y-2">
                                     <Label>{step.question}</Label>
                                     <Controller
                                         name={step.field}
                                         control={control}
-                                        render={({ field }) => {
+                                        render={({ field: controllerField }) => {
                                             if (step.type === 'number') {
-                                                return <Input type="number" {...field} value={field.value || ''} />;
+                                                return <Input type="number" {...controllerField} value={controllerField.value || ''} />;
                                             }
                                             if (step.type === 'radio' && step.options) {
                                                 return (
-                                                    <RadioGroup {...field} onValueChange={field.onChange} className="grid grid-cols-2 gap-2">
+                                                    <RadioGroup {...controllerField} onValueChange={controllerField.onChange} className="grid grid-cols-2 gap-2">
                                                         {step.options.map(option => (
-                                                            <Label key={option.value} htmlFor={`${step.field}-${option.value}`} className="flex items-center space-x-2 rounded-md border border-secondary bg-secondary/50 p-2 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/10">
-                                                                <RadioGroupItem value={option.value} id={`${step.field}-${option.value}`} />
+                                                            <Label key={option.value} htmlFor={`${String(step.field)}-${option.value}`} className="flex items-center space-x-2 rounded-md border border-secondary bg-secondary/50 p-2 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/10">
+                                                                <RadioGroupItem value={option.value} id={`${String(step.field)}-${option.value}`} />
                                                                 <p className="font-medium text-xs">{option.label}</p>
                                                             </Label>
                                                         ))}
@@ -215,16 +240,16 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                                 return (
                                                     <div className="grid grid-cols-2 gap-2">
                                                         {step.options.map(option => (
-                                                            <Label key={option.value} htmlFor={`${step.field}-${option.value}`} className="flex items-center space-x-2 rounded-md border border-secondary bg-secondary/50 p-2 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/10">
+                                                            <Label key={option.value} htmlFor={`${String(step.field)}-${option.value}`} className="flex items-center space-x-2 rounded-md border border-secondary bg-secondary/50 p-2 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/10">
                                                                 <Checkbox
-                                                                    id={`${step.field}-${option.value}`}
-                                                                    checked={(field.value as string[] || []).includes(option.value)}
+                                                                    id={`${String(step.field)}-${option.value}`}
+                                                                    checked={(controllerField.value as string[] || []).includes(option.value)}
                                                                     onCheckedChange={(checked) => {
-                                                                        const currentValues = field.value as string[] || [];
+                                                                        const currentValues = controllerField.value as string[] || [];
                                                                         const newValues = checked
                                                                             ? [...currentValues, option.value]
                                                                             : currentValues.filter(v => v !== option.value);
-                                                                        field.onChange(newValues);
+                                                                        controllerField.onChange(newValues);
                                                                     }}
                                                                 />
                                                                 <p className="font-medium text-xs">{option.label}</p>
@@ -233,7 +258,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                                     </div>
                                                 );
                                             }
-                                            return <Input {...field} value={field.value || ''} />;
+                                            return <Input {...controllerField} value={controllerField.value || ''} />;
                                         }}
                                     />
                                 </div>
@@ -293,7 +318,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Reset Your Activity Data?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        This will permanently delete all your logged smokes, moods, and progress. Your profile settings will be kept. This action cannot be undone.
+                                        This will permanently delete all your logged urges, moods, and progress. Your profile settings will be kept. This action cannot be undone.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>

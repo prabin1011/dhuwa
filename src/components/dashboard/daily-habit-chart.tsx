@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, StackedBar } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import type { WithId } from '@/firebase';
 import type { Timestamp } from 'firebase/firestore';
@@ -11,6 +11,7 @@ import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Button } from '../ui/button';
+import { Cigarette, Leaf } from 'lucide-react';
 
 interface Urge {
     timestamp: Timestamp;
@@ -21,6 +22,7 @@ interface Urge {
 interface DailyHabitChartProps {
     urges: WithId<Urge>[];
     selectedDate: Date | undefined;
+    habits: string[];
 }
 
 const descriptions = {
@@ -39,23 +41,34 @@ const descriptions = {
     default: "Your 30-day average is {avg} smokes/day."
 }
 
-export function DailyHabitChart({ urges, selectedDate }: DailyHabitChartProps) {
+export function DailyHabitChart({ urges, selectedDate, habits }: DailyHabitChartProps) {
     const { dailyData, description } = useMemo(() => {
         const data = [];
         const today = new Date();
         for (let i = 29; i >= 0; i--) {
             const date = subDays(today, i);
             const dayUrges = urges.filter(urge => urge.timestamp && isSameDay(urge.timestamp.toDate(), date));
-            const count = dayUrges.reduce((sum, urge) => sum + (urge.count || 1), 0);
+            
+            const counts = habits.reduce((acc, habit) => {
+                acc[habit] = dayUrges
+                    .filter(u => u.type === habit)
+                    .reduce((sum, u) => sum + (u.count || 1), 0);
+                return acc;
+            }, {} as Record<string, number>);
+
             data.push({
                 date: format(date, 'MMM d'),
-                count
+                ...counts
             });
         }
         
-        const totalSmokes = data.reduce((sum, day) => sum + day.count, 0);
+        const totalSmokes = data.reduce((sum, day) => {
+            return sum + habits.reduce((daySum, habit) => daySum + (day[habit] || 0), 0);
+        }, 0);
+        
         const avgSmokes = totalSmokes > 0 ? totalSmokes / 30 : 0;
-        const selectedDayCount = data.find(d => d.date === format(selectedDate || new Date(), 'MMM d'))?.count ?? 0;
+        const selectedDayData = data.find(d => d.date === format(selectedDate || new Date(), 'MMM d'));
+        const selectedDayCount = selectedDayData ? habits.reduce((sum, habit) => sum + (selectedDayData[habit] || 0), 0) : 0;
 
         let dynamicDescription = descriptions.default.replace('{avg}', avgSmokes.toFixed(1));
         if (selectedDate) {
@@ -73,7 +86,12 @@ export function DailyHabitChart({ urges, selectedDate }: DailyHabitChartProps) {
         }
         
         return { dailyData: data, description: dynamicDescription };
-    }, [urges, selectedDate]);
+    }, [urges, selectedDate, habits]);
+
+    const habitColors: Record<string, string> = {
+        'Cigarettes': 'hsl(var(--primary))',
+        'Weed': 'hsl(var(--chart-6))',
+    };
 
     return (
         <Card>
@@ -93,7 +111,7 @@ export function DailyHabitChart({ urges, selectedDate }: DailyHabitChartProps) {
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p className="text-xs max-w-xs">This chart visualizes your daily smoke count over the last 30 days to help you see your progress and identify long-term patterns.</p>
+                                        <p className="text-xs max-w-xs">This chart visualizes your daily habit count over the last 30 days to help you see your progress and identify long-term patterns.</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -130,12 +148,12 @@ export function DailyHabitChart({ urges, selectedDate }: DailyHabitChartProps) {
                                       labelStyle={{
                                         color: "hsl(var(--foreground))"
                                       }}
-                                      itemStyle={{
-                                        color: "hsl(var(--primary))"
-                                      }}
-                                       formatter={(value: number) => [`${value} smokes`, 'Count']}
+                                       formatter={(value: number, name: string) => [`${value} ${name.toLowerCase()}`, name]}
                                     />
-                                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                                    <Legend iconType="circle" iconSize={8} wrapperStyle={{fontSize: "12px", paddingBottom: "10px"}} />
+                                    {habits.map(habit => (
+                                        <Bar key={habit} dataKey={habit} stackId="a" fill={habitColors[habit]} radius={habits.length === 1 ? [4, 4, 0, 0] : [0,0,0,0]} />
+                                    ))}
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>

@@ -30,8 +30,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 interface UserProfile {
     habits?: string[];
-    packCost?: number;
-    itemsPerPack?: number;
+    packCost?: number; // Kept for backward compatibility
+    itemsPerPack?: number; // Kept for backward compatibility
+    habitDetails?: Record<string, { packCost?: number; itemsPerPack?: number; itemsPerDay?: string | number }>;
     itemsPerDay?: string;
     moments?: any[];
     goal?: string;
@@ -52,6 +53,8 @@ export function Dashboard({ userProfile }: DashboardProps) {
   const { user } = useUser();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  
+  const availableHabits = userProfile.habits || ['Cigarette'];
   const [activeHabit, setActiveHabit] = useState<string>('All');
   
   // Initialize notifications hook
@@ -110,7 +113,9 @@ export function Dashboard({ userProfile }: DashboardProps) {
     )
   }
 
-  const habitTabs = ['All', ...(userProfile.habits || [])];
+  const habitTabs = ['All', ...availableHabits];
+  const habitsForCharts = activeHabit === 'All' ? availableHabits : [activeHabit];
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -133,7 +138,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
 
                 {habitTabs.length > 2 && (
                     <Tabs value={activeHabit} onValueChange={setActiveHabit} className="w-full mb-6">
-                        <TabsList className="grid w-full grid-cols-3">
+                        <TabsList className={`grid w-full grid-cols-${habitTabs.length}`}>
                             {habitTabs.map(habit => (
                                 <TabsTrigger key={habit} value={habit}>{habit}</TabsTrigger>
                             ))}
@@ -150,23 +155,22 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     />
                     <NextRiskWindow userProfile={userProfile} urges={filteredUrges} />
                     <SmokingPlan user={user} userProfile={userProfile} selectedDate={selectedDate || new Date()} />
-                    <SavingsStats urges={filteredUrges} userProfile={userProfile} selectedDate={selectedDate} />
+                    <SavingsStats urges={filteredUrges} userProfile={userProfile} selectedDate={selectedDate} activeHabit={activeHabit} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <MoodReport urges={filteredUrges} selectedDate={selectedDate || new Date()} />
-                    <DailyHabitChart urges={filteredUrges} selectedDate={selectedDate} />
-                    <HourlyChart urges={filteredUrges} />
+                    <DailyHabitChart urges={urges || []} selectedDate={selectedDate} habits={habitsForCharts} />
+                    <HourlyChart urges={urges || []} habits={habitsForCharts} />
                     <UrgeHistory urges={filteredUrges} isLoading={isLoading} userProfile={userProfile} />
                 </div>
             </div>
         </main>
         <footer className="sticky bottom-0 bg-background/80 backdrop-blur-sm border-t border-border">
             <div className="w-full max-w-md mx-auto p-4 space-y-3">
-                 <SmokeLogger habits={userProfile.habits || ['Cigarette']}/>
+                 <SmokeLogger habits={availableHabits}/>
                  <SosActionBar />
             </div>
         </footer>
     </div>
   );
 }
-
