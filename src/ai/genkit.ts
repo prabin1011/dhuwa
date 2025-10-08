@@ -1,5 +1,6 @@
+
 import { genkit, type Ai } from 'genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const API_KEY =
   process.env.GEMINI_API_KEY ||
