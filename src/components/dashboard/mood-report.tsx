@@ -8,9 +8,9 @@ import type { WithId } from '@/firebase';
 import type { Timestamp } from 'firebase/firestore';
 import { format, isSameDay } from 'date-fns';
 import { Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Button } from '../ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 
 interface Urge {
     timestamp: Timestamp;
@@ -156,18 +156,21 @@ export function MoodReport({ urges, selectedDate }: MoodReportProps) {
                                 <CardTitle>Mood Analysis</CardTitle>
                                 <CardDescription>{description}</CardDescription>
                             </div>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                            <Info className="w-4 h-4 text-muted-foreground" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p className="text-xs max-w-xs">This card shows a breakdown of the moods you logged before and after smoking on the selected day, helping you understand your emotional triggers.</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                        <Info className="w-4 h-4 text-muted-foreground" />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-xs">
+                                    <DialogHeader>
+                                        <DialogTitle>About Mood Analysis</DialogTitle>
+                                        <DialogDescription>
+                                            This card shows a breakdown of the moods you logged before and after smoking on the selected day, helping you understand your emotional triggers.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>

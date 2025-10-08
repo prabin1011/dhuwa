@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/accordion"
 import { UrgeNarrative } from "./urge-narrative";
 import { Info } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 
 interface Urge {
@@ -118,18 +118,21 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
                                 <CardTitle>Daily Summary</CardTitle>
                                 <CardDescription>A look back at your logged activity.</CardDescription>
                             </div>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                            <Info className="w-4 h-4 text-muted-foreground" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p className="text-xs max-w-xs">This is a complete log of all your recorded smokes, grouped by day. Each entry includes an AI-generated micro-journal to help you reflect on the moment.</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                        <Info className="w-4 h-4 text-muted-foreground" />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-xs">
+                                    <DialogHeader>
+                                        <DialogTitle>About the Daily Summary</DialogTitle>
+                                        <DialogDescription>
+                                            This is a complete log of all your recorded smokes, grouped by day. Each entry includes an AI-generated micro-journal to help you reflect on the moment.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>

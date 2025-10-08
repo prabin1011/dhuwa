@@ -8,9 +8,9 @@ import type { WithId } from '@/firebase';
 import type { Timestamp } from 'firebase/firestore';
 import { subDays, isAfter } from 'date-fns';
 import { Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Button } from '../ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 
 interface Urge {
     timestamp: Timestamp;
@@ -92,18 +92,21 @@ export function HourlyChart({ urges, habits }: HourlyChartProps) {
                                 <CardTitle>Daily Pattern</CardTitle>
                                 <CardDescription>{description}</CardDescription>
                             </div>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                            <Info className="w-4 h-4 text-muted-foreground" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p className="text-xs max-w-xs">This chart shows the total number of urges logged for each hour of the day over the last 30 days, helping you identify your peak craving times.</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                        <Info className="w-4 h-4 text-muted-foreground" />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-xs">
+                                    <DialogHeader>
+                                        <DialogTitle>About the Daily Pattern</DialogTitle>
+                                        <DialogDescription>
+                                            This chart shows the total number of urges logged for each hour of the day over the last 30 days, helping you identify your peak craving times.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>

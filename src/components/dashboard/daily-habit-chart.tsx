@@ -8,10 +8,9 @@ import type { WithId } from '@/firebase';
 import type { Timestamp } from 'firebase/firestore';
 import { format, subDays, isSameDay } from 'date-fns';
 import { Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Button } from '../ui/button';
-import { Cigarette, Leaf } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 
 interface Urge {
     timestamp: Timestamp;
@@ -103,18 +102,21 @@ export function DailyHabitChart({ urges, selectedDate, habits }: DailyHabitChart
                                 <CardTitle>30-Day Trend</CardTitle>
                                 <CardDescription>{description}</CardDescription>
                             </div>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                            <Info className="w-4 h-4 text-muted-foreground" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p className="text-xs max-w-xs">This chart visualizes your daily habit count over the last 30 days to help you see your progress and identify long-term patterns.</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                        <Info className="w-4 h-4 text-muted-foreground" />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-xs">
+                                    <DialogHeader>
+                                        <DialogTitle>About the 30-Day Trend</DialogTitle>
+                                        <DialogDescription>
+                                            This chart visualizes your daily habit count over the last 30 days to help you see your progress and identify long-term patterns.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>

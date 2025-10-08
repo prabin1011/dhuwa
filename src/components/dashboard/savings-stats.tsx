@@ -8,8 +8,8 @@ import { eachDayOfInterval, endOfDay, format, isSameDay, startOfMonth, startOfWe
 import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 import { Info } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 interface Urge {
     timestamp: Timestamp;
@@ -200,18 +200,21 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
                                     {description.expenses}
                                 </CardDescription>
                             </div>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                            <Info className="w-4 h-4 text-muted-foreground" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p className="text-xs max-w-xs">This card estimates your spending and net savings based on your logged urges and the cost/baseline info from your profile.</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                        <Info className="w-4 h-4 text-muted-foreground" />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-xs">
+                                    <DialogHeader>
+                                        <DialogTitle>About Financials</DialogTitle>
+                                        <DialogDescription>
+                                            This card estimates your spending and net savings based on your logged urges and the cost/baseline info from your profile.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                </DialogContent>
+                            </Dialog>
                          </div>
                     </AccordionTrigger>
                     <AccordionContent>

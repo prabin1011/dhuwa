@@ -6,9 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Progress } from "../ui/progress";
 import { format, startOfWeek, startOfMonth, isWithinInterval, parseISO, endOfWeek, endOfMonth, endOfDay } from "date-fns";
 import { Info } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 interface SmokingMoment {
     id: string;
@@ -114,18 +114,21 @@ export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerPr
                                 <CardTitle>Habit Progress</CardTitle>
                                 <CardDescription>{description}</CardDescription>
                             </div>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                            <Info className="w-4 h-4 text-muted-foreground" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p className="text-xs max-w-xs">This card tracks how often you successfully skip or replace your planned smoking moments. The percentage represents the rate of skipped moments versus total moments acted upon (smoked or skipped).</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                        <Info className="w-4 h-4 text-muted-foreground" />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-xs">
+                                    <DialogHeader>
+                                        <DialogTitle>About Habit Progress</DialogTitle>
+                                        <DialogDescription>
+                                            This card tracks how often you successfully skip or replace your planned smoking moments. The percentage represents the rate of skipped moments versus total moments acted upon (smoked or skipped).
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>

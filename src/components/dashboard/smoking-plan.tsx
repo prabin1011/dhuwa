@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/accordion"
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { User } from "firebase/auth";
 
 const PREMADE_REPLACEMENTS = [
@@ -194,18 +193,21 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                                     Your scheduled moments for the day.
                                 </CardDescription>
                             </div>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                            <Info className="w-4 h-4 text-muted-foreground" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p className="text-xs max-w-xs">Create a plan for your day. For each moment, you can log that you smoked or that you chose a positive replacement activity.</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                        <Info className="w-4 h-4 text-muted-foreground" />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-xs">
+                                    <DialogHeader>
+                                        <DialogTitle>About the Daily Plan</DialogTitle>
+                                        <DialogDescription>
+                                            Create a plan for your day. For each moment, you can log that you smoked or that you chose a positive replacement activity.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                </DialogContent>
+                            </Dialog>
                             </div>
                     </AccordionTrigger>
                     <AccordionContent>
