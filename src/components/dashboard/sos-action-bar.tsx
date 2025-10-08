@@ -48,7 +48,7 @@ export function SosActionBar() {
                         Ground
                     </Button>
                 </DialogTrigger>
-                 <DialogContent className="sm:max-w-md">
+                 <DialogContent className="sm:max-w-md flex flex-col justify-center">
                     <DialogHeader>
                         <DialogTitle>5-4-3-2-1 Grounding</DialogTitle>
                         <DialogDescription>
