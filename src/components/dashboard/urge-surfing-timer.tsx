@@ -56,18 +56,25 @@ export function UrgeSurfingTimer() {
     return (
         <div className="relative w-full h-full flex flex-col items-center text-center overflow-hidden rounded-lg bg-black text-white">
             <AnimatedWave />
-            <div className="relative z-10 flex flex-1 flex-col items-center justify-between w-full h-full p-6">
-                {/* Top quotes */}
-                <p key={quoteIndex} className={cn("text-base font-medium text-center text-white/90 max-w-sm transition-opacity duration-1000", isActive ? "animate-fade-in" : "opacity-100")}>
-                    "{shuffledQuotes[quoteIndex]}"
-                </p>
 
-                {/* Bottom timer & controls */}
-                <div className="flex flex-col items-center gap-4">
-                    <p className="text-4xl font-bold font-mono tracking-tighter drop-shadow-lg">{formatTime(secondsRemaining)}</p>
+            <div className="relative z-10 flex flex-1 flex-col items-center justify-between h-full w-full p-6">
+                 {/* Quote section */}
+                 <div className='w-full'>
+                    <DialogHeader className="pt-0 px-6 pb-0 text-center items-center z-20">
+                        <DialogTitle className="text-white/90">Ride the Urge Wave</DialogTitle>
+                    </DialogHeader>
+                    <p key={quoteIndex} className={cn("mt-4 text-base font-medium text-center text-white/90 max-w-sm mx-auto transition-opacity duration-1000", isActive ? "animate-fade-in" : "opacity-100")}>
+                        "{shuffledQuotes[quoteIndex]}"
+                    </p>
+                </div>
+
+
+                {/* Timer & buttons at bottom */}
+                <div className="flex flex-col items-center gap-4 z-10">
+                    <p className="text-6xl font-bold font-mono tracking-tighter drop-shadow-lg">{formatTime(secondsRemaining)}</p>
 
                     <div className="flex items-center gap-4">
-                        <Button onClick={toggle} size="lg" className="w-32 bg-white/90 text-black hover:bg-white disabled:opacity-70" disabled={isFinished}>
+                        <Button onClick={toggle} size="lg" className="w-32 bg-primary/90 text-primary-foreground hover:bg-primary disabled:opacity-70" disabled={isFinished}>
                             {isActive ? <Pause className="mr-2" /> : <Play className="mr-2" />}
                             {isActive ? 'Pause' : 'Start'}
                         </Button>
@@ -75,6 +82,7 @@ export function UrgeSurfingTimer() {
                             <RotateCcw className="h-5 w-5" />
                         </Button>
                     </div>
+
                     {isFinished && <p className="mt-2 text-lg font-semibold animate-fade-in">You did it. The wave has passed.</p>}
                 </div>
             </div>

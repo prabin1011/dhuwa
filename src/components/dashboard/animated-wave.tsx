@@ -15,7 +15,7 @@ export function AnimatedWave() {
                     position: absolute;
                     bottom: 0;
                     left: 0;
-                    background: rgba(45, 212, 191, 0.3); /* Semi-transparent green base color */
+                    background: hsl(160, 50%, 30%); /* Dark Green base */
                 }
 
                 .wave {
@@ -28,6 +28,7 @@ export function AnimatedWave() {
                     background-repeat: repeat-x;
                     background-size: 50% 100%;
                     animation: wave 10s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+                    pointer-events: none;
                 }
 
                 .wave:nth-of-type(2) {
