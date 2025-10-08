@@ -55,25 +55,15 @@ export function UrgeSurfingTimer() {
 
     return (
         <div className="relative w-full h-full flex flex-col items-center text-center overflow-hidden rounded-lg bg-black text-white">
-            {/* Top header & quotes */}
-            <DialogHeader className="pt-6 px-6 pb-0 text-center items-center z-20">
-                <DialogTitle>Ride the Urge Wave</DialogTitle>
-                <DialogDescription>
-                    Urges are like waves. They build, peak, and then crash. They don't last forever. Just observe it.
-                </DialogDescription>
-            </DialogHeader>
-
-            <div className="relative flex flex-1 flex-col items-center justify-between w-full h-full p-6 z-10">
-                {/* Quote section */}
+            <AnimatedWave />
+            <div className="relative z-10 flex flex-1 flex-col items-center justify-between w-full h-full p-6">
+                {/* Top quotes */}
                 <p key={quoteIndex} className={cn("text-base font-medium text-center text-white/90 max-w-sm transition-opacity duration-1000", isActive ? "animate-fade-in" : "opacity-100")}>
                     "{shuffledQuotes[quoteIndex]}"
                 </p>
 
-                {/* Wave animation */}
-                <AnimatedWave />
-
-                {/* Timer & buttons at bottom */}
-                <div className="flex flex-col items-center gap-4 z-10">
+                {/* Bottom timer & controls */}
+                <div className="flex flex-col items-center gap-4">
                     <p className="text-4xl font-bold font-mono tracking-tighter drop-shadow-lg">{formatTime(secondsRemaining)}</p>
 
                     <div className="flex items-center gap-4">
@@ -85,7 +75,6 @@ export function UrgeSurfingTimer() {
                             <RotateCcw className="h-5 w-5" />
                         </Button>
                     </div>
-
                     {isFinished && <p className="mt-2 text-lg font-semibold animate-fade-in">You did it. The wave has passed.</p>}
                 </div>
             </div>
