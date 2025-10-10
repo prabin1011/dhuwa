@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useMemoFirebase } from '@/firebase';
@@ -56,33 +57,25 @@ export default function DashboardPage() {
     router.push('/');
   };
 
+  // Show a global loading skeleton while auth state or profile is loading
   if (isUserLoading || (user && isProfileLoading)) {
     return (
-      <div className="flex flex-col h-screen w-screen bg-background p-4 md:p-8 lg:p-12 gap-8">
-        <div className="w-full max-w-7xl mx-auto">
-          <Skeleton className="h-12 w-1/4 mb-2" />
-          <Skeleton className="h-6 w-1/3" />
-        </div>
-        <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 flex flex-col gap-6">
-                <Skeleton className="h-48 w-full" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Skeleton className="h-32 w-full" />
-                    <Skeleton className="h-32 w-full" />
-                </div>
-            </div>
-            <div className="lg:col-span-1">
-                <Skeleton className="h-96 w-full" />
-            </div>
-        </div>
+      <div className="h-screen w-screen bg-background flex items-center justify-center">
+        <p>Loading...</p>
       </div>
     );
   }
   
+  // If auth is resolved and there's no user, the useEffect above will redirect.
+  // This prevents rendering anything further for a logged-out user.
+  if (!user) {
+    return null;
+  }
+
   const providerId = user?.providerData?.[0]?.providerId;
   const requiresVerification = providerId === 'password' && !!user?.email;
 
-  if (user && requiresVerification && !user.emailVerified) {
+  if (requiresVerification && !user.emailVerified) {
     return (
       <div className="flex h-screen w-screen items-center justify-center p-4">
         <Alert className="max-w-md">
@@ -100,12 +93,12 @@ export default function DashboardPage() {
   }
 
   // A user who has not completed onboarding (profile document doesn't exist)
-  if (user && !isProfileLoading && !userProfile) {
+  if (!userProfile) {
     return <Onboarding />;
   }
 
   // If user is logged in and has a full profile, show the dashboard.
-  if (user && userProfile) {
+  if (userProfile) {
     return (
       <div className="h-screen w-screen bg-background">
         <Dashboard user={user} userProfile={{...userProfile, id: user.uid}} />
@@ -113,6 +106,6 @@ export default function DashboardPage() {
     );
   }
   
-  // Fallback while redirects or state updates are happening.
+  // Fallback case (should not be reached)
   return null;
 }

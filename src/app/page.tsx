@@ -35,13 +35,18 @@ export default function LandingPage() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (!isUserLoading && user) router.replace('/dashboard');
+    if (!isUserLoading && user) {
+      router.replace('/dashboard');
+    }
   }, [user, isUserLoading, router]);
 
-  if (isUserLoading || user) {
+  // Show a loading state ONLY while checking auth status.
+  // DO NOT show loading if user is logged in, as the useEffect above will handle the redirect.
+  if (isUserLoading) {
     return <div className="h-screen w-screen flex items-center justify-center">Loading...</div>;
   }
-
+  
+  // If user is not logged in, show the login page.
   const onSignIn = async (form: FormData) => {
     setLoading(true);
     const email = String(form.get('email') || '').trim();
