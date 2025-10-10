@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -41,12 +40,15 @@ export default function LandingPage() {
   }, [user, isUserLoading, router]);
 
   // Show a loading state ONLY while checking auth status.
-  // DO NOT show loading if user is logged in, as the useEffect above will handle the redirect.
   if (isUserLoading) {
     return <div className="h-screen w-screen flex items-center justify-center">Loading...</div>;
   }
   
-  // If user is not logged in, show the login page.
+  // If user is logged in, useEffect handles redirect, so we render nothing to prevent flashes of content.
+  if (user) {
+    return null;
+  }
+  
   const onSignIn = async (form: FormData) => {
     setLoading(true);
     const email = String(form.get('email') || '').trim();
@@ -118,7 +120,9 @@ export default function LandingPage() {
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-4">
         <div className="flex flex-col items-center text-center mb-8">
-            <WelcomeIllustration className="w-40 h-40" />
+            <Link href="/">
+                <WelcomeIllustration className="w-40 h-40" />
+            </Link>
             <h1 className="text-3xl font-bold mt-4 font-heading">Welcome to Dhuwa</h1>
             <p className="text-muted-foreground mt-1 max-w-md">A mindful companion to help you understand your habits, find your balance, and reclaim your freedom.</p>
         </div>
@@ -130,8 +134,8 @@ export default function LandingPage() {
         <TabsContent value="signin" className="space-y-4">
             <form action={onSignIn} className="space-y-3">
               <div>
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" required />
+                <Label htmlFor="email">Email or Username</Label>
+                <Input id="email" name="email" type="text" required />
               </div>
               <div>
                 <div className="flex justify-between items-center">

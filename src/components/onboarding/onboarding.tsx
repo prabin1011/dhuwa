@@ -207,8 +207,8 @@ export function Onboarding() {
     for (const habit in data.habitDetails) {
         const d = data.habitDetails[habit] || {};
         finalHabitDetails[habit] = {
-            packCost: String(d.packCost) || '0',
-            itemsPerPack: String(d.itemsPerPack) || '0',
+            packCost: Number(d.packCost) || 0,
+            itemsPerPack: Number(d.itemsPerPack) || 0,
             itemsPerDay: d.itemsPerDay || '',
         };
     }
