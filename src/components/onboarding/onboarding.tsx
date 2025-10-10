@@ -13,6 +13,8 @@ import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import { ONBOARDING_STEPS, type OnboardingData, type Step } from '@/lib/onboarding-questions';
 import { Input } from '../ui/input';
+import { useForm, Controller } from 'react-hook-form';
+
 
 // Helper components
 const QuestionRadioGroup = ({ value, onValueChange, items, name }: { value: string, onValueChange: (value: string) => void, items: {value: string, label: string, description?: string}[], name: string }) => (
@@ -84,35 +86,32 @@ export function Onboarding() {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<OnboardingData>(INITIAL_DATA);
+  
+  const { control, watch, setValue, getValues, trigger } = useForm<OnboardingData>({
+    defaultValues: INITIAL_DATA
+  });
+
+  const formData = watch();
 
   const handleChange = (id: keyof OnboardingData, value: string | string[] | OnboardingData['habitDetails']) => {
-    setFormData((prev) => ({ ...prev, [id]: value }));
+    setValue(id, value as any, { shouldValidate: true, shouldDirty: true });
   };
   
   const handleHabitDetailChange = (habit: string, field: 'packCost' | 'itemsPerPack' | 'itemsPerDay', value: string) => {
-    setFormData(prev => ({
-        ...prev,
-        habitDetails: {
-            ...prev.habitDetails,
-            [habit]: {
-                ...prev.habitDetails[habit],
-                [field]: value
-            }
-        }
-    }));
+    setValue(`habitDetails.${habit}.${field}`, value, { shouldValidate: true, shouldDirty: true });
   }
 
   const handleHabitChange = (habit: string) => {
-    const newHabits = formData.habits.includes(habit)
-      ? formData.habits.filter(h => h !== habit)
-      : [...formData.habits, habit];
+    const currentHabits = getValues('habits') || [];
+    const newHabits = currentHabits.includes(habit)
+      ? currentHabits.filter(h => h !== habit)
+      : [...currentHabits, habit];
     handleChange('habits', newHabits);
   }
 
   const dynamicSteps = useMemo(() => {
     const steps: Step[] = [];
-    formData.habits.forEach(habit => {
+    (formData.habits || []).forEach(habit => {
         steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.packCost`, question: `Average cost of a pack of ${habit}?`, type: 'number'});
         steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerPack`, question: `How many ${habit} in a pack?`, type: 'number' });
         steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerDay`, question: `Average ${habit} per day?`, type: 'radio', options: [ {value: '1-5', label: '1-5'}, {value: '6-10', label: '6-10'}, {value: '11-15', label: '11-15'}, {value: '16-20', label: '16-20'}, {value: '20+', label: 'More than 20'}, ]});
@@ -134,29 +133,30 @@ export function Onboarding() {
   }, [dynamicSteps]);
 
 
-  const validateStep = () => {
+  const validateStep = async () => {
     const stepConfig = allSteps.find(s => s.id === currentStep);
     if (!stepConfig || stepConfig.type === 'summary' || stepConfig.optional) return true;
 
-    let value: any;
-    if (typeof stepConfig.field === 'string' && stepConfig.field.startsWith('habitDetails')) {
-        const [, habit, field] = stepConfig.field.split('.') as [string, string, keyof OnboardingData['habitDetails'][string]];
-        value = formData.habitDetails[habit]?.[field];
-    } else {
-        value = formData[stepConfig.field as keyof OnboardingData];
+    const fieldName = stepConfig.field as keyof OnboardingData;
+    const result = await trigger(fieldName as any);
+    
+    if (!result) {
+        toast({ variant: 'destructive', title: 'Missing Information', description: 'Please fill out this field to continue.' });
+        return false;
     }
     
+    // Additional checks for specific types if needed
+    let value: any;
+     if (typeof stepConfig.field === 'string' && stepConfig.field.startsWith('habitDetails')) {
+        const [, habit, field] = stepConfig.field.split('.') as [string, string, keyof OnboardingData['habitDetails'][string]];
+        value = getValues(`habitDetails.${habit}.${field}` as any);
+    } else {
+        value = getValues(stepConfig.field as keyof OnboardingData);
+    }
 
-    if (Array.isArray(value)) {
-        if (value.length === 0) {
-             toast({ variant: 'destructive', title: 'Selection Required', description: 'Please select at least one option.' });
-             return false;
-        }
-    } else if (typeof value === 'string' || value === undefined) {
-        if (!value || !value.trim()) {
-            toast({ variant: 'destructive', title: 'Missing Information', description: 'Please fill out this field.' });
-            return false;
-        }
+    if (Array.isArray(value) && value.length === 0) {
+        toast({ variant: 'destructive', title: 'Selection Required', description: 'Please select at least one option.' });
+        return false;
     }
     
     if (stepConfig.type === 'number') {
@@ -166,11 +166,13 @@ export function Onboarding() {
              return false;
         }
     }
+    
     return true;
   }
 
-  const nextStep = () => {
-    if(validateStep()){
+  const nextStep = async () => {
+    const isValid = await validateStep();
+    if(isValid){
         setCurrentStep(prev => Math.min(prev + 1, allSteps.length));
     }
   }
@@ -186,18 +188,20 @@ export function Onboarding() {
     }
     setIsSubmitting(true);
     
+    const data = getValues();
+
     // Convert string numbers to actual numbers
     const finalHabitDetails: OnboardingData['habitDetails'] = {};
-    for (const habit in formData.habitDetails) {
+    for (const habit in data.habitDetails) {
         finalHabitDetails[habit] = {
-            packCost: parseFloat(formData.habitDetails[habit].packCost || '0'),
-            itemsPerPack: parseInt(formData.habitDetails[habit].itemsPerPack || '0', 10),
-            itemsPerDay: formData.habitDetails[habit].itemsPerDay
+            packCost: parseFloat(data.habitDetails[habit].packCost || '0'),
+            itemsPerPack: parseInt(data.habitDetails[habit].itemsPerPack || '0', 10),
+            itemsPerDay: data.habitDetails[habit].itemsPerDay
         }
     }
 
     const profileData = {
-      ...formData,
+      ...data,
       habitDetails: finalHabitDetails,
     };
     
@@ -223,7 +227,7 @@ export function Onboarding() {
   };
   
   const getSummaryValue = (key: keyof OnboardingData) => {
-    const value = formData[key];
+    const value = getValues(key as any);
     if (Array.isArray(value)) return value.join(', ');
     const step = ONBOARDING_STEPS.find(s => s.field === key);
     if (step?.type === 'radio' && step.options) {
@@ -263,8 +267,8 @@ export function Onboarding() {
                 {currentStepConfig.type === 'checkbox' && (
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                        {(currentStepConfig.options || []).map(habit => (
-                            <Label key={habit.value} htmlFor={`habit-${habit.value}`} className={cn("flex flex-col items-center justify-center gap-2 rounded-md border-2 border-secondary bg-secondary/50 p-6 cursor-pointer hover:border-primary transition-colors", formData.habits.includes(habit.value) && 'border-primary ring-2 ring-primary bg-primary/10')}>
-                                 <Checkbox id={`habit-${habit.value}`} checked={formData.habits.includes(habit.value)} onCheckedChange={() => handleHabitChange(habit.value)} className="sr-only" />
+                            <Label key={habit.value} htmlFor={`habit-${habit.value}`} className={cn("flex flex-col items-center justify-center gap-2 rounded-md border-2 border-secondary bg-secondary/50 p-6 cursor-pointer hover:border-primary transition-colors", (formData.habits || []).includes(habit.value) && 'border-primary ring-2 ring-primary bg-primary/10')}>
+                                 <Checkbox id={`habit-${habit.value}`} checked={(formData.habits || []).includes(habit.value)} onCheckedChange={() => handleHabitChange(habit.value)} className="sr-only" />
                                  {habit.value === 'Cigarettes' && <Cigarette className="w-8 h-8" />}
                                  {habit.value === 'Weed' && <Leaf className="w-8 h-8" />}
                                  <span className="font-medium text-sm">{habit.label}</span>
@@ -322,7 +326,7 @@ export function Onboarding() {
                         <div className="bg-secondary/50 rounded-lg p-4 grid grid-cols-1 gap-y-2 text-sm">
                             <p><strong>Habits:</strong> {getSummaryValue('habits')}</p>
                             <p><strong>Goal:</strong> <span className="capitalize">{getSummaryValue('goal')}</span></p>
-                             {formData.habits.map(habit => (
+                             {(formData.habits || []).map(habit => (
                                 <div key={habit}><strong>{habit} Avg:</strong> {formData.habitDetails[habit]?.itemsPerDay || 'Not set'}/day</div>
                              ))}
                         </div>
@@ -346,3 +350,6 @@ export function Onboarding() {
     </div>
   );
 }
+
+
+    
