@@ -113,8 +113,8 @@ export function Onboarding() {
     const steps: Step[] = [];
     (formData.habits || []).forEach(habit => {
         steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.packCost`, question: `Average cost of a pack of ${habit}?`, type: 'number'});
-        steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerPack`, question: `How many ${habit} in a pack?`, type: 'number' });
-        steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerDay`, question: `Average ${habit} per day?`, type: 'radio', options: [ {value: '1-5', label: '1-5'}, {value: '6-10', label: '6-10'}, {value: '11-15', label: '11-15'}, {value: '16-20', label: '16-20'}, {value: '20+', label: 'More than 20'}, ]});
+        steps.push({ id: -2, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerPack`, question: `How many ${habit} in a pack?`, type: 'number' });
+        steps.push({ id: -3, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerDay`, question: `Average ${habit} per day?`, type: 'radio', options: [ {value: '1-5', label: '1-5'}, {value: '6-10', label: '6-10'}, {value: '11-15', label: '11-15'}, {value: '16-20', label: '16-20'}, {value: '20+', label: 'More than 20'}, ]});
     });
     return steps;
   }, [formData.habits]);
@@ -206,11 +206,12 @@ export function Onboarding() {
 
     const finalHabitDetails: OnboardingData['habitDetails'] = {};
     for (const habit in data.habitDetails) {
+        const d = data.habitDetails[habit] || {};
         finalHabitDetails[habit] = {
-            packCost: String(data.habitDetails[habit].packCost || '0'),
-            itemsPerPack: String(data.habitDetails[habit].itemsPerPack || '0'),
-            itemsPerDay: data.habitDetails[habit].itemsPerDay
-        }
+            packCost: Number(d.packCost) || 0,
+            itemsPerPack: Number(d.itemsPerPack) || 0,
+            itemsPerDay: d.itemsPerDay || '',
+        };
     }
 
     const profileData = {
@@ -218,7 +219,7 @@ export function Onboarding() {
       habitDetails: finalHabitDetails,
     };
     
-    const profileRef = doc(firestore, `users/${user.uid}`);
+    const profileRef = doc(firestore, 'users', user.uid, 'profile', 'main');
     
     try {
         await setDoc(profileRef, profileData, { merge: true });
@@ -227,6 +228,8 @@ export function Onboarding() {
           description: "You're all set. Let's get started!",
         });
         // No redirect needed, the parent page will re-render with the new profile
+        // A page refresh might be the simplest way to force the parent to re-evaluate
+        window.location.reload();
     } catch (error: any) {
         console.error("Error saving profile:", error);
         toast({
