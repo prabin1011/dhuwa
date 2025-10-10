@@ -218,7 +218,7 @@ export function Onboarding() {
       habitDetails: finalHabitDetails,
     };
     
-    const profileRef = doc(firestore, 'users', user.uid, 'profile', 'main');
+    const profileRef = doc(firestore, 'users', user.uid);
     
     try {
         await setDoc(profileRef, profileData, { merge: true });
@@ -226,7 +226,6 @@ export function Onboarding() {
           title: 'Profile Saved!',
           description: "You're all set. Let's get started!",
         });
-        // A page refresh might be the simplest way to force the parent to re-evaluate
         window.location.reload();
     } catch (error: any) {
         console.error("Error saving profile:", error);

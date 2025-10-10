@@ -22,15 +22,14 @@ export default function DashboardPage() {
 
   const userProfileRef = useMemoFirebase(() => {
     if (!user) return null;
-    // Corrected path: read from the root user document
     return doc(firestore, 'users', user.uid);
   }, [firestore, user]);
 
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc(userProfileRef);
+  const { data: userProfile, isLoading: isProfileLoading, error } = useDoc(userProfileRef);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.push('/login');
+      router.push('/');
     }
   }, [user, isUserLoading, router]);
   
@@ -54,7 +53,7 @@ export default function DashboardPage() {
   
   const handleSignOut = async () => {
     await signOut();
-    router.push('/login');
+    router.push('/');
   };
 
   if (isUserLoading || (user && isProfileLoading)) {
@@ -100,8 +99,8 @@ export default function DashboardPage() {
     );
   }
 
-  // A user who has not completed onboarding.
-  if (user && userProfile && !userProfile.goal) {
+  // A user who has not completed onboarding (profile document doesn't exist)
+  if (user && !isProfileLoading && !userProfile) {
     return <Onboarding />;
   }
 
@@ -112,12 +111,6 @@ export default function DashboardPage() {
         <Dashboard user={user} userProfile={{...userProfile, id: user.uid}} />
       </div>
     );
-  }
-  
-  // This case handles a logged-in user whose profile document is still loading or doesn't exist yet,
-  // which might briefly happen right after sign-up. The Onboarding check will run on the next render.
-  if (user && !userProfile) {
-     return <Onboarding />;
   }
   
   // Fallback while redirects or state updates are happening.
