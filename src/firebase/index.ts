@@ -3,6 +3,7 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getFirebaseConfig } from './config';
 
 // This structure will hold the initialized services.
 // It's defined once and can be reused.
@@ -15,22 +16,13 @@ let firebaseServices: {
 
 // This function fetches the config and initializes Firebase.
 // It ensures that initialization only happens once.
-export async function initializeFirebase() {
+export function initializeFirebase() {
   if (firebaseServices) {
     return firebaseServices;
   }
 
-  // Fetch the configuration from our secure API route.
-  const res = await fetch('/api/firebase-config');
-  if (!res.ok) {
-    throw new Error('Failed to fetch Firebase config.');
-  }
-  const firebaseConfig = await res.json();
+  const firebaseConfig = getFirebaseConfig();
 
-  if (!firebaseConfig.apiKey) {
-    throw new Error('Firebase API key is missing from config.');
-  }
-  
   // Initialize the Firebase app.
   const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 

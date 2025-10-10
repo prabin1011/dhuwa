@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, type ReactNode } from 'react';
+import React, { useState, useEffect, type ReactNode, useMemo } from 'react';
 import type { FirebaseApp } from 'firebase/app';
 import type { Auth } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
@@ -35,7 +35,7 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
     // This effect runs once on mount to initialize Firebase.
     const init = async () => {
       try {
-        const firebaseServices = await initializeFirebase();
+        const firebaseServices = initializeFirebase(); // This is now synchronous
         setServices(firebaseServices);
       } catch (err: any) {
         console.error("Firebase initialization failed:", err);

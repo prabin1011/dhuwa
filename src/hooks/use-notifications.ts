@@ -6,6 +6,7 @@ import { getMessaging, getToken, onMessage, isSupported, type MessagePayload } f
 import { useFirebase } from '@/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from './use-toast';
+import { getVapidKey } from '@/firebase/config';
 
 const SW_URL = '/firebase-messaging-sw.js';
 
@@ -87,8 +88,8 @@ export function useNotifications() {
       toast({ variant: 'destructive', title: 'Unsupported', description: 'This browser does not support notifications.' });
       return null;
     }
-
-    const vapid = process.env.NEXT_PUBLIC_VAPID_KEY;
+    
+    const vapid = getVapidKey();
     if (!vapid) {
       console.error('Missing VAPID key');
       toast({ variant: 'destructive', title: 'Config error', description: 'Missing VAPID key for notifications.' });
