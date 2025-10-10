@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format, parse, isAfter, isToday, formatDistanceToNowStrict, subDays } from "date-fns";
 import { Input } from "../ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import type { User } from 'firebase/auth';
 
 interface SmokingMoment {
     id: string;
@@ -30,6 +31,7 @@ interface Urge {
 }
 
 interface NextRiskWindowProps {
+    user: User;
     userProfile: WithId<UserProfile>;
     urges: WithId<Urge>[];
 }
@@ -43,8 +45,8 @@ const PREMADE_REPLACEMENTS = [
     "5 mins deep breathing"
 ];
 
-export function NextRiskWindow({ userProfile, urges }: NextRiskWindowProps) {
-    const { firestore, user } = useFirebase();
+export function NextRiskWindow({ user, userProfile, urges }: NextRiskWindowProps) {
+    const { firestore } = useFirebase();
     const { toast } = useToast();
     const [currentTime, setCurrentTime] = useState(new Date());
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -105,7 +107,7 @@ export function NextRiskWindow({ userProfile, urges }: NextRiskWindowProps) {
             return m;
         }) || [];
 
-        const profileRef = doc(firestore, 'users', user.uid, 'profile', 'main');
+        const profileRef = doc(firestore, 'users', user.uid);
         try {
             await updateDoc(profileRef, { moments: updatedMoments });
             toast({ title: "Replacement Logged!", description: `Awesome choice for the ${nextMoment.time} moment!` });

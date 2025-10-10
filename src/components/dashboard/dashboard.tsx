@@ -3,7 +3,7 @@
 
 import { SmokeLogger } from "@/components/dashboard/smoke-logger";
 import { useFirebase, useCollection, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { collection, query, orderBy } from "firebase/firestore";
 import { useUser } from "@/firebase/provider";
 import { UrgeHistory } from "./urge-history";
 import { useEffect, useMemo, useState } from "react";
@@ -18,23 +18,30 @@ import { ReplacementReport } from "./replacement-report";
 import { MoodReport } from "./mood-report";
 import { DailyInsight } from "./daily-insight";
 import { useNotifications } from "@/hooks/use-notifications";
-import { useToast } from "@/hooks/use-toast";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 import { DailyHabitChart } from "./daily-habit-chart";
 import { SosActionBar } from "./sos-action-bar";
 import { NextRiskWindow } from "./next-risk-window";
 import { NotificationBell } from "./notification-bell";
-import { User } from 'firebase/auth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import Link from 'next/link';
+import { User } from "firebase/auth";
 
 
+interface SmokingMoment {
+    id: string;
+    time: string;
+    label: string;
+    completed: Record<string, boolean>;
+    replacementActivity?: Record<string, string>;
+}
 interface UserProfile {
     habits?: string[];
     packCost?: number; // Kept for backward compatibility
     itemsPerPack?: number; // Kept for backward compatibility
     habitDetails?: Record<string, { packCost?: number; itemsPerPack?: number; itemsPerDay?: string | number }>;
     itemsPerDay?: string;
-    moments?: any[];
+    moments?: SmokingMoment[];
     goal?: string;
     motivation?: string;
     preferredTone?: string;
@@ -44,25 +51,23 @@ interface UserProfile {
 }
 
 interface DashboardProps {
+  user: User;
   userProfile: WithId<UserProfile>;
 }
 
 
-export function Dashboard({ userProfile }: DashboardProps) {
+export function Dashboard({ user, userProfile }: DashboardProps) {
   const { firestore } = useFirebase();
-  const { user } = useUser();
-  const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   
-  const availableHabits = userProfile.habits || ['Cigarette'];
+  const availableHabits = userProfile.habits || ['Cigarettes'];
   const [activeHabit, setActiveHabit] = useState<string>('All');
   
-  // Initialize notifications hook
   const { requestPermissionAndToken, messages, clearMessages } = useNotifications();
 
-  // On first load, if user wants reminders, ask for permission
   useEffect(() => {
-    if (userProfile.reminders === 'yes' && Notification.permission === 'default') {
+    const shouldRequest = userProfile.reminders === 'yes' && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default';
+    if (shouldRequest) {
         requestPermissionAndToken();
     }
   }, [userProfile.reminders, requestPermissionAndToken]);
@@ -70,16 +75,14 @@ export function Dashboard({ userProfile }: DashboardProps) {
 
   const urgesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return collection(firestore, 'users', user.uid, 'urges');
+    return query(collection(firestore, 'users', user.uid, 'urges'), orderBy('timestamp', 'desc'));
   }, [firestore, user]);
 
   const { data: urges, isLoading } = useCollection(urgesQuery);
 
   const sortedUrges = useMemo(() => {
     if (!urges) return [];
-    return urges
-      .filter(urge => urge.timestamp) 
-      .sort((a, b) => b.timestamp.toDate().getTime() - a.timestamp.toDate().getTime());
+    return urges; // Already sorted by query
   }, [urges]);
 
   const filteredUrges = useMemo(() => {
@@ -124,9 +127,11 @@ export function Dashboard({ userProfile }: DashboardProps) {
                 <header className="mb-6 flex justify-between items-start">
                     <div>
                         <div className="flex items-baseline gap-2">
-                             <h1 className="text-3xl font-bold tracking-tighter font-heading lowercase">
-                                dhuwa
-                            </h1>
+                            <Link href="/" passHref>
+                                <h1 className="text-3xl font-bold tracking-tighter font-heading lowercase cursor-pointer">
+                                    dhuwa
+                                </h1>
+                             </Link>
                             <p className="text-xs text-muted-foreground/80 italic relative top-[-2px]">by smokers for smokers</p>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -135,7 +140,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                     </div>
                     <div className="flex items-center gap-2">
                         <NotificationBell messages={messages} clearMessages={clearMessages} />
-                        <UserProfileDropdown userProfile={userProfile} />
+                        <UserProfileDropdown user={user} userProfile={userProfile} />
                     </div>
                 </header>
 
@@ -156,7 +161,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
                       selectedDate={selectedDate}
                       onSelectDate={setSelectedDate}
                     />
-                    <NextRiskWindow userProfile={userProfile} urges={filteredUrges} />
+                    <NextRiskWindow user={user} userProfile={userProfile} urges={filteredUrges} />
                     <SmokingPlan user={user} userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <SavingsStats urges={filteredUrges} userProfile={userProfile} selectedDate={selectedDate} activeHabit={activeHabit} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />

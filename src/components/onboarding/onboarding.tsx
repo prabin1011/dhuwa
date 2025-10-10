@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import { ONBOARDING_STEPS, type OnboardingData, type Step } from '@/lib/onboarding-questions';
+import { Input } from '../ui/input';
 
 // Helper components
 const QuestionRadioGroup = ({ value, onValueChange, items, name }: { value: string, onValueChange: (value: string) => void, items: {value: string, label: string, description?: string}[], name: string }) => (
@@ -151,8 +152,8 @@ export function Onboarding() {
              toast({ variant: 'destructive', title: 'Selection Required', description: 'Please select at least one option.' });
              return false;
         }
-    } else if (typeof value === 'string') {
-        if (!value.trim()) {
+    } else if (typeof value === 'string' || value === undefined) {
+        if (!value || !value.trim()) {
             toast({ variant: 'destructive', title: 'Missing Information', description: 'Please fill out this field.' });
             return false;
         }
@@ -203,12 +204,12 @@ export function Onboarding() {
     const profileRef = doc(firestore, `users/${user.uid}`);
     
     try {
-        // Use updateDoc instead of setDoc to avoid overwriting createdAt and username
         await setDoc(profileRef, profileData, { merge: true });
         toast({
           title: 'Profile Saved!',
           description: "You're all set. Let's get started!",
         });
+        // No redirect needed, the parent page will re-render with the new profile
     } catch (error: any) {
         console.error("Error saving profile:", error);
         toast({
@@ -274,7 +275,11 @@ export function Onboarding() {
                  {currentStepConfig.type === 'radio' && (
                     <QuestionRadioGroup 
                         name={currentStepConfig.field as string}
-                        value={(formData[currentStepConfig.field as keyof OnboardingData] as string) || ''}
+                        value={
+                            currentStepConfig.field.startsWith('habitDetails')
+                              ? formData.habitDetails[currentStepConfig.field.split('.')[1]]?.[currentStepConfig.field.split('.')[2] as 'itemsPerDay'] || ''
+                              : (formData[currentStepConfig.field as keyof OnboardingData] as string) || ''
+                          }
                         onValueChange={(v) => {
                             if (currentStepConfig.field.startsWith('habitDetails')) {
                                 const [, habit, field] = currentStepConfig.field.split('.');
@@ -289,23 +294,25 @@ export function Onboarding() {
                  )}
                  {currentStepConfig.type === 'number' && (
                      <div className='flex flex-col items-center gap-8'>
-                        <div className="text-3xl font-bold">
-                            <span className="text-muted-foreground">$</span>
-                            {(currentStepConfig.field.startsWith('habitDetails') 
-                                ? formData.habitDetails[currentStepConfig.field.split('.')[1]]?.[currentStepConfig.field.split('.')[2] as 'packCost' | 'itemsPerPack']
-                                : formData[currentStepConfig.field as keyof OnboardingData]) || '0'}
-                            <span className="animate-pulse">|</span>
+                         <div className="flex flex-col items-center">
+                            <Controller
+                                name={currentStepConfig.field as `habitDetails.${string}.packCost` | `habitDetails.${string}.itemsPerPack`}
+                                control={control}
+                                render={({ field }) => (
+                                    <>
+                                    <div className="text-3xl font-bold min-h-[40px] flex items-center">
+                                         {currentStepConfig.field.includes('packCost') && <span className="text-muted-foreground">$</span>}
+                                        <span>{field.value || '0'}</span>
+                                        <span className="animate-pulse">|</span>
+                                    </div>
+                                    <NumberKeypad
+                                    value={field.value || ''}
+                                    onValueChange={field.onChange}
+                                    />
+                                    </>
+                                )}
+                            />
                         </div>
-                        <NumberKeypad
-                          value={(currentStepConfig.field.startsWith('habitDetails')
-                            ? formData.habitDetails[currentStepConfig.field.split('.')[1]]?.[currentStepConfig.field.split('.')[2] as 'packCost' | 'itemsPerPack']
-                            : formData[currentStepConfig.field as keyof OnboardingData]) as string || ''
-                          }
-                          onValueChange={(v) => {
-                            const [, habit, field] = currentStepConfig.field.split('.');
-                            handleHabitDetailChange(habit, field as any, v);
-                          }}
-                        />
                      </div>
                  )}
                  {currentStepConfig.type === 'summary' && (

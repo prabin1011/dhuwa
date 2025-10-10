@@ -26,7 +26,6 @@ import { useToast } from '@/hooks/use-toast';
 import { WelcomeIllustration } from '@/components/illustrations/welcome';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -39,12 +38,24 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState('signup');
 
   useEffect(() => {
     if (!isUserLoading && user) {
-      router.push('/');
+      router.push('/dashboard');
     }
   }, [user, isUserLoading, router]);
+
+  const resetForm = () => {
+      setEmail('');
+      setPassword('');
+      setUsername('');
+  }
+
+  const handleTabChange = (value: string) => {
+      setActiveTab(value);
+      resetForm();
+  }
   
   if (isUserLoading || user) {
     return <div className="h-screen w-screen flex items-center justify-center">Loading...</div>;
@@ -84,14 +95,17 @@ export default function LoginPage() {
         await setDoc(userDocRef, {
             username: username,
             createdAt: serverTimestamp()
-        });
+        }, { merge: true }); // Use merge to be safe
 
         // Send verification email
         await sendEmailVerification(newUser);
         toast({ 
             title: 'Account Created!', 
-            description: 'A verification email has been sent to your address. Please verify to continue.' 
+            description: 'A verification email has been sent. Please verify your email to log in.' 
         });
+        // Switch to login tab and clear fields for the user to log in after verifying
+        setActiveTab('login');
+        resetForm();
 
       } else {
         // Standard login
@@ -107,9 +121,9 @@ export default function LoginPage() {
              return;
         }
         toast({ title: 'Welcome Back!', description: `Successfully logged in.` });
+        router.push('/dashboard');
       }
       
-      router.push('/');
     } catch (error: any) {
       console.error(error);
       toast({
@@ -126,11 +140,13 @@ export default function LoginPage() {
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-4">
         <div className="flex flex-col items-center text-center mb-8">
-            <WelcomeIllustration className="w-40 h-40" />
+            <Link href="/">
+                <WelcomeIllustration className="w-40 h-40" />
+            </Link>
             <h1 className="text-3xl font-bold mt-4 font-heading">Welcome to Dhuwa</h1>
             <p className="text-muted-foreground mt-1">Start your journey to freedom.</p>
         </div>
-      <Tabs defaultValue="signup" className="w-full max-w-sm">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full max-w-sm">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Login</TabsTrigger>
           <TabsTrigger value="signup">Sign Up</TabsTrigger>

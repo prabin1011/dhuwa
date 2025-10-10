@@ -46,26 +46,24 @@ export function useNotifications() {
   }, []);
 
   useEffect(() => {
-    if (!firebaseApp || !isSupported()) return;
-
     const setupMessaging = async () => {
-      try {
-        if (!(await isSupported())) {
-            console.log("FCM is not supported in this browser.");
-            return;
-        }
-        const messaging = getMessaging(firebaseApp);
-        const unsubscribe = onMessage(messaging, (payload) => {
-          console.log('Foreground message received.', payload);
-          toast({
-            title: payload.notification?.title || "New Message",
-            description: payload.notification?.body,
+      if (firebaseApp && (await isSupported())) {
+        try {
+          const messaging = getMessaging(firebaseApp);
+          const unsubscribe = onMessage(messaging, (payload) => {
+            console.log('Foreground message received.', payload);
+            toast({
+              title: payload.notification?.title || "New Message",
+              description: payload.notification?.body,
+            });
+            setMessages(prev => [payload, ...prev]);
           });
-          setMessages(prev => [payload, ...prev]);
-        });
-        return unsubscribe;
-      } catch (error) {
-        console.error("Error setting up foreground message handler:", error);
+          return unsubscribe;
+        } catch (error) {
+          console.error("Error setting up foreground message handler:", error);
+        }
+      } else {
+        console.log("FCM is not supported in this browser or Firebase app is not available.");
       }
     };
     
@@ -84,14 +82,16 @@ export function useNotifications() {
       return null;
     }
 
-    if (!('Notification' in window)) {
+    const supported = await isSupported();
+    if (!supported) {
       toast({ variant: 'destructive', title: 'Unsupported', description: 'This browser does not support notifications.' });
       return null;
     }
 
     const vapid = process.env.NEXT_PUBLIC_VAPID_KEY;
     if (!vapid) {
-      toast({ variant: 'destructive', title: 'Config error', description: 'Missing NEXT_PUBLIC_VAPID_KEY' });
+      console.error('Missing VAPID key');
+      toast({ variant: 'destructive', title: 'Config error', description: 'Missing VAPID key for notifications.' });
       return null;
     }
 
@@ -101,16 +101,11 @@ export function useNotifications() {
       return null;
     }
 
-    const permission = await Notification.requestPermission();
-    setPermissionStatus(permission);
-    if (permission !== 'granted') {
-      toast({ variant: 'destructive', title: 'Permission denied', description: 'Enable notifications in browser settings.' });
-      return null;
-    }
-
     try {
-      if (!(await isSupported())) {
-        toast({ variant: 'destructive', title: 'Unsupported', description: 'Messaging not supported in this browser.' });
+      const permission = await Notification.requestPermission();
+      setPermissionStatus(permission);
+      if (permission !== 'granted') {
+        toast({ variant: 'destructive', title: 'Permission denied', description: 'Enable notifications in browser settings.' });
         return null;
       }
 
@@ -127,7 +122,8 @@ export function useNotifications() {
 
       setFcmToken(token);
 
-      await updateDoc(doc(firestore, `users/${user.uid}/profile/main`), {
+      const userDocRef = doc(firestore, `users/${user.uid}`);
+      await updateDoc(userDocRef, {
         fcmTokens: arrayUnion(token),
       });
 

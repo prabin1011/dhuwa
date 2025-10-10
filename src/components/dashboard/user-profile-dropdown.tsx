@@ -18,16 +18,18 @@ import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather } fro
 import { ProfileSheet } from '../profile/profile-sheet';
 import type { WithId } from '@/firebase';
 import { useRouter } from 'next/navigation';
+import type { User } from 'firebase/auth';
 
 interface UserProfile {
     username?: string;
 }
 
 interface UserProfileDropdownProps {
+  user: User;
   userProfile: WithId<UserProfile>;
 }
 
-export function UserProfileDropdown({ userProfile }: UserProfileDropdownProps) {
+export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownProps) {
   const auth = useAuth();
   const router = useRouter();
   const [isProfileSheetOpen, setProfileSheetOpen] = useState(false);
@@ -59,7 +61,7 @@ export function UserProfileDropdown({ userProfile }: UserProfileDropdownProps) {
             <div className="flex flex-col">
               <p className="text-sm font-medium leading-none">{userProfile.username || 'User'}</p>
               <p className="text-xs leading-none text-muted-foreground mt-1">
-                {auth?.currentUser?.email}
+                {user.email}
               </p>
             </div>
           </DropdownMenuLabel>

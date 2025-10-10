@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFo
 import { Button } from "../ui/button";
 import type { WithId } from "@/firebase";
 import { useForm, Controller } from 'react-hook-form';
-import { STEPS, type OnboardingData } from '@/lib/onboarding-questions';
+import { STEPS as PROFILE_STEPS, type OnboardingData } from '@/lib/onboarding-questions';
 import { useFirebase } from "@/firebase";
 import { doc, updateDoc, writeBatch, collection, getDocs } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -40,7 +40,7 @@ interface ProfileSheetProps {
 }
 
 export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheetProps) {
-    const { firestore, user, auth } = useFirebase();
+    const { firestore, user } = useFirebase();
     const router = useRouter();
     const { toast } = useToast();
     const { requestPermissionAndToken, permissionStatus: initialPermissionStatus } = useNotifications();
@@ -57,6 +57,17 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             currency: userProfile.currency || 'USD'
         },
     });
+
+    useEffect(() => {
+        // Reset the form with the latest userProfile when the sheet is opened
+        if (isOpen) {
+            reset({
+                ...userProfile,
+                habitDetails: userProfile.habitDetails || {},
+                currency: userProfile.currency || 'USD'
+            });
+        }
+    }, [isOpen, userProfile, reset]);
 
     const [isDeleting, setIsDeleting] = useState(false);
     const [isResetting, setIsResetting] = useState(false);
@@ -114,21 +125,25 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         const batch = writeBatch(firestore);
         const urgesRef = collection(firestore, `users/${user.uid}/urges`);
         const userProfileRef = doc(firestore, `users/${user.uid}`);
+        const notificationsRef = collection(firestore, `users/${user.uid}/notifications`);
 
         try {
             // Delete subcollections first
             const urgesSnapshot = await getDocs(urgesRef);
             urgesSnapshot.forEach(doc => batch.delete(doc.ref));
 
-            // Delete main profile docs
+            const notificationsSnapshot = await getDocs(notificationsRef);
+            notificationsSnapshot.forEach(doc => batch.delete(doc.ref));
+
+            // Delete main profile doc
             batch.delete(userProfileRef);
             
             await batch.commit();
             await deleteUser(user);
             
             toast({ title: "Account Deleted", description: "Your account and all data have been permanently deleted." });
-            onOpenChange(false);
             router.push('/login');
+            onOpenChange(false);
 
         } catch (error: any) {
             console.error("Error deleting account:", error);
@@ -141,15 +156,21 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         if (!user) return;
         setIsResetting(true);
         const urgesRef = collection(firestore, `users/${user.uid}/urges`);
+        const notificationsRef = collection(firestore, `users/${user.uid}/notifications`);
         const batch = writeBatch(firestore);
         try {
             const urgesSnapshot = await getDocs(urgesRef);
-            if (urgesSnapshot.empty) {
+            const notificationsSnapshot = await getDocs(notificationsRef);
+
+            if (urgesSnapshot.empty && notificationsSnapshot.empty) {
                 toast({ title: "No Data", description: "There is no activity data to reset." });
                 setIsResetting(false);
                 return;
             }
             urgesSnapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            notificationsSnapshot.forEach(doc => {
                 batch.delete(doc.ref);
             });
             await batch.commit();
@@ -163,8 +184,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         }
     };
     
-    // Group steps by title, but handle dynamic habit details
-    const groupedSteps = STEPS.reduce((acc, step) => {
+    const groupedSteps = PROFILE_STEPS.reduce((acc, step) => {
         if (step.type === 'summary' || step.field === 'reminders') return acc;
         
         if (step.type === 'dynamic') {
@@ -188,7 +208,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         }
 
         return acc;
-    }, {} as Record<string, typeof STEPS>);
+    }, {} as Record<string, typeof PROFILE_STEPS>);
 
 
   return (
@@ -201,20 +221,20 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className="flex-1 -mx-6 px-6">
-            <div className="space-y-6 py-4">
+            <form id="profile-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
                 {Object.entries(groupedSteps).map(([title, steps]) => (
                     <div key={title} className="space-y-4">
                         <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
-                        <form id="profile-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                        
                             {steps.map(step => (
                                 <div key={String(step.field)} className="space-y-2">
                                     <Label>{step.question}</Label>
                                     <Controller
-                                        name={step.field}
+                                        name={step.field as any}
                                         control={control}
                                         render={({ field: controllerField }) => {
                                             if (step.type === 'number') {
-                                                return <Input type="number" {...controllerField} value={controllerField.value || ''} />;
+                                                return <Input type="number" {...controllerField} value={String(controllerField.value || '')} onChange={e => controllerField.onChange(e.target.value)} />;
                                             }
                                             if (step.type === 'radio' && step.options) {
                                                 return (
@@ -255,7 +275,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                     />
                                 </div>
                             ))}
-                        </form>
+                        
                     </div>
                 ))}
                 
@@ -267,7 +287,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                             name="currency"
                             control={control}
                             render={({ field }) => (
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a currency" />
                                     </SelectTrigger>
@@ -308,7 +328,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                     </div>
                 </div>
 
-            </div>
+            </form>
         </ScrollArea>
         <SheetFooter className="mt-auto pt-4 border-t flex-col sm:flex-col sm:items-stretch gap-2">
             <Button type="submit" form="profile-form" disabled={isSubmitting || !isDirty} className="w-full">
