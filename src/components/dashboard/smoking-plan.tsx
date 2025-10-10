@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from "react";
@@ -98,7 +97,7 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
 
     const updateMoments = async (updatedMoments: SmokingMoment[]) => {
         if (!user || !firestore) return;
-        const profileRef = doc(firestore, 'users', user.uid, 'profile', 'main');
+        const profileRef = doc(firestore, 'users', user.uid);
         try {
             await updateDoc(profileRef, { moments: updatedMoments });
         } catch (e: any) {

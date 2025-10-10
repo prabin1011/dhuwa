@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -138,6 +137,14 @@ export function Onboarding() {
     if (!stepConfig || stepConfig.type === 'summary' || stepConfig.optional) return true;
 
     const fieldName = stepConfig.field as keyof OnboardingData;
+    if (stepConfig.type === 'radio') {
+        const value = getValues(fieldName as any);
+        if (!value) {
+            toast({ variant: 'destructive', title: 'Selection Required', description: 'Please select an option.' });
+            return false;
+        }
+        return true;
+    }
     const result = await trigger(fieldName as any);
     
     if (!result) {
@@ -194,8 +201,8 @@ export function Onboarding() {
     const finalHabitDetails: OnboardingData['habitDetails'] = {};
     for (const habit in data.habitDetails) {
         finalHabitDetails[habit] = {
-            packCost: parseFloat(data.habitDetails[habit].packCost || '0'),
-            itemsPerPack: parseInt(data.habitDetails[habit].itemsPerPack || '0', 10),
+            packCost: String(data.habitDetails[habit].packCost || '0'),
+            itemsPerPack: String(data.habitDetails[habit].itemsPerPack || '0'),
             itemsPerDay: data.habitDetails[habit].itemsPerDay
         }
     }
@@ -350,6 +357,3 @@ export function Onboarding() {
     </div>
   );
 }
-
-
-    
