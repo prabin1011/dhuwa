@@ -54,6 +54,7 @@ const NumberKeypad = ({ value, onValueChange }: { value: string, onValueChange: 
 const INITIAL_DATA: OnboardingData = {
     habits: [],
     habitDetails: {},
+    currency: 'USD',
     frequency: '',
     started: '',
     goal: '',
@@ -197,13 +198,12 @@ export function Onboarding() {
     const profileData = {
       ...formData,
       habitDetails: finalHabitDetails,
-      username: user.displayName,
-      createdAt: new Date(),
     };
     
-    const profileRef = doc(firestore, `users/${user.uid}/profile/main`);
+    const profileRef = doc(firestore, `users/${user.uid}`);
     
     try {
+        // Use updateDoc instead of setDoc to avoid overwriting createdAt and username
         await setDoc(profileRef, profileData, { merge: true });
         toast({
           title: 'Profile Saved!',

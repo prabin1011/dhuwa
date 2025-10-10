@@ -61,11 +61,9 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const [isDeleting, setIsDeleting] = useState(false);
     const [isResetting, setIsResetting] = useState(false);
 
-    const isAnonymous = user?.isAnonymous;
-
     const onSubmit = async (data: OnboardingData) => {
         if (!user) return;
-        const profileRef = doc(firestore, 'users', user.uid, 'profile', 'main');
+        const profileRef = doc(firestore, 'users', user.uid);
         try {
             const finalHabitDetails: OnboardingData['habitDetails'] = {};
             for (const habit in data.habitDetails) {
@@ -115,8 +113,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
 
         const batch = writeBatch(firestore);
         const urgesRef = collection(firestore, `users/${user.uid}/urges`);
-        const userProfileRef = doc(firestore, `users/${user.uid}/profile/main`);
-        const userDocRef = doc(firestore, `users/${user.uid}`);
+        const userProfileRef = doc(firestore, `users/${user.uid}`);
 
         try {
             // Delete subcollections first
@@ -125,7 +122,6 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
 
             // Delete main profile docs
             batch.delete(userProfileRef);
-            batch.delete(userDocRef);
             
             await batch.commit();
             await deleteUser(user);
@@ -320,48 +316,44 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             </Button>
             <Separator />
             <div className="flex justify-between gap-2">
-                 {!isAnonymous ? (
-                    <>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="outline" className="flex-1" disabled={isResetting}>Reset Data</Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Reset Your Activity Data?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        This will permanently delete all your logged urges, moods, and progress. Your profile settings will be kept. This action cannot be undone.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleResetData} disabled={isResetting}>
-                                        {isResetting ? 'Resetting...' : 'Yes, Reset Data'}
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="destructive" className="flex-1" disabled={isDeleting}>Delete Account</Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        This action cannot be undone. This will permanently delete your account and remove all of your data from our servers.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting}>
-                                        {isDeleting ? 'Deleting...' : 'Continue'}
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </>
-                 ) : <div />}
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="outline" className="flex-1" disabled={isResetting}>Reset Data</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Reset Your Activity Data?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This will permanently delete all your logged urges, moods, and progress. Your profile settings will be kept. This action cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleResetData} disabled={isResetting}>
+                                {isResetting ? 'Resetting...' : 'Yes, Reset Data'}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" className="flex-1" disabled={isDeleting}>Delete Account</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete your account and remove all of your data from our servers.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting}>
+                                {isDeleting ? 'Deleting...' : 'Continue'}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </SheetFooter>
       </SheetContent>

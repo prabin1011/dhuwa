@@ -1,23 +1,6 @@
 
 {
   "entities": {
-    "AnonymousUserProfile": {
-      "title": "AnonymousUserProfile",
-      "type": "object",
-      "description": "Stores user-specific settings and preferences for an anonymous user.",
-      "properties": {
-        "username": {
-          "type": "string",
-          "description": "The user's chosen display name."
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the profile was created."
-        }
-      },
-      "required": ["createdAt", "username"]
-    },
     "UserProfile": {
       "title": "UserProfile",
       "type": "object",
@@ -265,18 +248,11 @@
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous"
+      "password"
     ]
   },
   "firestore": {
     "'/users/{userId}'": {
-      "schema": {
-        "$ref": "#/entities/AnonymousUserProfile"
-      },
-      "description": "Stores public profile information for each user."
-    },
-    "'/users/{userId}/profile/main'": {
       "schema": {
         "$ref": "#/entities/UserProfile"
       },

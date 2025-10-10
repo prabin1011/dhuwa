@@ -49,7 +49,6 @@ const sendNotification = async (userId: string, tokens: string[], template: {tit
           webpush: { fcmOptions: { link: '/' } },
         });
 
-        // FIX: Actually save the notification to the user's history
         await db.collection(`users/${userId}/notifications`).add(notificationPayload);
 
         return true;
@@ -122,7 +121,7 @@ const handleMilestoneNotifications = async (userId: string, profile: any, tokens
     if (template && milestoneKey) {
         const success = await sendNotification(userId, tokens, template);
         if (success) {
-            await db.doc(`users/${userId}/profile/main`).update({
+            await db.doc(`users/${userId}`).update({
                 lastMilestoneNotificationSent: FieldValue.serverTimestamp(),
                 sentMilestones: FieldValue.arrayUnion(milestoneKey) // Record that this milestone was sent
             });
@@ -135,14 +134,14 @@ const handleMilestoneNotifications = async (userId: string, profile: any, tokens
 
 export async function sendMomentReminders() {
   const now = new Date();
-  const profiles = await db.collectionGroup('main').get();
+  const usersSnap = await db.collection('users').get();
 
   let notificationsSent = 0;
   let errors = 0;
 
-  for (const docSnap of profiles.docs) {
+  for (const docSnap of usersSnap.docs) {
     const profile = docSnap.data() as any;
-    const userId = docSnap.ref.parent.parent?.id;
+    const userId = docSnap.id;
 
     if (!userId || profile.reminders !== 'yes') continue;
 
@@ -162,5 +161,5 @@ export async function sendMomentReminders() {
     }
   }
 
-  return { totalUsers: profiles.size, notificationsSent, errors };
+  return { totalUsers: usersSnap.size, notificationsSent, errors };
 }
