@@ -1,53 +1,35 @@
-/* public/firebase-messaging-sw.js */
 
-/* Use compat builds (works in a plain SW file) */
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+// This file must be in the public directory.
 
-/* 🔴 Replace these with your exact Web App config from Firebase Console > Project settings */
-firebase.initializeApp({
-  apiKey: "AIzaSyBg1EMa0HcTFTzwqTIIjqbGMqs92VNCVwM",
-  authDomain: "studio-7251750297-88bd3.firebaseapp.com",
-  projectId: "studio-7251750297-88bd3",
-  storageBucket: "studio-7251750297-88bd3.appspot.com",
-  messagingSenderId: "856277572255",
-  appId: "1:856277572255:web:8257f924b807ccfaa620aa",
-});
+// Scripts for Firebase products are imported on-demand.
+import { initializeApp } from 'firebase/app';
+import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw';
 
-/* Get messaging instance */
-const messaging = firebase.messaging();
+// Your web app's Firebase configuration.
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
 
-/* Handle data-only payloads when app is in the background */
-messaging.onBackgroundMessage((payload) => {
-  // Works for "data" payloads (Console: “Additional options” → Custom data)
-  const n = payload.notification || {};
-  const d = payload.data || {};
 
-  const title = n.title || d.title || 'The Easy Way Out';
-  const body  = n.body  || d.body  || 'Open the app for details.';
-  const icon  = n.icon  || '/icons/icon-192x192.png';
-  const url   = d.link || d.url || n.click_action || '/';
+// Initialize the Firebase app in the service worker.
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
 
-  self.registration.showNotification(title, {
-    body,
-    icon,
-    tag: d.tag || 'tewo',
-    data: { url },
-    requireInteraction: false,
-  });
-});
+// Optional: Set up a background message handler.
+// This is called when the app is in the background or closed and a notification is received.
+onBackgroundMessage(messaging, (payload) => {
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
 
-/* Ensure clicks focus or open the app */
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  const target = event.notification.data?.url || '/';
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-      const absolute = new URL(target, self.location.origin).href;
-      for (const client of list) {
-        if (client.url === absolute) return client.focus();
-      }
-      return clients.openWindow(absolute);
-    })
-  );
+  const notificationTitle = payload.notification?.title || 'Dhuwa';
+  const notificationOptions = {
+    body: payload.notification?.body || 'You have a new message.',
+    icon: '/icon-192x192.png' // Make sure you have an icon in your public folder
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });
