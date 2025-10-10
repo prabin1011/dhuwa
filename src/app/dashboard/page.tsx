@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useMemoFirebase } from '@/firebase';
@@ -21,16 +20,18 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const { signOut } = useAuthActions();
 
+  // This is the correct path for the user profile data from onboarding.
   const userProfileRef = useMemoFirebase(() => {
     if (!user) return null;
     return doc(firestore, 'users', user.uid);
   }, [firestore, user]);
 
-  const { data: userProfile, isLoading: isProfileLoading, error } = useDoc(userProfileRef);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc(userProfileRef);
 
   useEffect(() => {
+    // If auth is done loading and there is no user, redirect to login page.
     if (!isUserLoading && !user) {
-      router.push('/');
+      router.push('/login');
     }
   }, [user, isUserLoading, router]);
   
@@ -54,7 +55,7 @@ export default function DashboardPage() {
   
   const handleSignOut = async () => {
     await signOut();
-    router.push('/');
+    router.push('/login'); // Redirect to login after signing out
   };
 
   // Show a global loading skeleton while auth state or profile is loading
@@ -72,6 +73,7 @@ export default function DashboardPage() {
     return null;
   }
 
+  // Only require email verification for users who signed up with an email/password
   const providerId = user?.providerData?.[0]?.providerId;
   const requiresVerification = providerId === 'password' && !!user?.email;
 
@@ -92,13 +94,13 @@ export default function DashboardPage() {
     );
   }
 
-  // A user who has not completed onboarding (profile document doesn't exist)
-  if (!userProfile) {
+  // If the user's profile document does NOT exist, they need to do onboarding.
+  if (user && !userProfile) {
     return <Onboarding />;
   }
 
   // If user is logged in and has a full profile, show the dashboard.
-  if (userProfile) {
+  if (user && userProfile) {
     return (
       <div className="h-screen w-screen bg-background">
         <Dashboard user={user} userProfile={{...userProfile, id: user.uid}} />
