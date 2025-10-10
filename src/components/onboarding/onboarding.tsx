@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -138,7 +139,13 @@ export function Onboarding() {
 
     const fieldName = stepConfig.field as keyof OnboardingData;
     if (stepConfig.type === 'radio') {
-        const value = getValues(fieldName as any);
+        let value;
+        if (typeof stepConfig.field === 'string' && stepConfig.field.startsWith('habitDetails')) {
+            const [, habit, field] = stepConfig.field.split('.') as [string, string, keyof OnboardingData['habitDetails'][string]];
+            value = getValues(`habitDetails.${habit}.${field}` as any);
+        } else {
+            value = getValues(stepConfig.field as keyof OnboardingData);
+        }
         if (!value) {
             toast({ variant: 'destructive', title: 'Selection Required', description: 'Please select an option.' });
             return false;
@@ -197,7 +204,6 @@ export function Onboarding() {
     
     const data = getValues();
 
-    // Convert string numbers to actual numbers
     const finalHabitDetails: OnboardingData['habitDetails'] = {};
     for (const habit in data.habitDetails) {
         finalHabitDetails[habit] = {
