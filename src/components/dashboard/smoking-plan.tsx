@@ -41,6 +41,7 @@ const MOOD_OPTIONS = [
     {value: 'happy', label: 'Happy'},
     {value: 'tired', label: 'Tired'},
     {value: 'anxious', label: 'Anxious'},
+    {value: 'ritual', label: 'Automatic Ritual'},
     {value: 'neutral', label: 'Neutral'},
 ]
 
@@ -402,8 +403,8 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                     <div className="py-4 space-y-6">
                         <RadioGroup value={selectedMood ?? ''} onValueChange={setSelectedMood} className="grid grid-cols-2 gap-3">
                             {MOOD_OPTIONS.map(item => (
-                                <Label key={item.value} htmlFor={`mood-${item.value}`} className="flex items-center space-x-3 rounded-md border-2 border-secondary bg-secondary/50 p-3 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:checked]:bg-primary/10">
-                                    <RadioGroupItem value={item.value} id={`mood-${item.value}`} />
+                                <Label key={item.value} htmlFor={`mood-plan-${item.value}`} className="flex items-center space-x-3 rounded-md border-2 border-secondary bg-secondary/50 p-3 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:checked]:bg-primary/10">
+                                    <RadioGroupItem value={item.value} id={`mood-plan-${item.value}`} />
                                     <p className="font-medium text-sm">{item.label}</p>
                                 </Label>
                             ))}
