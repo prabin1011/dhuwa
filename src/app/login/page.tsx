@@ -11,11 +11,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { WelcomeIllustration } from '@/components/illustrations/welcome';
 import Link from 'next/link';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function LoginPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
-  const { signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuthActions();
+  const { signInWithEmail, signUpWithEmail, sendPasswordReset } = useAuthActions();
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(false);
@@ -68,12 +79,33 @@ export default function LoginPage() {
       return;
     }
     try {
-      const cred = await signUpWithEmail(email, password, username);
+      await signUpWithEmail(email, password, username);
       // After sign-up, user will be redirected to dashboard, and verification/onboarding flow will take over.
       toast({ title: 'Account Created', description: 'Please check your email for a verification link.' });
       router.replace('/dashboard');
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Sign Up Failed', description: e?.message ?? 'Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handlePasswordReset = async () => {
+    // We need to get the email from the new input field inside the dialog
+    const resetEmailInput = document.getElementById('reset-email') as HTMLInputElement | null;
+    const email = resetEmailInput?.value.trim();
+
+    if (!email) {
+      toast({ variant: 'destructive', title: 'Email Required', description: 'Please enter your email address.' });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendPasswordReset(email);
+      toast({ title: 'Password Reset Email Sent', description: 'Please check your inbox for instructions.' });
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Error', description: e.message ?? 'Could not send reset email.' });
     } finally {
       setLoading(false);
     }
@@ -100,7 +132,30 @@ export default function LoginPage() {
                 <Input id="email" name="email" type="email" required />
               </div>
               <div>
-                <Label htmlFor="password">Password</Label>
+                <div className="flex justify-between items-center">
+                    <Label htmlFor="password">Password</Label>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button type="button" variant="link" className="p-0 h-auto text-xs text-muted-foreground">Forgot Password?</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Reset Password</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Enter the email address associated with your account, and we'll send you a link to reset your password.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <div className="py-2">
+                                <Label htmlFor="reset-email" className="sr-only">Email</Label>
+                                <Input id="reset-email" name="reset-email" type="email" placeholder="your.email@example.com" />
+                            </div>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handlePasswordReset}>Send Reset Link</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
                 <Input id="password" name="password" type="password" required />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>

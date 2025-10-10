@@ -3,7 +3,7 @@
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut as fbSignOut, updateProfile } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut as fbSignOut, updateProfile, sendEmailVerification, sendPasswordResetEmail } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 interface FirebaseProviderProps {
@@ -194,6 +194,10 @@ export const useAuthActions = () => {
 
     return cred;
   };
+  
+  const sendPasswordReset = async (email: string) => {
+    return await sendPasswordResetEmail(auth, email);
+  }
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
@@ -204,7 +208,7 @@ export const useAuthActions = () => {
     await fbSignOut(auth);
   };
 
-  return { signInWithEmail, signUpWithEmail, signInWithGoogle, signOut };
+  return { signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, sendPasswordReset };
 };
 
 type MemoFirebase <T> = T & {__memo?: boolean};
