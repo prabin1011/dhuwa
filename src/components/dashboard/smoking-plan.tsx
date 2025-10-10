@@ -6,7 +6,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { useFirebase } from "@/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import type { WithId } from "@/firebase";
 import { Check, Cigarette, Info, Plus, Replace, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +20,10 @@ import {
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { User } from "firebase/auth";
+import { Label } from "../ui/label";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { MoodAfterDialogAction } from "./mood-after-toast-action";
+import { getNarrative } from "@/lib/narrative-vault";
 
 const PREMADE_REPLACEMENTS = [
     "Drink a glass of water",
@@ -30,6 +34,15 @@ const PREMADE_REPLACEMENTS = [
     "5 mins deep breathing"
 ];
 
+const MOOD_OPTIONS = [
+    {value: 'stressed', label: 'Stressed'},
+    {value: 'bored', label: 'Bored'},
+    {value: 'lonely', label: 'Lonely'},
+    {value: 'happy', label: 'Happy'},
+    {value: 'tired', label: 'Tired'},
+    {value: 'anxious', label: 'Anxious'},
+    {value: 'neutral', label: 'Neutral'},
+]
 
 interface SmokingMoment {
     id: string;
@@ -37,6 +50,7 @@ interface SmokingMoment {
     label: string;
     completed: Record<string, boolean>;
     replacementActivity?: Record<string, string>;
+    type?: string;
 }
 
 interface UserProfile {
@@ -59,6 +73,12 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
     const [customReplacement, setCustomReplacement] = useState("");
     const [selectedReplacement, setSelectedReplacement] = useState("");
     const [activeDialog, setActiveDialog] = useState<string | null>(null);
+
+    const [moodMoment, setMoodMoment] = useState<SmokingMoment | null>(null);
+    const [selectedMood, setSelectedMood] = useState<string | null>(null);
+    const [isAfterMoodDialogOpen, setIsAfterMoodDialogOpen] = useState(false);
+    const [lastUrgeId, setLastUrgeId] = useState<string | null>(null);
+
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
@@ -136,17 +156,54 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
         }
     };
 
-    const handleMarkMoment = async (momentId: string, completed: boolean) => {
-        const updatedMoments = userProfile.moments?.map(m => {
-            if (m.id === momentId) {
-                return { ...m, completed: { ...(m.completed || {}), [dateStr]: completed } };
-            }
-            return m;
-        });
+    const handleMarkMoment = async () => {
+        if (!moodMoment || !selectedMood || !user || !firestore) return;
+
+        const urgesCollection = collection(firestore, 'users', user.uid, 'urges');
+        const momentToUpdate = moodMoment;
+        
+        // Close the mood dialog
+        setMoodMoment(null);
+
         try {
+            const { long, short } = getNarrative(selectedMood);
+
+            // 1. Log the new urge to the 'urges' collection
+            const urgeData = {
+                timestamp: serverTimestamp(),
+                type: momentToUpdate.type || 'Cigarettes',
+                moodBefore: selectedMood,
+                notes: `Planned: ${momentToUpdate.label} at ${momentToUpdate.time}`,
+                narrative: long,
+                shortMessage: short,
+                count: 1, // Assume 1 for planned moments
+            };
+            const docRef = await addDoc(urgesCollection, urgeData);
+            
+            // 2. Update the moment in the user's profile to mark it as completed
+            const updatedMoments = userProfile.moments?.map(m => {
+                if (m.id === momentToUpdate.id) {
+                    return { ...m, completed: { ...(m.completed || {}), [dateStr]: true } };
+                }
+                return m;
+            });
             await updateMoments(updatedMoments || []);
-            toast({ title: completed ? 'Moment Logged' : 'Moment Skipped' });
-        } catch (e) { /* Error handled in updateMoments */ }
+
+            // 3. Trigger the 'after mood' dialog
+            setLastUrgeId(docRef.id);
+            setIsAfterMoodDialogOpen(true);
+
+        } catch(e) {
+            console.error("Error logging planned smoke:", e);
+            toast({
+                variant: "destructive",
+                title: "Logging failed",
+                description: "Could not save your smoke log. Please try again."
+            })
+        } finally {
+            // Reset state
+            setSelectedMood(null);
+        }
     };
     
     const handleSaveReplacement = async (momentId: string) => {
@@ -180,6 +237,12 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
         }
     };
 
+    const resetForms = () => {
+        setSelectedMood(null);
+        setMoodMoment(null);
+        setIsAfterMoodDialogOpen(false);
+        setLastUrgeId(null);
+    }
 
     return (
         <Card>
@@ -234,11 +297,11 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                                                         </div>
                                                         <div className="flex items-center gap-1">
                                                             {status === true && <Check className="w-4 h-4 text-green-500" />}
-                                                            {status === false && !replacementText && <Replace className="w-4 h-4 text-blue-500" />}
+                                                            {status === false && <Replace className="w-4 h-4 text-blue-500" />}
                                                             
                                                             {!isProcessed && isToday(selectedDate) && (
                                                                 <>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/20 text-destructive" onClick={() => handleMarkMoment(moment.id, true)}>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/20 text-destructive" onClick={() => setMoodMoment(moment)}>
                                                                         <Cigarette className="w-4 h-4" />
                                                                     </Button>
                                                                     
@@ -326,6 +389,47 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>
+            
+            {/* Mood Dialog for logging a smoked planned moment */}
+            <Dialog open={!!moodMoment} onOpenChange={(isOpen) => !isOpen && setMoodMoment(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>How are you feeling?</DialogTitle>
+                        <DialogDescription>
+                            Select the primary emotion you feel right now. This helps you identify triggers.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-6">
+                        <RadioGroup value={selectedMood ?? ''} onValueChange={setSelectedMood} className="grid grid-cols-2 gap-3">
+                            {MOOD_OPTIONS.map(item => (
+                                <Label key={item.value} htmlFor={`mood-${item.value}`} className="flex items-center space-x-3 rounded-md border-2 border-secondary bg-secondary/50 p-3 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:checked]:bg-primary/10">
+                                    <RadioGroupItem value={item.value} id={`mood-${item.value}`} />
+                                    <p className="font-medium text-sm">{item.label}</p>
+                                </Label>
+                            ))}
+                        </RadioGroup>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setMoodMoment(null)}>Cancel</Button>
+                        <Button onClick={handleMarkMoment} disabled={!selectedMood}>
+                            Log Smoke
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+             {/* This is the second, mandatory dialog for "mood after" */}
+            <Dialog open={isAfterMoodDialogOpen} onOpenChange={setIsAfterMoodDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Moment Recorded</DialogTitle>
+                        <DialogDescription>
+                        Your moment of awareness has been logged. One last thing...
+                        </DialogDescription>
+                    </DialogHeader>
+                    {lastUrgeId && <MoodAfterDialogAction urgeId={lastUrgeId} onMoodSelect={resetForms} />}
+                </DialogContent>
+            </Dialog>
         </Card>
     );
 }
