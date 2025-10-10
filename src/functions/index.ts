@@ -54,6 +54,7 @@ const sendNotification = async (userId: string, tokens: string[], template: {tit
         return true;
     } catch (e) {
         console.error(`Error sending notification to user ${userId}:`, e);
+        // Here you might want to handle invalid tokens, e.g. remove them from the user's profile
         return false;
     }
 }
@@ -67,9 +68,15 @@ const handleUpcomingMomentReminders = async (userId: string, profile: any, token
     const upcoming = moments.filter((m: any) => {
       try {
         if (!m.time) return false;
+        // The `now` date is used as a base for parsing the time string.
+        // This creates a Date object for today at the specified moment time.
         const t = parse(m.time, 'HH:mm', now);
+        // Check if the moment's time is between now and 15 minutes from now.
         return isAfter(t, now) && isBefore(t, end);
-      } catch (error) { return false; }
+      } catch (error) { 
+        console.error(`Invalid time format for moment on user ${userId}: ${m.time}`);
+        return false;
+      }
     });
 
     for (const m of upcoming) {
@@ -83,8 +90,9 @@ const handleUpcomingMomentReminders = async (userId: string, profile: any, token
 
 const handleMilestoneNotifications = async (userId: string, profile: any, tokens: string[], now: Date) => {
     const lastMilestoneSent = profile.lastMilestoneNotificationSent?.toDate();
+    // Cooldown: Only send one milestone notification every ~24 hours
     if (lastMilestoneSent && differenceInHours(now, lastMilestoneSent) < 23) {
-        return 0; // Cooldown: Only send once every ~24 hours
+        return 0; 
     }
 
     const urgesSnap = await db.collection(`users/${userId}/urges`).orderBy('timestamp', 'desc').limit(1).get();
@@ -96,26 +104,24 @@ const handleMilestoneNotifications = async (userId: string, profile: any, tokens
     let template: {title: string, body: string} | null = null;
     let milestoneKey: string | null = null;
 
-    if (hoursSinceLastUrge >= 720) { // 30 days
-        template = getRandomTemplate(notificationTemplates.streakThirtyDays);
-        milestoneKey = '30_days';
-    } else if (hoursSinceLastUrge >= 336) { // 14 days
-        template = getRandomTemplate(notificationTemplates.streakFourteenDays);
-        milestoneKey = '14_days';
-    } else if (hoursSinceLastUrge >= 168) { // 7 days
-        template = getRandomTemplate(notificationTemplates.streakSevenDays);
-        milestoneKey = '7_days';
-    } else if (hoursSinceLastUrge >= 48) {
-        template = getRandomTemplate(notificationTemplates.streakTwoDays);
-         milestoneKey = '48_hours';
-    } else if (hoursSinceLastUrge >= 24) {
-        template = getRandomTemplate(notificationTemplates.streakOneDay);
-         milestoneKey = '24_hours';
-    }
+    // Define milestones from longest to shortest
+    const milestones = [
+        { hours: 720, key: '30_days', templates: notificationTemplates.streakThirtyDays },
+        { hours: 336, key: '14_days', templates: notificationTemplates.streakFourteenDays },
+        { hours: 168, key: '7_days', templates: notificationTemplates.streakSevenDays },
+        { hours: 48, key: '48_hours', templates: notificationTemplates.streakTwoDays },
+        { hours: 24, key: '24_hours', templates: notificationTemplates.streakOneDay },
+    ];
 
-    // Check if this specific milestone was already sent
-    if (milestoneKey && profile.sentMilestones?.includes(milestoneKey)) {
-        return 0;
+    for (const milestone of milestones) {
+        if (hoursSinceLastUrge >= milestone.hours) {
+            // Check if this specific milestone was already sent
+            if (!profile.sentMilestones?.includes(milestone.key)) {
+                template = getRandomTemplate(milestone.templates);
+                milestoneKey = milestone.key;
+                break; // Found the highest applicable, unsent milestone
+            }
+        }
     }
 
     if (template && milestoneKey) {
@@ -134,7 +140,11 @@ const handleMilestoneNotifications = async (userId: string, profile: any, tokens
 
 export async function sendMomentReminders() {
   const now = new Date();
-  const usersSnap = await db.collection('users').get();
+  const usersSnap = await db.collection('users').where('reminders', '==', 'yes').get();
+
+  if (usersSnap.empty) {
+    return { totalUsers: 0, notificationsSent: 0, errors: 0 };
+  }
 
   let notificationsSent = 0;
   let errors = 0;
@@ -142,8 +152,6 @@ export async function sendMomentReminders() {
   for (const docSnap of usersSnap.docs) {
     const profile = docSnap.data() as any;
     const userId = docSnap.id;
-
-    if (!userId || profile.reminders !== 'yes') continue;
 
     const tokens: string[] = Array.isArray(profile.fcmTokens) ? profile.fcmTokens : [];
     if (!tokens.length) continue;

@@ -5,7 +5,6 @@
 import { ai } from '@/ai/genkit';
 import { DailyInsightInputSchema, type DailyInsightInput } from '@/ai/types/daily-insight-types';
 import { z } from 'zod';
-import { geminiPro } from '@genkit-ai/google-genai';
 
 // Genkit Prompt
 const insightPrompt = ai.definePrompt({
@@ -44,17 +43,14 @@ const dailyInsightFlow = ai.defineFlow(
         }
     };
     
-    const {text} = await ai.generate({
-      model: geminiPro,
-      prompt: insightPrompt.prompt,
+    const {output} = await insightPrompt(sanitizedInput, {
       config: {
         temperature: 0.3,
         maxOutputTokens: 160,
-      },
-      input: sanitizedInput,
+      }
     });
 
-    return text.trim();
+    return output.trim();
   }
 );
 
