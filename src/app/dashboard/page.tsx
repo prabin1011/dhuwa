@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { Dashboard } from '@/components/dashboard/dashboard';
 import { Onboarding } from '@/components/onboarding/onboarding';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useFirestore, useDoc } from '@/firebase/provider';
+import { useAuthActions, useFirestore, useDoc } from '@/firebase/provider';
 import { doc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { signOut } = useAuthActions();
 
   const userProfileRef = useMemoFirebase(() => {
     if (!user) return null;
@@ -48,6 +49,11 @@ export default function DashboardPage() {
         });
       }
     }
+  };
+  
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/login');
   };
 
   if (isUserLoading || (user && isProfileLoading)) {
@@ -84,8 +90,9 @@ export default function DashboardPage() {
           <AlertDescription>
             A verification link has been sent to <strong>{user.email}</strong>. Please check your inbox and click the link to continue.
           </AlertDescription>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-col sm:flex-row gap-2">
             <Button onClick={handleResendVerification}>Resend Verification Email</Button>
+            <Button variant="outline" onClick={handleSignOut}>Use a different account</Button>
           </div>
         </Alert>
       </div>
