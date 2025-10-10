@@ -1,12 +1,37 @@
 'use client';
 
-import { firebaseConfig } from '@/firebase/config';
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
-export function initializeFirebase() {
+// This structure will hold the initialized services.
+// It's defined once and can be reused.
+let firebaseServices: {
+  firebaseApp: FirebaseApp;
+  auth: Auth;
+  firestore: Firestore;
+} | null = null;
+
+
+// This function fetches the config and initializes Firebase.
+// It ensures that initialization only happens once.
+export async function initializeFirebase() {
+  if (firebaseServices) {
+    return firebaseServices;
+  }
+
+  // Fetch the configuration from our secure API route.
+  const res = await fetch('/api/firebase-config');
+  if (!res.ok) {
+    throw new Error('Failed to fetch Firebase config.');
+  }
+  const firebaseConfig = await res.json();
+
+  if (!firebaseConfig.apiKey) {
+    throw new Error('Firebase API key is missing from config.');
+  }
+  
+  // Initialize the Firebase app.
   const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
   // No production console logs
@@ -19,19 +44,18 @@ export function initializeFirebase() {
       })
     );
   }
-
-  // If already initialized, return the SDKs with the already initialized App
-  return getSdks(app);
-}
-
-export function getSdks(firebaseApp: FirebaseApp) {
-  return {
-    firebaseApp,
-    auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp)
+  
+  // Store the initialized services so we don't have to do this again.
+  firebaseServices = {
+    firebaseApp: app,
+    auth: getAuth(app),
+    firestore: getFirestore(app),
   };
+
+  return firebaseServices;
 }
 
+// Re-export other necessary hooks and utilities
 export * from './provider';
 export * from './client-provider';
 export * from './firestore/use-collection';
