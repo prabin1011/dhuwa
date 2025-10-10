@@ -41,7 +41,7 @@ const MOOD_OPTIONS = [
     {value: 'happy', label: 'Happy'},
     {value: 'tired', label: 'Tired'},
     {value: 'anxious', label: 'Anxious'},
-    {value: 'ritual', label: 'Automatic Ritual'},
+    {value: 'daily-ritual', label: 'Daily Ritual'},
     {value: 'neutral', label: 'Neutral'},
 ]
 

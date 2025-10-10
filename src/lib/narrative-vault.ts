@@ -38,7 +38,7 @@ const templates: Record<string, Narrative[]> = {
         { short: "A shaky hand lights a cigarette.", long: "My nerves were frayed, and I thought a cigarette would calm them. It's a paradox, using a stimulant to find peace." },
         { short: "The illusion of control.", long: "When things felt out of control, I grabbed for something I could control: lighting a cigarette. But in doing so, I gave up control to the addiction." }
     ],
-    ritual: [
+    'daily-ritual': [
         { short: "The ghost of a habit.", long: "Not happy, not sad, just… automatic. The ghost of a million past cigarettes lit this one. It was pure, unfiltered habit." },
         { short: "An action without a reason.", long: "I can't even say why I smoked this one. It was a reflex, a twitch, a program running in the background. That's the trap." },
         { short: "Just because it's 'time'.", long: "It was time. The clock in my head struck 'smoke o'clock'. There was no real trigger, just the relentless march of the little monster." }

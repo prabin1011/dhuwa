@@ -28,7 +28,7 @@ const MOOD_OPTIONS = [
     {value: 'happy', label: 'Happy'},
     {value: 'tired', label: 'Tired'},
     {value: 'anxious', label: 'Anxious'},
-    {value: 'ritual', label: 'Automatic Ritual'},
+    {value: 'daily-ritual', label: 'Daily Ritual'},
     {value: 'neutral', label: 'Neutral'},
 ]
 
@@ -106,22 +106,10 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
 
   return (
     <div className="flex items-center gap-2">
-       {habits.length > 1 && (
-            <Select value={selectedHabit} onValueChange={setSelectedHabit}>
-              <SelectTrigger className="w-auto flex-shrink-0">
-                <SelectValue placeholder="Select habit" />
-              </SelectTrigger>
-              <SelectContent>
-                {habits.map(habit => (
-                    <SelectItem key={habit} value={habit}>{habit}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-        )}
         <AlertDialog open={isMoodDialogOpen} onOpenChange={setIsMoodDialogOpen}>
             <AlertDialogTrigger asChild>
                 <Button size="lg" className="w-full">
-                    <Icon className="w-5 h-5 mr-2" />
+                    <Cigarette className="w-5 h-5 mr-2" />
                     Tap to Log a Moment
                 </Button>
             </AlertDialogTrigger>
@@ -133,6 +121,26 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="py-4 space-y-6">
+                    {habits.length > 1 && (
+                        <div className="space-y-2">
+                             <Label>What are you logging?</Label>
+                             <Select value={selectedHabit} onValueChange={setSelectedHabit}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select habit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {habits.map(habit => (
+                                        <SelectItem key={habit} value={habit}>
+                                            <div className="flex items-center gap-2">
+                                                {habit === 'Weed' ? <Leaf className="w-4 h-4" /> : <Cigarette className="w-4 h-4" />}
+                                                {habit}
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                      <RadioGroup value={selectedMood ?? ''} onValueChange={setSelectedMood} className="grid grid-cols-2 gap-3">
                         {MOOD_OPTIONS.map(item => (
                             <Label key={item.value} htmlFor={`mood-${item.value}`} className="flex items-center space-x-3 rounded-md border-2 border-secondary bg-secondary/50 p-3 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:checked]:bg-primary/10">
