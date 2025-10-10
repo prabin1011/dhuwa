@@ -19,7 +19,7 @@ export default function LandingPage() {
                 Start your journey to awareness today.
             </p>
             <Button asChild size="lg">
-                <Link href="/dashboard">Login or Sign Up</Link>
+                <Link href="/login">Login or Sign Up</Link>
             </Button>
         </div>
 
