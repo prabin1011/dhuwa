@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useMemoFirebase } from '@/firebase';
@@ -5,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Dashboard } from '@/components/dashboard/dashboard';
 import { Onboarding } from '@/components/onboarding/onboarding';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthActions, useFirestore, useDoc } from '@/firebase/provider';
 import { doc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -23,7 +23,7 @@ export default function DashboardPage() {
   // This is the correct path for the user profile data from onboarding.
   const userProfileRef = useMemoFirebase(() => {
     if (!user) return null;
-    return doc(firestore, 'users', user.uid);
+    return doc(firestore, 'users', user.uid, 'profile', 'main');
   }, [firestore, user]);
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc(userProfileRef);
@@ -94,8 +94,8 @@ export default function DashboardPage() {
     );
   }
 
-  // If the user's profile document does NOT exist, they need to do onboarding.
-  if (user && !userProfile) {
+  // If the user's profile document does NOT exist OR is incomplete, they need to do onboarding.
+  if (user && (!userProfile || !userProfile.goal)) {
     return <Onboarding />;
   }
 

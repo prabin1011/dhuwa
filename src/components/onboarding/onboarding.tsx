@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -207,8 +208,8 @@ export function Onboarding() {
     for (const habit in data.habitDetails) {
         const d = data.habitDetails[habit] || {};
         finalHabitDetails[habit] = {
-            packCost: String(Number(d.packCost) || 0),
-            itemsPerPack: String(Number(d.itemsPerPack) || 0),
+            packCost: Number(d.packCost) || 0,
+            itemsPerPack: Number(d.itemsPerPack) || 0,
             itemsPerDay: d.itemsPerDay || '',
         };
     }
@@ -226,9 +227,9 @@ export function Onboarding() {
           title: 'Profile Saved!',
           description: "You're all set. Let's get started!",
         });
-        window.location.reload();
+        window.location.href = '/dashboard';
     } catch (error: any) {
-        console.error("Error saving profile:", error);
+        console.error('save profile failed:', (error as any)?.code, (error as any)?.message, error);
         toast({
           variant: 'destructive',
           title: 'Save Error',
