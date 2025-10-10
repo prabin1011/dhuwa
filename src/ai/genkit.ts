@@ -8,7 +8,7 @@ const API_KEY =
   process.env.GOOGLE_API_KEY;
 
 if (!API_KEY) {
-  throw new Error('Missing Gemini API key. Set GEMINI_API_KEY (or GOOGLE_GENAI_API_KEY / GOOGLE_API_KEY).');
+  throw new Error('Missing Gemini API key. Set GEMINI_API_KEY (or GOOGLE_GENAI_API_KEY / GOOGLE_API_KEY) in your environment.');
 }
 
 export const ai: Ai = genkit({
