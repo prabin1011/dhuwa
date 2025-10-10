@@ -26,7 +26,7 @@ import {
 export default function LandingPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
-  const { signInWithEmail, signUpWithEmail, sendPasswordReset } = useAuthActions();
+  const { signInWithIdentifier, signUpWithEmail, sendPasswordReset } = useAuthActions();
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(false);
@@ -51,10 +51,10 @@ export default function LandingPage() {
   
   const onSignIn = async (form: FormData) => {
     setLoading(true);
-    const email = String(form.get('email') || '').trim();
+    const emailOrUsername = String(form.get('email') || '').trim();
     const password = String(form.get('password') || '');
     try {
-      await signInWithEmail(email, password);
+      await signInWithIdentifier(emailOrUsername, password);
       router.replace('/dashboard');
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Login Failed', description: e?.message ?? 'Check your credentials.' });

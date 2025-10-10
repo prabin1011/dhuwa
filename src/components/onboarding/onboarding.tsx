@@ -207,8 +207,8 @@ export function Onboarding() {
     for (const habit in data.habitDetails) {
         const d = data.habitDetails[habit] || {};
         finalHabitDetails[habit] = {
-            packCost: Number(d.packCost) || 0,
-            itemsPerPack: Number(d.itemsPerPack) || 0,
+            packCost: String(Number(d.packCost) || 0),
+            itemsPerPack: String(Number(d.itemsPerPack) || 0),
             itemsPerDay: d.itemsPerDay || '',
         };
     }
@@ -218,7 +218,7 @@ export function Onboarding() {
       habitDetails: finalHabitDetails,
     };
     
-    const profileRef = doc(firestore, 'users', user.uid);
+    const profileRef = doc(firestore, 'users', user.uid, 'profile', 'main');
     
     try {
         await setDoc(profileRef, profileData, { merge: true });

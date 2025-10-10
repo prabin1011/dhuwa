@@ -2,7 +2,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { Firestore, doc, getDoc, setDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut as fbSignOut, updateProfile, sendEmailVerification, sendPasswordResetEmail } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
@@ -173,44 +173,79 @@ export const useFirebaseApp = (): FirebaseApp => {
 export const useAuthActions = () => {
   const { auth, firestore } = useFirebase();
 
-  const signInWithEmail = async (email: string, password: string) => {
-    return await signInWithEmailAndPassword(auth, email, password);
-  };
-
   const signUpWithEmail = async (email: string, password: string, username: string) => {
+    const usernameLower = username.trim().toLowerCase();
+    // 1) Pre-claim username doc transactionally (ensures uniqueness)
+    await runTransaction(firestore, async (tx) => {
+      const unameRef = doc(firestore, 'usernames', usernameLower);
+      const unameSnap = await tx.get(unameRef);
+      if (unameSnap.exists()) {
+        throw new Error('Username is already taken.');
+      }
+    });
+
+    // 2) Create the auth user
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    
-    // Create the root user doc immediately with the username
-    const userRef = doc(firestore, 'users', cred.user.uid);
+    const uid = cred.user.uid;
+
+    // 3) Create root user doc
+    const userRef = doc(firestore, 'users', uid);
     await setDoc(userRef, {
-        username: username,
-        email: cred.user.email,
-        createdAt: serverTimestamp()
+      email,
+      username,
+      usernameLower,
+      createdAt: serverTimestamp(),
     }, { merge: true });
-    
-    // Also update the user's Auth profile with the username
+
+    // 4) Finalize username mapping (unique, owned by this uid)
+    await runTransaction(firestore, async (tx) => {
+      const unameRef = doc(firestore, 'usernames', usernameLower);
+      const unameSnap = await tx.get(unameRef);
+      if (unameSnap.exists()) {
+        throw new Error('Username was just taken. Please pick another.');
+      }
+      tx.set(unameRef, {
+        uid,
+        email,
+        usernameLower,
+        createdAt: serverTimestamp(),
+      });
+    });
+
     await updateProfile(cred.user, { displayName: username });
-    
-    // Also send email verification
     await sendEmailVerification(cred.user);
 
     return cred;
   };
-  
-  const sendPasswordReset = async (email: string) => {
-    return await sendPasswordResetEmail(auth, email);
-  }
 
-  const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    return await signInWithPopup(auth, provider);
+  const signInWithIdentifier = async (identifier: string, password: string) => {
+    const id = identifier.trim();
+    let emailToUse = id;
+
+    // If it's not an email, treat as username -> resolve to email via /usernames
+    if (!id.includes('@')) {
+      const unameRef = doc(firestore, 'usernames', id.toLowerCase());
+      const unameSnap = await getDoc(unameRef);
+      if (!unameSnap.exists()) throw new Error('Username not found.');
+      const data = unameSnap.data() as { email?: string };
+      if (!data?.email) {
+        throw new Error('Username record incomplete. Please sign in with email.');
+      }
+      emailToUse = data.email;
+    }
+
+    return await signInWithEmailAndPassword(auth, emailToUse, password);
   };
 
+  const sendPasswordReset = async (email: string) => {
+    return sendPasswordResetEmail(auth, email);
+  };
+  
   const signOut = async () => {
     await fbSignOut(auth);
   };
 
-  return { signInWithEmail, signUpWithEmail, signInWithGoogle, signOut, sendPasswordReset };
+  return { signUpWithEmail, signInWithIdentifier, sendPasswordReset, signOut };
 };
 
 type MemoFirebase <T> = T & {__memo?: boolean};
