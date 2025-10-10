@@ -179,15 +179,17 @@ export const useAuthActions = () => {
 
   const signUpWithEmail = async (email: string, password: string, username: string) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    // Also update the user's profile with the username
-    await updateProfile(cred.user, { displayName: username });
-    // And create the root user doc immediately with the username
+    
+    // Create the root user doc immediately with the username
     const userRef = doc(firestore, 'users', cred.user.uid);
     await setDoc(userRef, {
         username: username,
         email: cred.user.email,
         createdAt: serverTimestamp()
     }, { merge: true });
+    
+    // Also update the user's Auth profile with the username
+    await updateProfile(cred.user, { displayName: username });
     
     // Also send email verification
     await sendEmailVerification(cred.user);
