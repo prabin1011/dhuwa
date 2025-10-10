@@ -1,13 +1,12 @@
-
 'use client';
 
-import { useUser, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useMemoFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Dashboard } from '@/components/dashboard/dashboard';
 import { Onboarding } from '@/components/onboarding/onboarding';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useDoc } from '@/firebase/provider';
 import { doc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';

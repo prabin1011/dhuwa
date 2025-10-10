@@ -1,11 +1,10 @@
-
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import { Auth, User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut as fbSignOut, updateProfile } from 'firebase/auth';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -171,6 +170,43 @@ export const useFirebaseApp = (): FirebaseApp => {
   return firebaseApp;
 };
 
+export const useAuthActions = () => {
+  const { auth, firestore } = useFirebase();
+
+  const signInWithEmail = async (email: string, password: string) => {
+    return await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const signUpWithEmail = async (email: string, password: string, username: string) => {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    // Also update the user's profile with the username
+    await updateProfile(cred.user, { displayName: username });
+    // And create the root user doc immediately with the username
+    const userRef = doc(firestore, 'users', cred.user.uid);
+    await setDoc(userRef, {
+        username: username,
+        email: cred.user.email,
+        createdAt: serverTimestamp()
+    }, { merge: true });
+    
+    // Also send email verification
+    await sendEmailVerification(cred.user);
+
+    return cred;
+  };
+
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    return await signInWithPopup(auth, provider);
+  };
+
+  const signOut = async () => {
+    await fbSignOut(auth);
+  };
+
+  return { signInWithEmail, signUpWithEmail, signInWithGoogle, signOut };
+};
+
 type MemoFirebase <T> = T & {__memo?: boolean};
 
 export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
@@ -191,3 +227,5 @@ export const useUser = (): UserHookResult => { // Renamed from useAuthUser
   const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
   return { user, isUserLoading, userError };
 };
+
+export * from './firestore/use-doc';

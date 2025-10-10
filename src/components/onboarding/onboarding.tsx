@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -208,8 +207,8 @@ export function Onboarding() {
     for (const habit in data.habitDetails) {
         const d = data.habitDetails[habit] || {};
         finalHabitDetails[habit] = {
-            packCost: Number(d.packCost) || 0,
-            itemsPerPack: Number(d.itemsPerPack) || 0,
+            packCost: String(d.packCost) || '0',
+            itemsPerPack: String(d.itemsPerPack) || '0',
             itemsPerDay: d.itemsPerDay || '',
         };
     }
@@ -227,7 +226,6 @@ export function Onboarding() {
           title: 'Profile Saved!',
           description: "You're all set. Let's get started!",
         });
-        // No redirect needed, the parent page will re-render with the new profile
         // A page refresh might be the simplest way to force the parent to re-evaluate
         window.location.reload();
     } catch (error: any) {
