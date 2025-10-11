@@ -86,8 +86,11 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
         
         const getCostPerItem = (habit: string) => {
             const details = userProfile.habitDetails?.[habit];
-            if (!details || !details.packCost || !details.itemsPerPack) return 0;
-            return details.packCost / details.itemsPerPack;
+            if (!details) return 0;
+            const packCost = Number(details.packCost) || 0;
+            const itemsPerPack = Number(details.itemsPerPack) || 0;
+            if (itemsPerPack === 0) return 0;
+            return packCost / itemsPerPack;
         };
         
         const getDailyBaseline = (habit: string) => {
@@ -243,3 +246,5 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
         </Card>
     )
 }
+
+    

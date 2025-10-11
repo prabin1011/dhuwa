@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -204,12 +203,19 @@ export function Onboarding() {
     
     const data = getValues();
 
+    if (!data.goal) {
+      toast({ variant: 'destructive', title: 'Goal required', description: 'Please pick a goal before finishing.' });
+      setCurrentStep(allSteps.findIndex(s => s.field === 'goal') + 1); // Go to goal step
+      setIsSubmitting(false);
+      return;
+    }
+
     const finalHabitDetails: OnboardingData['habitDetails'] = {};
     for (const habit in data.habitDetails) {
         const d = data.habitDetails[habit] || {};
         finalHabitDetails[habit] = {
-            packCost: String(d.packCost) || '0',
-            itemsPerPack: String(d.itemsPerPack) || '0',
+            packCost: Number(d.packCost) || 0,
+            itemsPerPack: Number(d.itemsPerPack) || 0,
             itemsPerDay: d.itemsPerDay || '',
         };
     }
@@ -364,3 +370,5 @@ export function Onboarding() {
     </div>
   );
 }
+
+    

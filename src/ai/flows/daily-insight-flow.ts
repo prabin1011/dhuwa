@@ -5,7 +5,6 @@
 import { ai } from '@/ai/genkit';
 import { DailyInsightInputSchema, type DailyInsightInput } from '@/ai/types/daily-insight-types';
 import { z } from 'zod';
-import { geminiPro, gemini15Flash } from '@genkit-ai/google-genai';
 
 // Genkit Prompt
 const insightPrompt = ai.definePrompt({
@@ -59,3 +58,5 @@ const dailyInsightFlow = ai.defineFlow(
 export async function getDailyInsight(input: DailyInsightInput): Promise<string> {
   return dailyInsightFlow(input);
 }
+
+    

@@ -79,8 +79,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             const finalHabitDetails: OnboardingData['habitDetails'] = {};
             for (const habit in data.habitDetails) {
                 finalHabitDetails[habit] = {
-                    packCost: parseFloat(String(data.habitDetails[habit].packCost) || '0'),
-                    itemsPerPack: parseInt(String(data.habitDetails[habit].itemsPerPack) || '0', 10),
+                    packCost: Number(data.habitDetails[habit].packCost) || 0,
+                    itemsPerPack: Number(data.habitDetails[habit].itemsPerPack) || 0,
                     itemsPerDay: data.habitDetails[habit].itemsPerDay
                 }
             }
@@ -380,3 +380,5 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     </Sheet>
   );
 }
+
+    
