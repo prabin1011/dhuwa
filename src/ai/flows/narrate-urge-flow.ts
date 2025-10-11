@@ -6,6 +6,8 @@ import { getAI } from '@/ai/genkit';
 import { z } from 'zod';
 import { NarrateUrgeInputSchema, type NarrateUrgeInput } from '@/ai/types/narrate-urge-types';
 
+const ai = getAI();
+
 const narrateUrgePrompt = `Create a single first-person sentence about this smoking moment.
 Moods: before={{moodBefore}}, after={{moodAfter}}. Habit: {{habitType}}.
 Empathetic, non-judgmental, concise. No preamble.`;
@@ -18,7 +20,6 @@ const narrateUrgeFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const ai = getAI();
       const {text} = await ai.generate({
         model: 'googleai/gemini-1.5-flash',
         prompt: narrateUrgePrompt,

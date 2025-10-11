@@ -6,6 +6,8 @@ import { getAI } from '@/ai/genkit';
 import { DailyInsightInputSchema, type DailyInsightInput } from '@/ai/types/daily-insight-types';
 import { z } from 'zod';
 
+const ai = getAI();
+
 // Genkit Prompt
 const insightPrompt = (userProfile: DailyInsightInput['userProfile']) => `You are an expert quit-smoking coach. Tone: ${userProfile.preferredTone}.
 Provide 1-3 short sentences based strictly on these facts.
@@ -26,7 +28,6 @@ const dailyInsightFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-        const ai = getAI();
         // Sanitize input
         const sanitizedInput = {
             ...input,
