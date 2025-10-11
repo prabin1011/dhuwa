@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useMemoFirebase } from '@/firebase';
@@ -20,10 +19,10 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const { signOut } = useAuthActions();
 
-  // This is the correct path for the user profile data from onboarding.
+  // This is the correct path for the user profile data.
   const userProfileRef = useMemoFirebase(() => {
     if (!user) return null;
-    return doc(firestore, 'users', user.uid, 'profile', 'main');
+    return doc(firestore, 'users', user.uid);
   }, [firestore, user]);
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc(userProfileRef);
