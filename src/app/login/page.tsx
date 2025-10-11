@@ -45,10 +45,15 @@ export default function LoginPage() {
         <TabsContent value="signin">
           <form
             className="space-y-3 mt-4"
-            action={async (fd: FormData) => {
+            onSubmit={async (e) => {
+              e.preventDefault();
               setLoading(true);
+              const fd = new FormData(e.currentTarget as HTMLFormElement);
               try {
-                await signInWithEmail(String(fd.get('email') || '').trim(), String(fd.get('password') || ''));
+                await signInWithEmail(
+                  String(fd.get('email') || '').trim(),
+                  String(fd.get('password') || '')
+                );
                 router.replace('/dashboard');
               } catch (e: any) {
                 toast({ variant: 'destructive', title: 'Login failed', description: e?.message ?? 'Check your credentials.' });
@@ -93,8 +98,10 @@ export default function LoginPage() {
         <TabsContent value="signup">
           <form
             className="space-y-3 mt-4"
-            action={async (fd: FormData) => {
+            onSubmit={async (e) => {
+              e.preventDefault();
               setLoading(true);
+              const fd = new FormData(e.currentTarget as HTMLFormElement);
               const email = String(fd.get('email') || '').trim();
               const password = String(fd.get('password') || '');
               const confirm = String(fd.get('confirm') || '');
