@@ -18,7 +18,6 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* Never redirect here. Show buttons instead. */}
       <div className="flex flex-col gap-3 w-full max-w-xs">
         {isUserLoading ? (
            <Button size="lg" disabled>Loading...</Button>
@@ -28,7 +27,7 @@ export default function HomePage() {
           </Button>
         ) : (
           <Button asChild size="lg">
-            <Link href="/dashboard">Continue as {user.displayName || 'User'}</Link>
+            <Link href="/dashboard">Continue to Dashboard</Link>
           </Button>
         )}
       </div>
