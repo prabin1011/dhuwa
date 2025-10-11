@@ -18,6 +18,10 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    // This is to allow cross-origin requests in the dev environment.
+    allowedDevOrigins: ["**"],
+  },
 };
 
 export default nextConfig;
