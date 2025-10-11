@@ -4,8 +4,9 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
-  title: 'AI Coach',
-  description: 'An AI coach to help you on your journey.',
+  title: 'Dhuwa - AI Quit Smoking Coach',
+  description: 'A mindful companion to help you understand your habits, find your balance, and reclaim your freedom from smoking.',
+  keywords: ['quit smoking', 'stop smoking', 'smoking cessation', 'habit tracker', 'ai coach'],
 };
 
 export default function RootLayout({
