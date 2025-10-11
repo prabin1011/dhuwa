@@ -2,7 +2,7 @@
 
 import { useUser, useMemoFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Dashboard } from '@/components/dashboard/dashboard';
 import { Onboarding } from '@/components/onboarding/onboarding';
 import { useAuthActions, useFirestore, useDoc } from '@/firebase/provider';
@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { sendEmailVerification } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import { X } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, isUserLoading } = useUser();
@@ -18,6 +19,7 @@ export default function DashboardPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const { signOut } = useAuthActions();
+  const [showVerificationBanner, setShowVerificationBanner] = useState(false);
 
   // This is the correct path for the user profile data.
   const userProfileRef = useMemoFirebase(() => {
@@ -33,6 +35,18 @@ export default function DashboardPage() {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
+
+  // Only require email verification for users who signed up with an email/password
+  const providerId = user?.providerData?.[0]?.providerId;
+  const requiresVerification = providerId === 'password' && !!user?.email;
+
+  useEffect(() => {
+    if (requiresVerification && user && !user.emailVerified) {
+      setShowVerificationBanner(true);
+    } else {
+      setShowVerificationBanner(false);
+    }
+  }, [requiresVerification, user]);
   
   const handleResendVerification = async () => {
     if (user) {
@@ -72,27 +86,6 @@ export default function DashboardPage() {
     return null;
   }
 
-  // Only require email verification for users who signed up with an email/password
-  const providerId = user?.providerData?.[0]?.providerId;
-  const requiresVerification = providerId === 'password' && !!user?.email;
-
-  if (requiresVerification && !user.emailVerified) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center p-4">
-        <Alert className="max-w-md">
-          <AlertTitle>Verify Your Email</AlertTitle>
-          <AlertDescription>
-            A verification link has been sent to <strong>{user.email}</strong>. Please check your inbox and click the link to continue.
-          </AlertDescription>
-          <div className="mt-4 flex flex-col sm:flex-row gap-2">
-            <Button onClick={handleResendVerification}>Resend Verification Email</Button>
-            <Button variant="outline" onClick={handleSignOut}>Use a different account</Button>
-          </div>
-        </Alert>
-      </div>
-    );
-  }
-
   // If the user's profile document does NOT exist OR is incomplete, they need to do onboarding.
   if (user && (!userProfile || !userProfile.goal)) {
     return <Onboarding />;
@@ -101,9 +94,31 @@ export default function DashboardPage() {
   // If user is logged in and has a full profile, show the dashboard.
   if (user && userProfile) {
     return (
-      <div className="h-screen w-screen bg-background">
-        <Dashboard user={user} userProfile={{...userProfile, id: user.uid}} />
-      </div>
+      <>
+       {showVerificationBanner && (
+         <div className='w-full p-4 fixed top-0 z-50 bg-background/80 backdrop-blur-sm'>
+            <Alert variant="default" className="max-w-md mx-auto relative pr-10">
+                <AlertTitle>Verify Your Email</AlertTitle>
+                <AlertDescription>
+                    Please check your inbox for a verification link to unlock all features.
+                </AlertDescription>
+                <div className="mt-4 flex gap-2">
+                    <Button size="sm" onClick={handleResendVerification}>Resend Email</Button>
+                </div>
+                 <button
+                    onClick={() => setShowVerificationBanner(false)}
+                    className="absolute top-2 right-2 p-1 rounded-md text-muted-foreground hover:bg-secondary"
+                    aria-label="Dismiss"
+                >
+                    <X className="h-4 w-4" />
+                </button>
+            </Alert>
+         </div>
+       )}
+        <div className="h-screen w-screen bg-background">
+          <Dashboard user={user} userProfile={{...userProfile, id: user.uid}} />
+        </div>
+      </>
     );
   }
   
