@@ -4,13 +4,13 @@ import type { FirebaseOptions } from 'firebase/app';
 // This function is for the service worker and should only include serializable config.
 export function getFirebaseConfig(): FirebaseOptions {
   const firebaseConfig: FirebaseOptions = {
-    apiKey: "AIzaSyBg1EMa0HcTFTzwqTIIjqbGMqs92VNCVwM",
-    authDomain: "dhuwa-app.firebaseapp.com",
-    projectId: "dhuwa-app",
-    storageBucket: "dhuwa-app.appspot.com",
-    messagingSenderId: "856277572255",
-    appId: "1:856277572255:web:8257f924b807ccfaa620aa",
-    measurementId: "G-PJ8R05LFX9"
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
   };
 
   if (!firebaseConfig.apiKey) {
@@ -21,5 +21,5 @@ export function getFirebaseConfig(): FirebaseOptions {
 
 export function getVapidKey(): string | undefined {
     // This VAPID key is a public key, it's safe to be here.
-    return "BPA9w_tGzYcDxA40f_1KjBqC-A1g_n_pZ2zX7J3cR1rJzR_kL5pZ2l5fJ5d9Z1wX8xX5gZ7J9yX7j4";
+    return process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
 }

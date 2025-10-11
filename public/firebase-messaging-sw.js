@@ -1,27 +1,51 @@
 
-// A service worker is required for background push notifications.
-// For more details, see: https://firebase.google.com/docs/cloud-messaging/js/client
-import { initializeApp } from "firebase/app";
-import { getMessaging } from "firebase/messaging/sw";
+// A DEV-only stand-in for the real service worker
+// In a real app, you would use a build process (like Vite or Webpack)
+// to compile the service worker from TypeScript source.
 
-// **IMPORTANT**: This file must be in the /public folder.
+// For now, this is a vanilla JS service worker.
 
-// The Firebase configuration from your project settings.
-const firebaseConfig = {
-  apiKey: "AIzaSyBg1EMa0HcTFTzwqTIIjqbGMqs92VNCVwM",
-  authDomain: "studio-7251750297-88bd3.firebaseapp.com",
-  projectId: "studio-7251750297-88bd3",
-  storageBucket: "studio-7251750297-88bd3.appspot.com",
-  messagingSenderId: "856277572255",
-  appId: "1:856277572255:web:8257f924b807ccfaa620aa",
-  measurementId: "G-PJ8R05LFX9"
-};
+// IMPORTANT: Do not use 'import' statements in this file.
+// It's a service worker, not a module.
 
-// Initialize the Firebase app in the service worker
-const app = initializeApp(firebaseConfig);
+self.addEventListener('push', (event) => {
+  console.log('[SW] Push Received.');
+  console.log(`[SW] Push had this data: "${event.data.text()}"`);
 
-// Initialize Firebase Cloud Messaging and get a reference to the service
-const messaging = getMessaging(app);
+  const { title, body, icon, image, ...options } = event.data.json().notification;
+  
+  const finalTitle = title || 'Dhuwa';
+  const finalOptions = {
+    body: body || 'You have a new message.',
+    icon: icon || '/icons/icon-192x192.png',
+    badge: '/icons/badge-72x72.png',
+    ...options
+  };
 
-// The service worker doesn't need to do anything else.
-// Firebase's `onBackgroundMessage` handler is managed internally.
+  event.waitUntil(self.registration.showNotification(finalTitle, finalOptions));
+});
+
+
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] Notification click Received.');
+
+  event.notification.close();
+
+  // This looks for an existing window and focuses it.
+  // If no window is found, it opens a new one.
+  event.waitUntil(
+    clients.matchAll({
+      type: "window"
+    }).then((clientList) => {
+      // Check if there's a window open for this origin.
+      for (const client of clientList) {
+        if (client.url === '/' && 'focus' in client)
+          return client.focus();
+      }
+      // If not, open a new one.
+      if (clients.openWindow)
+        return clients.openWindow('/');
+    })
+  );
+});
+
