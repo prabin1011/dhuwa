@@ -174,8 +174,6 @@ export const useAuthActions = () => {
   const { auth, firestore } = useFirebase();
 
   const signUpWithEmail = async (email: string, password: string, username: string) => {
-    const usernameLower = username.trim().toLowerCase();
-    
     // Create the auth user
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
@@ -185,7 +183,6 @@ export const useAuthActions = () => {
     await setDoc(userRef, {
       email,
       username,
-      usernameLower,
       createdAt: serverTimestamp(),
     }, { merge: true });
 
