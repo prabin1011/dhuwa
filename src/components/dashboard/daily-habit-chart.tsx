@@ -44,9 +44,11 @@ export function DailyHabitChart({ urges, selectedDate, habits }: DailyHabitChart
     const { dailyData, description } = useMemo(() => {
         const data = [];
         const today = new Date();
+        const safeUrges = urges.filter(urge => urge.timestamp?.toDate); // Ensure timestamp is valid
+
         for (let i = 29; i >= 0; i--) {
             const date = subDays(today, i);
-            const dayUrges = urges.filter(urge => urge.timestamp && isSameDay(urge.timestamp.toDate(), date));
+            const dayUrges = safeUrges.filter(urge => isSameDay(urge.timestamp.toDate(), date));
             
             const counts = habits.reduce((acc, habit) => {
                 acc[habit] = dayUrges

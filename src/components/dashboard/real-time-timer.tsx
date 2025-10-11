@@ -43,14 +43,17 @@ export function RealTimeTimer({ sortedUrges, selectedDate, onSelectDate }: RealT
   }, []);
 
   const { lastUrgeTime, previousInterval } = useMemo(() => {
-    if (sortedUrges.length === 0) {
+    // Defensively filter for urges that have a valid timestamp with a toDate method.
+    const validUrges = sortedUrges.filter(urge => urge.timestamp && typeof urge.timestamp.toDate === 'function');
+
+    if (validUrges.length === 0) {
       return { lastUrgeTime: undefined, previousInterval: null };
     }
-    const lastUrge = sortedUrges[0]?.timestamp?.toDate();
-    if (sortedUrges.length < 2) {
+    const lastUrge = validUrges[0].timestamp.toDate();
+    if (validUrges.length < 2) {
       return { lastUrgeTime: lastUrge, previousInterval: null };
     }
-    const secondLastUrge = sortedUrges[1]?.timestamp?.toDate();
+    const secondLastUrge = validUrges[1].timestamp.toDate();
     const interval = formatDistanceStrict(lastUrge, secondLastUrge);
     return { lastUrgeTime: lastUrge, previousInterval: interval };
   }, [sortedUrges]);

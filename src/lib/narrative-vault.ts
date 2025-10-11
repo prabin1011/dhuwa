@@ -61,7 +61,7 @@ export function getNarrative(moodBefore: Mood, moodAfter: Mood = '...'): Narrati
     
     // This check prevents crashing if the mood key somehow doesn't exist.
     if (!templateOptions || templateOptions.length === 0) {
-        return templates.default[0];
+        return templates.default[0] || { short: "Moment logged.", long: "This moment has been recorded."};
     }
     
     // Pick a random template from the options for the given mood
