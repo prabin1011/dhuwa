@@ -5,9 +5,9 @@ import type { FirebaseOptions } from 'firebase/app';
 export function getFirebaseConfig(): FirebaseOptions {
   const firebaseConfig: FirebaseOptions = {
     apiKey: "AIzaSyBg1EMa0HcTFTzwqTIIjqbGMqs92VNCVwM",
-    authDomain: "studio-7251750297-88bd3.firebaseapp.com",
-    projectId: "studio-7251750297-88bd3",
-    storageBucket: "studio-7251750297-88bd3.appspot.com",
+    authDomain: "dhuwa-app.firebaseapp.com",
+    projectId: "dhuwa-app",
+    storageBucket: "dhuwa-app.appspot.com",
     messagingSenderId: "856277572255",
     appId: "1:856277572255:web:8257f924b807ccfaa620aa",
     measurementId: "G-PJ8R05LFX9"
@@ -20,5 +20,6 @@ export function getFirebaseConfig(): FirebaseOptions {
 }
 
 export function getVapidKey(): string | undefined {
-    return process.env.NEXT_PUBLIC_VAPID_KEY;
+    // This VAPID key is a public key, it's safe to be here.
+    return "BPA9w_tGzYcDxA40f_1KjBqC-A1g_n_pZ2zX7J3cR1rJzR_kL5pZ2l5fJ5d9Z1wX8xX5gZ7J9yX7j4";
 }
