@@ -1,37 +1,27 @@
 
-// This file needs to be in the public directory.
+// A service worker is required for background push notifications.
+// For more details, see: https://firebase.google.com/docs/cloud-messaging/js/client
+import { initializeApp } from "firebase/app";
+import { getMessaging } from "firebase/messaging/sw";
 
-// Give the service worker access to Firebase Messaging.
-// Note that you can only use Firebase Messaging here, other Firebase libraries
-// are not available in the service worker.
-importScripts('https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.15.0/firebase-messaging-compat.js');
+// **IMPORTANT**: This file must be in the /public folder.
 
-// Initialize the Firebase app in the service worker with your project's configuration.
-// These variables are replaced by the build process.
+// The Firebase configuration from your project settings.
 const firebaseConfig = {
-  apiKey: "%NEXT_PUBLIC_FIREBASE_API_KEY%",
-  authDomain: "%NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN%",
-  projectId: "%NEXT_PUBLIC_FIREBASE_PROJECT_ID%",
-  storageBucket: "%NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET%",
-  messagingSenderId: "%NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID%",
-  appId: "%NEXT_PUBLIC_FIREBASE_APP_ID%",
-  measurementId: "%NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID%"
+  apiKey: "AIzaSyBg1EMa0HcTFTzwqTIIjqbGMqs92VNCVwM",
+  authDomain: "studio-7251750297-88bd3.firebaseapp.com",
+  projectId: "studio-7251750297-88bd3",
+  storageBucket: "studio-7251750297-88bd3.appspot.com",
+  messagingSenderId: "856277572255",
+  appId: "1:856277572255:web:8257f924b807ccfaa620aa",
+  measurementId: "G-PJ8R05LFX9"
 };
 
-firebase.initializeApp(firebaseConfig);
+// Initialize the Firebase app in the service worker
+const app = initializeApp(firebaseConfig);
 
-// Retrieve an instance of Firebase Messaging so that it can handle background messages.
-const messaging = firebase.messaging();
+// Initialize Firebase Cloud Messaging and get a reference to the service
+const messaging = getMessaging(app);
 
-messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  // Customize notification here
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/logo.png' // Ensure you have a logo.png in your public folder
-  };
-
-  self.registration.showNotification(notificationTitle, notificationOptions);
-});
+// The service worker doesn't need to do anything else.
+// Firebase's `onBackgroundMessage` handler is managed internally.
