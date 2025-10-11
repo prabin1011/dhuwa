@@ -10,10 +10,7 @@ const narrateUrgePrompt = `Create a single first-person sentence about this smok
 Moods: before={{moodBefore}}, after={{moodAfter}}. Habit: {{habitType}}.
 Empathetic, non-judgmental, concise. No preamble.`;
 
-/**
- * Generate a short first-person narrative for an urge.
- * AI client is initialized lazily at call time.
- */
+/** Generate a short first-person narrative for an urge (lazy AI init). */
 export async function narrateUrge(
   rawInput: NarrateUrgeInput
 ): Promise<string> {

@@ -16,15 +16,11 @@ ${userProfile.moments?.length ? `Planned moments: ${userProfile.moments.length}.
 If clear wins -> celebrate; if clear trigger/pattern -> name it; if struggling -> encourage;
 otherwise give one practical tip for tomorrow. No preamble.`;
 
-/**
- * Generate the daily insight text. Validates input and
- * lazily initializes the AI client at call time.
- */
+/** Generate the daily insight. Validates input and lazily inits AI at call time. */
 export async function getDailyInsight(
   rawInput: DailyInsightInput
 ): Promise<string> {
   try {
-    // Validate/sanitize input (defensive)
     const parsed = DailyInsightInputSchema.parse(rawInput);
 
     const sanitized: DailyInsightInput = {
