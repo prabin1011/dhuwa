@@ -1,3 +1,4 @@
+
 import 'server-only';
 import { genkit, type Ai } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
@@ -8,16 +9,13 @@ let _ai: Ai | null = null;
 export function getAI(): Ai {
   if (_ai) return _ai;
 
-  // Accept either name to avoid typos/mismatches
-  const apiKey =
-    process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_GENAI_API_KEY ||
-    process.env.GOOGLE_API_KEY; // optional fallback if you happen to use this
+  // Use a single, specific environment variable to avoid ambiguity.
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     // Throw so the caller (route) can return 503 with a specific message
     throw new Error(
-      'Missing Gemini API key. Set GEMINI_API_KEY (or GOOGLE_GENAI_API_KEY) in Vercel env for this environment and redeploy.'
+      'Missing Gemini API key. Set GEMINI_API_KEY in Vercel env for this environment and redeploy.'
     );
   }
 
