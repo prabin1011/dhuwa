@@ -1,15 +1,14 @@
 'use server';
-/**
- * @fileOverview Generates a personalized daily insight for the user based on their recent activity.
- */
+
 import { getAI } from '@/ai/genkit';
-import { DailyInsightInputSchema, type DailyInsightInput } from '@/ai/types/daily-insight-types';
 import { z } from 'zod';
+import {
+  DailyInsightInputSchema,
+  type DailyInsightInput,
+} from '@/ai/types/daily-insight-types';
 
-const ai = getAI();
-
-// Genkit Prompt
-const insightPrompt = (userProfile: DailyInsightInput['userProfile']) => `You are an expert quit-smoking coach. Tone: ${userProfile.preferredTone}.
+const insightPrompt = (userProfile: DailyInsightInput['userProfile']) =>
+  `You are an expert quit-smoking coach. Tone: ${userProfile.preferredTone}.
 Provide 1-3 short sentences based strictly on these facts.
 Goal: ${userProfile.goal}. Motivation: ${userProfile.motivation}.
 Time since last smoke: {{timeSinceLastUrge}}.
@@ -18,48 +17,44 @@ ${userProfile.moments?.length ? `Planned moments: ${userProfile.moments.length}.
 If clear wins -> celebrate; if clear trigger/pattern -> name it; if struggling -> encourage;
 otherwise give one practical tip for tomorrow. No preamble.`;
 
+/**
+ * Generate the daily insight text. Validates input and
+ * lazily initializes the AI client at call time.
+ */
+export async function getDailyInsight(
+  rawInput: DailyInsightInput
+): Promise<string> {
+  try {
+    // Validate/sanitize input (defensive)
+    const parsed = DailyInsightInputSchema.parse(rawInput);
 
-// Genkit Flow
-const dailyInsightFlow = ai.defineFlow(
-  {
-    name: 'dailyInsightFlow',
-    inputSchema: DailyInsightInputSchema,
-    outputSchema: z.string(),
-  },
-  async (input) => {
-    try {
-        // Sanitize input
-        const sanitizedInput = {
-            ...input,
-            recentUrges: input.recentUrges.slice(0, 10),
-            userProfile: {
-                goal: input.userProfile.goal ?? 'not set',
-                motivation: input.userProfile.motivation ?? 'not set',
-                preferredTone: input.userProfile.preferredTone ?? 'friendly',
-                itemsPerDay: input.userProfile.itemsPerDay ?? 'unknown',
-                moments: input.userProfile.moments ?? [],
-            }
-        };
-        
-        const { text } = await ai.generate({
-          model: 'googleai/gemini-1.5-flash', // Specify the model to use
-          prompt: insightPrompt(sanitizedInput.userProfile),
-          input: sanitizedInput,
-          config: {
-            temperature: 0.3,
-            maxOutputTokens: 160,
-          }
-        });
+    const sanitized: DailyInsightInput = {
+      ...parsed,
+      recentUrges: parsed.recentUrges.slice(0, 10),
+      userProfile: {
+        goal: parsed.userProfile.goal ?? 'not set',
+        motivation: parsed.userProfile.motivation ?? 'not set',
+        preferredTone: parsed.userProfile.preferredTone ?? 'friendly',
+        itemsPerDay: parsed.userProfile.itemsPerDay ?? 'unknown',
+        moments: parsed.userProfile.moments ?? [],
+      },
+    };
 
-        return text.trim();
-    } catch (e: any) {
-        console.error("Daily Insight Flow Error:", e.message);
-        // Return a safe, user-friendly message on failure
-        return "Could not generate an insight at this time. Please check your setup.";
-    }
+    const ai = getAI();
+
+    const { text } = await ai.generate({
+      model: 'googleai/gemini-1.5-flash',
+      prompt: insightPrompt(sanitized.userProfile),
+      input: sanitized,
+      config: {
+        temperature: 0.3,
+        maxOutputTokens: 160,
+      },
+    });
+
+    return (text || '').trim() || 'No insight available today.';
+  } catch (e: any) {
+    console.error('Daily Insight Error:', e?.message ?? e);
+    return 'Could not generate a daily insight right now.';
   }
-);
-
-export async function getDailyInsight(input: DailyInsightInput): Promise<string> {
-  return dailyInsightFlow(input);
 }
