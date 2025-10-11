@@ -1,12 +1,12 @@
 'use client';
 
-import { useUser, useMemoFirebase } from '@/firebase';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { useDoc } from '@/firebase/provider';
 import { Dashboard } from '@/components/dashboard/dashboard';
 import { Onboarding } from '@/components/onboarding/onboarding';
-import { useAuthActions, useFirestore, useDoc } from '@/firebase/provider';
-import { doc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { sendEmailVerification } from 'firebase/auth';
@@ -18,25 +18,17 @@ export default function DashboardPage() {
   const router = useRouter();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { signOut } = useAuthActions();
   const [showVerificationBanner, setShowVerificationBanner] = useState(false);
 
-  // This is the correct path for the user profile data.
-  const userProfileRef = useMemoFirebase(() => {
-    if (!user) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user]);
 
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc(userProfileRef);
-
+  // If unauthenticated, go to login. No spinner forever.
   useEffect(() => {
-    // If auth is done loading and there is no user, redirect to login page.
     if (!isUserLoading && !user) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [user, isUserLoading, router]);
-
-  // Only require email verification for users who signed up with an email/password
+  
+  // Show verification banner if needed
   const providerId = user?.providerData?.[0]?.providerId;
   const requiresVerification = providerId === 'password' && !!user?.email;
 
@@ -47,7 +39,7 @@ export default function DashboardPage() {
       setShowVerificationBanner(false);
     }
   }, [requiresVerification, user]);
-  
+
   const handleResendVerification = async () => {
     if (user) {
       try {
@@ -65,37 +57,23 @@ export default function DashboardPage() {
       }
     }
   };
-  
-  const handleSignOut = async () => {
-    await signOut();
-    router.push('/login'); // Redirect to login after signing out
-  };
 
-  // Show a global loading skeleton while auth state or profile is loading
-  if (isUserLoading || (user && isProfileLoading)) {
-    return (
-      <div className="h-screen w-screen bg-background flex items-center justify-center">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-  
-  // If auth is resolved and there's no user, the useEffect above will redirect.
-  // This prevents rendering anything further for a logged-out user.
-  if (!user) {
-    return null;
-  }
+  if (isUserLoading) return <div className="h-screen w-screen grid place-items-center">Loading…</div>;
+  if (!user) return null;
 
-  // If the user's profile document does NOT exist OR is incomplete, they need to do onboarding.
-  if (user && (!userProfile || !userProfile.goal)) {
+  const ref = useMemoFirebase(() => doc(firestore, 'users', user.uid), [firestore, user]);
+  const { data: profile, isLoading } = useDoc(ref);
+
+  if (isLoading) return <div className="h-screen w-screen grid place-items-center">Loading…</div>;
+
+  // If no profile or not onboarded yet, show onboarding.
+  if (!profile || !profile.goal) {
     return <Onboarding />;
   }
 
-  // If user is logged in and has a full profile, show the dashboard.
-  if (user && userProfile) {
-    return (
-      <>
-       {showVerificationBanner && (
+  return (
+    <>
+      {showVerificationBanner && (
          <div className='w-full p-4 fixed top-0 z-50 bg-background/80 backdrop-blur-sm'>
             <Alert variant="default" className="max-w-md mx-auto relative pr-10">
                 <AlertTitle>Verify Your Email</AlertTitle>
@@ -115,13 +93,9 @@ export default function DashboardPage() {
             </Alert>
          </div>
        )}
-        <div className="h-screen w-screen bg-background">
-          <Dashboard user={user} userProfile={{...userProfile, id: user.uid}} />
-        </div>
-      </>
-    );
-  }
-  
-  // Fallback case (should not be reached)
-  return null;
+      <div className="h-screen w-screen bg-background">
+        <Dashboard user={user} userProfile={{ ...profile, id: user.uid }} />
+      </div>
+    </>
+  );
 }

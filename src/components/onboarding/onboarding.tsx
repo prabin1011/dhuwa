@@ -209,41 +209,22 @@ export function Onboarding() {
       setIsSubmitting(false);
       return;
     }
-
+    
     const finalHabitDetails: OnboardingData['habitDetails'] = {};
     for (const habit in data.habitDetails) {
         const d = data.habitDetails[habit] || {};
         finalHabitDetails[habit] = {
-            packCost: Number(d.packCost) || 0,
-            itemsPerPack: Number(d.itemsPerPack) || 0,
+            packCost: String(d.packCost) || '0',
+            itemsPerPack: String(d.itemsPerPack) || '0',
             itemsPerDay: d.itemsPerDay || '',
         };
     }
 
-    const profileData = {
-      ...data,
-      habitDetails: finalHabitDetails,
-    };
-    
     const profileRef = doc(firestore, 'users', user.uid);
-    
-    try {
-        await setDoc(profileRef, profileData, { merge: true });
-        toast({
-          title: 'Profile Saved!',
-          description: "You're all set. Let's get started!",
-        });
-        window.location.href = '/dashboard';
-    } catch (error: any) {
-        console.error('save profile failed:', (error as any)?.code, (error as any)?.message, error);
-        toast({
-          variant: 'destructive',
-          title: 'Save Error',
-          description: 'Could not save your profile. Please try again.',
-        });
-    } finally {
-        setIsSubmitting(false);
-    }
+    const profileData = { ...data, habitDetails: finalHabitDetails, hasOnboarded: true };
+
+    await setDoc(profileRef, profileData, { merge: true });
+    window.location.replace('/dashboard');
   };
   
   const getSummaryValue = (key: keyof OnboardingData) => {
@@ -370,5 +351,3 @@ export function Onboarding() {
     </div>
   );
 }
-
-    

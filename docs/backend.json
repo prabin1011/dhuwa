@@ -10,9 +10,9 @@
           "type": "string",
           "description": "The user's chosen display name."
         },
-        "usernameLower": {
-          "type": "string",
-          "description": "The user's username in lowercase for case-insensitive queries."
+        "hasOnboarded": {
+          "type": "boolean",
+          "description": "Whether the user has completed the initial onboarding flow."
         },
         "createdAt": {
           "type": "string",

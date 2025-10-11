@@ -20,22 +20,16 @@ export default function HomePage() {
 
       <div className="flex flex-col gap-3 w-full max-w-xs">
         {isUserLoading ? (
-           <Button size="lg" disabled>Loading...</Button>
-        ) : !user ? (
-          <Button asChild size="lg">
-            <Link href="/login">Login or Sign Up</Link>
-          </Button>
+          <Button size="lg" disabled>Loading…</Button>
+        ) : user ? (
+          <Button asChild size="lg"><Link href="/dashboard">Continue to Dashboard</Link></Button>
         ) : (
-          <Button asChild size="lg">
-            <Link href="/dashboard">Continue to Dashboard</Link>
-          </Button>
+          <Button asChild size="lg"><Link href="/login">Login or Sign Up</Link></Button>
         )}
       </div>
 
       <footer className="absolute bottom-8 text-xs text-muted-foreground">
-        <Link href="/about" className="hover:underline">About</Link>
-        {' · '}
-        <Link href="/terms" className="hover:underline">Terms</Link>
+        <Link href="/about" className="hover:underline">About</Link> · <Link href="/terms" className="hover:underline">Terms</Link>
       </footer>
     </div>
   );
