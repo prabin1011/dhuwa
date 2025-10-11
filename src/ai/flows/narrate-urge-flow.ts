@@ -10,7 +10,6 @@ const narrateUrgePrompt = `Create a single first-person sentence about this smok
 Moods: before={{moodBefore}}, after={{moodAfter}}. Habit: {{habitType}}.
 Empathetic, non-judgmental, concise. No preamble.`;
 
-/** Generate a short first-person narrative for an urge (lazy AI init). */
 export async function narrateUrge(
   rawInput: NarrateUrgeInput
 ): Promise<string> {
@@ -22,10 +21,7 @@ export async function narrateUrge(
       model: 'googleai/gemini-1.5-flash',
       prompt: narrateUrgePrompt,
       input,
-      config: {
-        temperature: 0.3,
-        maxOutputTokens: 60,
-      },
+      config: { temperature: 0.3, maxOutputTokens: 60 },
     });
 
     return (text || '').trim() || `I noticed that moment and how it felt.`;

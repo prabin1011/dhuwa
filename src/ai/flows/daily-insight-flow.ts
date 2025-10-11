@@ -16,7 +16,6 @@ ${userProfile.moments?.length ? `Planned moments: ${userProfile.moments.length}.
 If clear wins -> celebrate; if clear trigger/pattern -> name it; if struggling -> encourage;
 otherwise give one practical tip for tomorrow. No preamble.`;
 
-/** Generate the daily insight. Validates input and lazily inits AI at call time. */
 export async function getDailyInsight(
   rawInput: DailyInsightInput
 ): Promise<string> {
@@ -41,10 +40,7 @@ export async function getDailyInsight(
       model: 'googleai/gemini-1.5-flash',
       prompt: insightPrompt(sanitized.userProfile),
       input: sanitized,
-      config: {
-        temperature: 0.3,
-        maxOutputTokens: 160,
-      },
+      config: { temperature: 0.3, maxOutputTokens: 160 },
     });
 
     return (text || '').trim() || 'No insight available today.';
