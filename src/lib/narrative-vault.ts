@@ -55,8 +55,14 @@ const templates: Record<string, Narrative[]> = {
 };
 
 export function getNarrative(moodBefore: Mood, moodAfter: Mood = '...'): Narrative {
+    // Ensure moodBefore is a valid key, otherwise use 'default'
     const beforeKey = moodBefore && templates[moodBefore] ? moodBefore : 'default';
     const templateOptions = templates[beforeKey];
+    
+    // This check prevents crashing if the mood key somehow doesn't exist.
+    if (!templateOptions || templateOptions.length === 0) {
+        return templates.default[0];
+    }
     
     // Pick a random template from the options for the given mood
     const chosenTemplate = templateOptions[Math.floor(Math.random() * templateOptions.length)];
