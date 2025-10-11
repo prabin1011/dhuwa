@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getDailyInsight } from '@/ai/flows/daily-insight-flow';
 import type { DailyInsightInput } from '@/ai/types/daily-insight-types';
+import { ai } from '@/ai/genkit';
 
 const MomentSchema = z.object({
   id: z.string(),
@@ -33,6 +34,13 @@ const InputSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    if (!ai) {
+      return NextResponse.json(
+        { error: 'AI not configured (missing GEMINI_API_KEY)' },
+        { status: 503 }
+      );
+    }
+    
     const body = await req.json();
     const parsed = InputSchema.parse(body);
 

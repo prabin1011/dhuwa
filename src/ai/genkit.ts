@@ -1,21 +1,23 @@
-import { genkit, type Ai } from 'genkit';
+// src/ai/genkit.ts
+import 'server-only';
+import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
-// This function will run on the server and has access to all environment variables.
-function initializeGenkit() {
+/**
+ * Initialize a singleton AI client for server code.
+ * We do NOT mark this file with "use server"; importing 'server-only' is enough.
+ */
+export const ai = (() => {
   const apiKey = process.env.GEMINI_API_KEY;
-
   if (!apiKey) {
-    console.error('Missing Gemini API key. Set GEMINI_API_KEY in your environment.');
-    // In a real app, you might want to return a disabled AI instance or handle this more gracefully.
-    // For now, we'll throw an error during initialization if the key is missing on the server.
-    throw new Error('Server-side configuration error: Missing GEMINI_API_KEY.');
+    // Don't throw at import time in prod—APIs can still build. Consumers should guard.
+    console.error('GEMINI_API_KEY is missing. Daily Insight will be disabled.');
+    return null as unknown as ReturnType<typeof genkit>;
   }
 
   return genkit({
-    plugins: [googleAI({ apiKey })],
+    plugins: [
+      googleAI({ apiKey })
+    ],
   });
-}
-
-// Initialize the AI instance once when the module is loaded on the server.
-export const ai: Ai = initializeGenkit();
+})();
