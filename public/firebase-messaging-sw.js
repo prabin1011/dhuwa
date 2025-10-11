@@ -1,34 +1,36 @@
 
-// This file must be in the public directory.
+// This file needs to be in the public directory.
 
-// Scripts for Firebase products are imported on-demand.
-import { initializeApp } from 'firebase/app';
-import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw';
+// Give the service worker access to Firebase Messaging.
+// Note that you can only use Firebase Messaging here, other Firebase libraries
+// are not available in the service worker.
+importScripts('https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.15.0/firebase-messaging-compat.js');
 
-// Your web app's Firebase configuration.
+// Initialize the Firebase app in the service worker with your project's configuration.
+// These variables are replaced by the build process.
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "%NEXT_PUBLIC_FIREBASE_API_KEY%",
+  authDomain: "%NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN%",
+  projectId: "%NEXT_PUBLIC_FIREBASE_PROJECT_ID%",
+  storageBucket: "%NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET%",
+  messagingSenderId: "%NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID%",
+  appId: "%NEXT_PUBLIC_FIREBASE_APP_ID%",
+  measurementId: "%NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID%"
 };
 
+firebase.initializeApp(firebaseConfig);
 
-// Initialize the Firebase app in the service worker.
-const app = initializeApp(firebaseConfig);
-const messaging = getMessaging(app);
+// Retrieve an instance of Firebase Messaging so that it can handle background messages.
+const messaging = firebase.messaging();
 
-// Optional: Set up a background message handler.
-// This is called when the app is in the background or closed and a notification is received.
-onBackgroundMessage(messaging, (payload) => {
+messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-
-  const notificationTitle = payload.notification?.title || 'Dhuwa';
+  // Customize notification here
+  const notificationTitle = payload.notification.title;
   const notificationOptions = {
-    body: payload.notification?.body || 'You have a new message.',
-    icon: '/icon-192x192.png' // Make sure you have an icon in your public folder
+    body: payload.notification.body,
+    icon: '/logo.png' // Ensure you have a logo.png in your public folder
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
