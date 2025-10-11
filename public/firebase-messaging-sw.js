@@ -1,51 +1,41 @@
 
-// A DEV-only stand-in for the real service worker
-// In a real app, you would use a build process (like Vite or Webpack)
-// to compile the service worker from TypeScript source.
+// This file needs to be in the public directory.
 
-// For now, this is a vanilla JS service worker.
+// Give the service worker access to Firebase Messaging.
+// Note that you can only use Firebase Messaging here, other Firebase libraries
+// are not available in the service worker.
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
-// IMPORTANT: Do not use 'import' statements in this file.
-// It's a service worker, not a module.
+// Initialize the Firebase app in the service worker with your project's config.
+// The config object should be sourced from your Firebase project settings.
+const firebaseConfig = {
+  apiKey: "AIzaSyBg1EMa0HcTFTzwqTIIjqbGMqs92VNCVwM",
+  authDomain: "dhuwa-app.firebaseapp.com",
+  projectId: "dhuwa-app",
+  storageBucket: "dhuwa-app.appspot.com",
+  messagingSenderId: "1083654536269",
+  appId: "1:1083654536269:web:9b975d5955b08e5e89a558",
+  measurementId: "G-1J9EZ194VE"
+};
 
-self.addEventListener('push', (event) => {
-  console.log('[SW] Push Received.');
-  console.log(`[SW] Push had this data: "${event.data.text()}"`);
 
-  const { title, body, icon, image, ...options } = event.data.json().notification;
-  
-  const finalTitle = title || 'Dhuwa';
-  const finalOptions = {
-    body: body || 'You have a new message.',
-    icon: icon || '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
-    ...options
+firebase.initializeApp(firebaseConfig);
+
+
+// Retrieve an instance of Firebase Messaging so that it can handle background
+// messages.
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  // Customize notification here
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: '/logo.png' // Make sure you have a logo in your public folder
   };
 
-  event.waitUntil(self.registration.showNotification(finalTitle, finalOptions));
+  self.registration.showNotification(notificationTitle,
+    notificationOptions);
 });
-
-
-self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification click Received.');
-
-  event.notification.close();
-
-  // This looks for an existing window and focuses it.
-  // If no window is found, it opens a new one.
-  event.waitUntil(
-    clients.matchAll({
-      type: "window"
-    }).then((clientList) => {
-      // Check if there's a window open for this origin.
-      for (const client of clientList) {
-        if (client.url === '/' && 'focus' in client)
-          return client.focus();
-      }
-      // If not, open a new one.
-      if (clients.openWindow)
-        return clients.openWindow('/');
-    })
-  );
-});
-
