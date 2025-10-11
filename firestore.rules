@@ -1,40 +1,69 @@
-
+/**
+ * @fileoverview Firestore Security Rules for Dhuwa App
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model, where each signed-in user
+ * can only read and write their own data. This ensures data privacy and prevents
+ * unauthorized access.
+ *
+ * Data Structure:
+ * - /users/{userId}:  Each user has a single profile document identified by their UID.
+ * - /users/{userId}/urges/{urgeId}:  Each user has a subcollection of urge entries.
+ * - /users/{userId}/notifications/{notificationId}: Each user has a subcollection of notifications.
+ *
+ * Key Security Decisions:
+ * - User listing is implicitly denied by the structure (no top-level collection).
+ * - The rules explicitly deny any read or write access if the user is not authenticated.
+ * - Data shape is not strictly validated to allow for rapid prototyping and iteration.
+ */
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isSignedIn() {
-      return request.auth != null;
+    /**
+     * @description Grants access to a user's profile only to the authenticated user with the matching UID.
+     * @path /users/{userId}
+     * @allow (read, write) if request.auth != null && request.auth.uid == userId - Allows a logged-in user to read and write their own profile.
+     * @deny (read, write) if request.auth == null - Denies access to users who are not logged in.
+     * @deny (read, write) if request.auth.uid != userId - Denies access to another user's profile.
+     * @principle Enforces document ownership for all read and write operations.
+     */
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    /**
+     * @description Grants access to a user's urges subcollection only to the authenticated user with the matching UID.
+     * @path /users/{userId}/urges/{urgeId}
+     * @allow (read, write) if request.auth != null && request.auth.uid == userId - Allows a logged-in user to manage their own urge entries.
+     * @deny (read, write) if request.auth == null - Denies access to users who are not logged in.
+     * @deny (read, write) if request.auth.uid != userId - Denies access to another user's urge entries.
+     * @principle Restricts access to a user's own data tree.
+     */
+    match /users/{userId}/urges/{urgeId} {
+      allow read, write: if isSignedIn() && isOwner(userId);
     }
 
-    // Lock down the entire /users/{userId} path and all its subcollections
-    match /users/{userId}/{document=**} {
-      allow read, write: if isOwner(userId);
+      /**
+       * @description Grants access to a user's notifications subcollection only to the authenticated user with the matching UID.
+       * @path /users/{userId}/notifications/{notificationId}
+       * @allow (read, write) if request.auth != null && request.auth.uid == userId - Allows a logged-in user to manage their own notifications.
+       * @deny (read, write) if request.auth == null - Denies access to users who are not logged in.
+       * @deny (read, write) if request.auth.uid != userId - Denies access to another user's notifications.
+       * @principle Restricts access to a user's own data tree.
+       */
+    match /users/{userId}/notifications/{notificationId} {
+      allow read, write: if isSignedIn() && isOwner(userId);
     }
-    
-    // Separately, manage the public username directory
-    match /usernames/{uname} {
-      // Allow anyone to read a username document to resolve a username to a UID.
-      // This is necessary for the "sign in with username" feature.
-      allow get: if true;
+  }
 
-      // Only allow a user to create their own username document.
-      // - The user must be signed in.
-      // - The UID in the document must match the user's own UID.
-      // - The document ID (the lowercase username) must match the username in the doc.
-      // - The username document must not already exist (ensuring uniqueness).
-      allow create: if isSignedIn()
-                    && request.resource.data.uid == request.auth.uid
-                    && request.resource.data.usernameLower == uname
-                    && !exists(/databases/$(database)/documents/usernames/$(uname));
+  // Helper functions
+  function isSignedIn() {
+    return request.auth != null;
+  }
 
-      // Do not allow anyone to update or delete username records.
-      allow update, delete: if false;
-    }
+  function isOwner(userId) {
+    return request.auth.uid == userId;
   }
 }
