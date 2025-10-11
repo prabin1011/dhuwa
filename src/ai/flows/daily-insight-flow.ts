@@ -45,14 +45,14 @@ const dailyInsightFlow = ai.defineFlow(
     };
     
     const {output} = await insightPrompt(sanitizedInput, {
-      model: gemini15Flash, // Specify the model to use
+      model: 'googleai/gemini-1.5-flash', // Specify the model to use
       config: {
         temperature: 0.3,
         maxOutputTokens: 160,
       }
     });
 
-    return output.trim();
+    return output!.trim();
   }
 );
 

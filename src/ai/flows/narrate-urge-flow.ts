@@ -26,7 +26,7 @@ const narrateUrgeFlow = ai.defineFlow(
   },
   async (input) => {
     const {text} = await ai.generate({
-      model: geminiPro,
+      model: 'googleai/gemini-1.5-flash',
       prompt: narrateUrgePrompt.prompt,
       config: {
         temperature: 0.3,
