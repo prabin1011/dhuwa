@@ -20,13 +20,15 @@ export default function HomePage() {
 
       {/* Never redirect here. Show buttons instead. */}
       <div className="flex flex-col gap-3 w-full max-w-xs">
-        <Button asChild size="lg">
-          <Link href="/login">Login or Sign Up</Link>
-        </Button>
-
-        {!isUserLoading && user && (
-          <Button asChild variant="outline" size="lg">
-            <Link href="/dashboard">Continue to Dashboard</Link>
+        {isUserLoading ? (
+           <Button size="lg" disabled>Loading...</Button>
+        ) : !user ? (
+          <Button asChild size="lg">
+            <Link href="/login">Login or Sign Up</Link>
+          </Button>
+        ) : (
+          <Button asChild size="lg">
+            <Link href="/dashboard">Continue as {user.displayName || 'User'}</Link>
           </Button>
         )}
       </div>
