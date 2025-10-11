@@ -1,4 +1,3 @@
-
 'use server';
 
 import { getAI } from '@/ai/genkit';
@@ -38,7 +37,7 @@ export async function getDailyInsight(
     const ai = getAI();
 
     const { text } = await ai.generate({
-      model: 'gemini-1.5-flash',
+      model: 'googleai/gemini-1.5-flash',
       prompt: insightPrompt(sanitized.userProfile),
       input: sanitized,
       config: { temperature: 0.3, maxOutputTokens: 160 },

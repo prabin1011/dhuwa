@@ -1,4 +1,3 @@
-
 'use server';
 
 import { getAI } from '@/ai/genkit';
@@ -19,7 +18,7 @@ export async function narrateUrge(
     const ai = getAI();
 
     const { text } = await ai.generate({
-      model: 'gemini-1.5-flash',
+      model: 'googleai/gemini-1.5-flash',
       prompt: narrateUrgePrompt,
       input,
       config: { temperature: 0.3, maxOutputTokens: 60 },
