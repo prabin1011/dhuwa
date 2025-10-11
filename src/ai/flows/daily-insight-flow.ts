@@ -1,3 +1,4 @@
+
 'use server';
 
 import { getAI } from '@/ai/genkit';
@@ -37,7 +38,7 @@ export async function getDailyInsight(
     const ai = getAI();
 
     const { text } = await ai.generate({
-      model: 'googleai/gemini-1.5-flash',
+      model: 'gemini-1.5-flash',
       prompt: insightPrompt(sanitized.userProfile),
       input: sanitized,
       config: { temperature: 0.3, maxOutputTokens: 160 },
@@ -46,6 +47,7 @@ export async function getDailyInsight(
     return (text || '').trim() || 'No insight available today.';
   } catch (e: any) {
     console.error('Daily Insight Error:', e?.message ?? e);
-    return 'Could not generate a daily insight right now.';
+    // Re-throw the error to be caught by the API route for better debugging
+    throw new Error(`DailyInsight failed: ${e?.message ?? e}`);
   }
 }

@@ -1,3 +1,4 @@
+
 'use server';
 
 import { getAI } from '@/ai/genkit';
@@ -18,7 +19,7 @@ export async function narrateUrge(
     const ai = getAI();
 
     const { text } = await ai.generate({
-      model: 'googleai/gemini-1.5-flash',
+      model: 'gemini-1.5-flash',
       prompt: narrateUrgePrompt,
       input,
       config: { temperature: 0.3, maxOutputTokens: 60 },
@@ -27,6 +28,7 @@ export async function narrateUrge(
     return (text || '').trim() || `I noticed that moment and how it felt.`;
   } catch (e: any) {
     console.error('Narrate Urge Error:', e?.message ?? e);
-    return `I felt ${rawInput?.moodBefore || 'a feeling'}. It is what it is.`;
+    // Re-throw the error to be caught by the caller for better debugging
+    throw new Error(`NarrateUrge failed: ${e?.message ?? e}`);
   }
 }
