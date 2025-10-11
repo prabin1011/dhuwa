@@ -26,7 +26,7 @@ import {
 export default function LoginPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
-  const { signInWithIdentifier, signUpWithEmail, sendPasswordReset } = useAuthActions();
+  const { signInWithEmail, signUpWithEmail, sendPasswordReset } = useAuthActions();
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(false);
@@ -52,10 +52,10 @@ export default function LoginPage() {
   
   const onSignIn = async (form: FormData) => {
     setLoading(true);
-    const emailOrUsername = String(form.get('email') || '').trim();
+    const email = String(form.get('email') || '').trim();
     const password = String(form.get('password') || '');
     try {
-      await signInWithIdentifier(emailOrUsername, password);
+      await signInWithEmail(email, password);
       router.replace('/dashboard');
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Login Failed', description: e?.message ?? 'Check your credentials.' });
@@ -132,8 +132,8 @@ export default function LoginPage() {
         <TabsContent value="signin" className="space-y-4">
             <form action={onSignIn} className="space-y-3">
               <div>
-                <Label htmlFor="email">Email or Username</Label>
-                <Input id="email" name="email" type="text" required />
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="email" required />
               </div>
               <div>
                 <div className="flex justify-between items-center">

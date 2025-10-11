@@ -2,7 +2,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, getDoc, setDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
+import { Firestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut as fbSignOut, updateProfile, sendEmailVerification, sendPasswordResetEmail } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
@@ -175,20 +175,12 @@ export const useAuthActions = () => {
 
   const signUpWithEmail = async (email: string, password: string, username: string) => {
     const usernameLower = username.trim().toLowerCase();
-    // 1) Pre-claim username doc transactionally (ensures uniqueness)
-    await runTransaction(firestore, async (tx) => {
-      const unameRef = doc(firestore, 'usernames', usernameLower);
-      const unameSnap = await tx.get(unameRef);
-      if (unameSnap.exists()) {
-        throw new Error('Username is already taken.');
-      }
-    });
-
-    // 2) Create the auth user
+    
+    // Create the auth user
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
-    // 3) Create root user doc
+    // Create root user doc
     const userRef = doc(firestore, 'users', uid);
     await setDoc(userRef, {
       email,
@@ -197,44 +189,14 @@ export const useAuthActions = () => {
       createdAt: serverTimestamp(),
     }, { merge: true });
 
-    // 4) Finalize username mapping (unique, owned by this uid)
-    await runTransaction(firestore, async (tx) => {
-      const unameRef = doc(firestore, 'usernames', usernameLower);
-      const unameSnap = await tx.get(unameRef);
-      if (unameSnap.exists()) {
-        throw new Error('Username was just taken. Please pick another.');
-      }
-      tx.set(unameRef, {
-        uid,
-        email,
-        usernameLower,
-        createdAt: serverTimestamp(),
-      });
-    });
-
     await updateProfile(cred.user, { displayName: username });
     await sendEmailVerification(cred.user);
 
     return cred;
   };
 
-  const signInWithIdentifier = async (identifier: string, password: string) => {
-    const id = identifier.trim();
-    let emailToUse = id;
-
-    // If it's not an email, treat as username -> resolve to email via /usernames
-    if (!id.includes('@')) {
-      const unameRef = doc(firestore, 'usernames', id.toLowerCase());
-      const unameSnap = await getDoc(unameRef);
-      if (!unameSnap.exists()) throw new Error('Username not found.');
-      const data = unameSnap.data() as { email?: string };
-      if (!data?.email) {
-        throw new Error('Username record incomplete. Please sign in with email.');
-      }
-      emailToUse = data.email;
-    }
-
-    return await signInWithEmailAndPassword(auth, emailToUse, password);
+  const signInWithEmail = async (email: string, password: string) => {
+    return signInWithEmailAndPassword(auth, email, password);
   };
 
   const sendPasswordReset = async (email: string) => {
@@ -245,7 +207,7 @@ export const useAuthActions = () => {
     await fbSignOut(auth);
   };
 
-  return { signUpWithEmail, signInWithIdentifier, sendPasswordReset, signOut };
+  return { signUpWithEmail, signInWithEmail, sendPasswordReset, signOut };
 };
 
 type MemoFirebase <T> = T & {__memo?: boolean};
