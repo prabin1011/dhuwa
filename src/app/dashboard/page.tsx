@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -20,7 +21,13 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const [showVerificationBanner, setShowVerificationBanner] = useState(false);
 
-
+  // Hooks must be called unconditionally at the top level.
+  const ref = useMemoFirebase(() => {
+    if (!user) return null; // Handle null user case inside the memo
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+  const { data: profile, isLoading } = useDoc(ref);
+  
   // If unauthenticated, go to login. No spinner forever.
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -28,7 +35,6 @@ export default function DashboardPage() {
     }
   }, [user, isUserLoading, router]);
   
-  // Show verification banner if needed
   const providerId = user?.providerData?.[0]?.providerId;
   const requiresVerification = providerId === 'password' && !!user?.email;
 
@@ -58,13 +64,9 @@ export default function DashboardPage() {
     }
   };
 
-  if (isUserLoading) return <div className="h-screen w-screen grid place-items-center">Loading…</div>;
+  // Now we can have early returns after all hooks are called.
+  if (isUserLoading || isLoading) return <div className="h-screen w-screen grid place-items-center">Loading…</div>;
   if (!user) return null;
-
-  const ref = useMemoFirebase(() => doc(firestore, 'users', user.uid), [firestore, user]);
-  const { data: profile, isLoading } = useDoc(ref);
-
-  if (isLoading) return <div className="h-screen w-screen grid place-items-center">Loading…</div>;
 
   // If no profile or not onboarded yet, show onboarding.
   if (!profile || !profile.goal) {
