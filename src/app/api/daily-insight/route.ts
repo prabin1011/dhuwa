@@ -6,7 +6,6 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getDailyInsight } from '@/ai/flows/daily-insight-flow';
 import type { DailyInsightInput } from '@/ai/types/daily-insight-types';
-import { ai } from '@/ai/genkit';
 
 const MomentSchema = z.object({
   id: z.string(),
@@ -34,17 +33,15 @@ const InputSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    if (!ai) {
-      return NextResponse.json(
-        { error: 'AI not configured (missing GEMINI_API_KEY)' },
-        { status: 503 }
-      );
-    }
-    
     const body = await req.json();
     const parsed = InputSchema.parse(body);
 
     const insight = await getDailyInsight(parsed as DailyInsightInput);
+    
+    if (insight.includes("Could not generate an insight")) {
+       return NextResponse.json({ error: insight }, { status: 503 });
+    }
+
     return NextResponse.json({ insight });
   } catch (err: any) {
     // Log *everything* on the server to see real cause
@@ -53,7 +50,9 @@ export async function POST(req: Request) {
       message: err?.message,
       stack: err?.stack,
     });
+    
+    const status = err?.message?.includes('GEMINI_API_KEY') ? 503 : 500;
 
-    return NextResponse.json({ error: err?.message || 'Insight generation failed' }, { status: 500 });
+    return NextResponse.json({ error: err?.message || 'Insight generation failed' }, { status });
   }
 }
