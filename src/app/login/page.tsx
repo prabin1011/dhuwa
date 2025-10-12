@@ -82,7 +82,7 @@ export default function LoginPage() {
                     try {
                         await sendPasswordReset(email);
                         toast({ title: 'Reset email sent', description: 'Check your inbox.' });
-                    } catch (e: any) => {
+                    } catch (e: any) {
                         toast({ variant: 'destructive', title: 'Reset failed', description: e?.message ?? 'Try again.' });
                     } finally {
                         setLoading(false);
