@@ -22,5 +22,5 @@ export function getFirebaseConfig(): FirebaseOptions {
 export function getVapidKey(): string {
     // This VAPID key is a public key, it's safe to be here.
     // Return an empty string if not set, to be handled gracefully by the calling function.
-    return process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || '';
+    return process.env.NEXT_PUBLIC_VAPID_KEY || '';
 }
