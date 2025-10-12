@@ -6,17 +6,20 @@ import { headers } from 'next/headers';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// This function is now protected and can only be triggered by Cloud Scheduler
+// This function is protected and can only be triggered by Cloud Scheduler in production.
 export async function POST(req: Request) {
-  // IMPORTANT: Verify the request is from Cloud Scheduler
   const headersList = headers();
-  if (headersList.get('X-CloudScheduler') !== 'true') {
+  const isScheduler = headersList.get('X-CloudScheduler') === 'true';
+  const isDev = process.env.NODE_ENV === 'development';
+
+  // IMPORTANT: Verify the request is from Cloud Scheduler OR we are in a dev environment.
+  if (!isScheduler && !isDev) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 
   try {
     const result = await sendMomentReminders();
-    // Always JSON
+    // Always return a JSON response
     return NextResponse.json(result, { status: 200 });
   } catch (err: any) {
     console.error('[send-reminders] error', err);
@@ -25,14 +28,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
-
-// Optional: support GET for quick testing in browser, but also protected
-export async function GET(req: Request) {
-   const headersList = headers();
-   // Allow browser testing only in development, not in production
-   if (process.env.NODE_ENV === 'production' && headersList.get('X-CloudScheduler') !== 'true') {
-     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-   }
-   return POST(req);
 }
