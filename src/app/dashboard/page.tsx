@@ -43,8 +43,11 @@ export default function DashboardPage() {
     return null; // Should be redirected by the useEffect above.
   }
 
-  // If no profile or not onboarded yet, show onboarding.
-  if (!profile || profile.hasOnboarded === false) {
+  // Stricter check: only treat explicit `true` as onboarded.
+  // undefined, null, or false will all trigger onboarding.
+  const onboarded = profile?.hasOnboarded === true;
+
+  if (!onboarded) {
     return <Onboarding />;
   }
 
