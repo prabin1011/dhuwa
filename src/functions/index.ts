@@ -143,31 +143,44 @@ export async function sendMomentReminders() {
   const usersSnap = await db.collection('users').where('reminders', '==', 'yes').get();
 
   if (usersSnap.empty) {
+    // If we're likely in a test scenario (e.g. called from a button), we might want to send a test to the user who triggered it
+    // This part of the logic is complex as we don't know who triggered it.
+    // The client-side test button should handle sending to a specific user.
+    // For now, we will return zero if no users are subscribed.
     return { totalUsers: 0, notificationsSent: 0, errors: 0 };
   }
 
-  let notificationsSent = 0;
-  let errors = 0;
+  let totalNotificationsSent = 0;
+  let totalErrors = 0;
 
   for (const docSnap of usersSnap.docs) {
     const profile = docSnap.data() as any;
     const userId = docSnap.id;
+    let sentThisLoop = 0;
 
     const tokens: string[] = Array.isArray(profile.fcmTokens) ? profile.fcmTokens : [];
     if (!tokens.length) continue;
 
     try {
         const momentReminders = await handleUpcomingMomentReminders(userId, profile, tokens, now);
-        notificationsSent += momentReminders;
+        sentThisLoop += momentReminders;
 
         const milestoneReminders = await handleMilestoneNotifications(userId, profile, tokens, now);
-        notificationsSent += milestoneReminders;
+        sentThisLoop += milestoneReminders;
+
+        // If no other notification was sent, send a general encouragement one for testing.
+        if (sentThisLoop === 0) {
+            const template = getRandomTemplate(notificationTemplates.randomEncouragement);
+            const success = await sendNotification(userId, tokens, template);
+            if (success) sentThisLoop++;
+        }
+        totalNotificationsSent += sentThisLoop;
 
     } catch(e) {
         console.error(`Error processing notifications for user ${userId}:`, e);
-        errors++;
+        totalErrors++;
     }
   }
 
-  return { totalUsers: usersSnap.size, notificationsSent, errors };
+  return { totalUsers: usersSnap.size, notificationsSent: totalNotificationsSent, errors: totalErrors };
 }
