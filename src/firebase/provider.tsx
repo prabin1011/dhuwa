@@ -94,6 +94,7 @@ export const useAuthActions = () => {
         email,
         username: username || '',
         createdAt: serverTimestamp(),
+        hasOnboarded: false,
       },
       { merge: true }
     );
