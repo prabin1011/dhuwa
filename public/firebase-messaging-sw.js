@@ -1,41 +1,35 @@
+// This file MUST be in the public folder.
 
-// This file needs to be in the public directory.
+import { initializeApp } from 'firebase/app';
+import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw';
 
-// Give the service worker access to Firebase Messaging.
-// Note that you can only use Firebase Messaging here, other Firebase libraries
-// are not available in the service worker.
-importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
-
-// Initialize the Firebase app in the service worker with your project's config.
-// The config object should be sourced from your Firebase project settings.
+// This is the SAME config used on the client.
+// It's safe to be public.
 const firebaseConfig = {
-  apiKey: "AIzaSyBg1EMa0HcTFTzwqTIIjqbGMqs92VNCVwM",
-  authDomain: "dhuwa-app.firebaseapp.com",
-  projectId: "dhuwa-app",
-  storageBucket: "dhuwa-app.appspot.com",
-  messagingSenderId: "1083654536269",
-  appId: "1:1083654536269:web:9b975d5955b08e5e89a558",
-  measurementId: "G-1J9EZ194VE"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
+try {
+  const app = initializeApp(firebaseConfig);
+  const messaging = getMessaging(app);
 
-firebase.initializeApp(firebaseConfig);
+  onBackgroundMessage(messaging, (payload) => {
+    console.log('[firebase-messaging-sw.js] Received background message ', payload);
+    
+    const notificationTitle = payload.notification?.title || 'Dhuwa';
+    const notificationOptions = {
+      body: payload.notification?.body || 'You have a new message.',
+      icon: '/icons/icon-192x192.png' // Make sure you have this icon
+    };
 
-
-// Retrieve an instance of Firebase Messaging so that it can handle background
-// messages.
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  // Customize notification here
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/logo.png' // Make sure you have a logo in your public folder
-  };
-
-  self.registration.showNotification(notificationTitle,
-    notificationOptions);
-});
+    self.registration.showNotification(notificationTitle, notificationOptions);
+  });
+} catch (e) {
+    console.error('[firebase-messaging-sw.js] Error initializing messaging:', e);
+}

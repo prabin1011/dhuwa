@@ -24,3 +24,4 @@ export function getVapidKey(): string {
     // Return an empty string if not set, to be handled gracefully by the calling function.
     return process.env.NEXT_PUBLIC_VAPID_KEY || '';
 }
+

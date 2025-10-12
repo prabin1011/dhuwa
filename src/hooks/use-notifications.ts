@@ -89,10 +89,10 @@ export function useNotifications() {
       return null;
     }
     
-    const vapid = getVapidKey();
-    if (!vapid) {
-      console.error('Missing VAPID key');
-      toast({ variant: 'destructive', title: 'Config error', description: 'Missing VAPID key for notifications.' });
+    const vapidKey = getVapidKey();
+    if (!vapidKey) {
+      console.warn('[FCM] No VAPID key; skipping push setup. Ensure NEXT_PUBLIC_VAPID_KEY is set in your environment.');
+      toast({ variant: 'destructive', title: 'Config error', description: 'Notifications are not configured for this app.' });
       return null;
     }
 
@@ -112,7 +112,7 @@ export function useNotifications() {
 
       const messaging = getMessaging(firebaseApp);
       const token = await getToken(messaging, {
-        vapidKey: vapid,
+        vapidKey,
         serviceWorkerRegistration: swReg,
       });
 
@@ -131,8 +131,8 @@ export function useNotifications() {
       toast({ title: 'Notifications enabled', description: 'You’ll receive reminders here.' });
       return token;
     } catch (err) {
-      console.error('FCM token error', err);
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to obtain token.' });
+      console.error('[FCM] getToken failed:', err);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to obtain notification token.' });
       return null;
     }
   }, [firebaseApp, firestore, user, toast]);
