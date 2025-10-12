@@ -29,7 +29,7 @@ export default function LoginPage() {
   if (user) return null;
 
   return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-4">
+    <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-4 relative">
       <div className="flex flex-col items-center w-full">
         <Link href="/" className="mb-8">
             <WelcomeIllustration className="w-40 h-40" />
@@ -82,7 +82,7 @@ export default function LoginPage() {
                     try {
                         await sendPasswordReset(email);
                         toast({ title: 'Reset email sent', description: 'Check your inbox.' });
-                    } catch (e: any) {
+                    } catch (e: any) => {
                         toast({ variant: 'destructive', title: 'Reset failed', description: e?.message ?? 'Try again.' });
                     } finally {
                         setLoading(false);
