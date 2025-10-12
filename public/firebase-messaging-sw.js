@@ -9,13 +9,13 @@ importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-comp
 
 // COPY THESE FROM YOUR NEXT_PUBLIC_* env vars (they are public-safe)
 firebase.initializeApp({
-  apiKey:           'YOUR_API_KEY',
-  authDomain:       'YOUR_AUTH_DOMAIN',
-  projectId:        'YOUR_PROJECT_ID',
-  storageBucket:    'YOUR_STORAGE_BUCKET',
-  messagingSenderId:'64833989986',
-  appId:            'YOUR_APP_ID',
-  measurementId:    'YOUR_MEASUREMENT_ID'
+  apiKey: "AIzaSyD1f-BcMWSEcRVxVa67OvfDMXK-kSmLP2g",
+  authDomain: "studio-7251750297-88bd3.firebaseapp.com",
+  projectId: "studio-7251750297-88bd3",
+  storageBucket: "studio-7251750297-88bd3.appspot.com",
+  messagingSenderId: "64833989986",
+  appId: "1:64833989986:web:3552271612a21e7845c439",
+  measurementId: "G-PJ8R05LFX9"
 });
 
 const messaging = firebase.messaging();
