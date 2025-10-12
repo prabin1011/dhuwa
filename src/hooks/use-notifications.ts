@@ -90,9 +90,10 @@ export function useNotifications() {
     }
     
     const vapidKey = getVapidKey();
-    if (!vapidKey) {
-      console.warn('[FCM] No VAPID key; skipping push setup. Ensure NEXT_PUBLIC_VAPID_KEY is set in your environment.');
-      toast({ variant: 'destructive', title: 'Config error', description: 'Notifications are not configured for this app.' });
+    // Sanity-check the VAPID key before using it.
+    if (!vapidKey || !vapidKey.startsWith('B') || vapidKey.length < 80) {
+      console.warn('[FCM] Likely invalid VAPID key detected. Halting push setup. Key:', vapidKey);
+      toast({ variant: 'destructive', title: 'Config error', description: 'Notifications are not configured correctly for this app.' });
       return null;
     }
 
