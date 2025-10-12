@@ -25,3 +25,4 @@ export function getVapidKey(): string {
     return process.env.NEXT_PUBLIC_VAPID_KEY || '';
 }
 
+
