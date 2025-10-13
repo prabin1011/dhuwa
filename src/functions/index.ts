@@ -11,18 +11,18 @@ if (!getApps().length) {
     try {
         const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
         if (!serviceAccountString) {
-            throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set.');
+            throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set or is empty.');
         }
 
-        // The environment variable should be a single-line JSON string.
+        // The environment variable MUST be a single-line JSON string.
         const serviceAccount = JSON.parse(serviceAccountString);
 
         initializeApp({ credential: cert(serviceAccount) });
         console.log('Firebase Admin SDK initialized successfully.');
     } catch (e: any) {
         console.error('Failed to initialize Firebase Admin SDK. Ensure FIREBASE_SERVICE_ACCOUNT_KEY is a valid, single-line JSON string.', e.message);
-        // Do not re-throw here, as it can crash the entire server process on startup.
-        // The functions that use the SDK will handle the uninitialized state.
+        // Do not re-throw, to avoid crashing the server process on startup.
+        // Functions using the SDK will handle the uninitialized state.
     }
 }
 
