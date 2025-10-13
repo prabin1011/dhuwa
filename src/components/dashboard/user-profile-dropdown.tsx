@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,15 +10,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useAuth, useFirebase } from "@/firebase";
+import { useAuth } from "@/firebase";
 import Link from 'next/link';
 import { Button } from "../ui/button";
-import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather, Send } from "lucide-react";
+import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather } from "lucide-react";
 import { ProfileSheet } from '../profile/profile-sheet';
 import type { WithId } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import type { User } from 'firebase/auth';
-import { useToast } from '@/hooks/use-toast';
 
 interface UserProfile {
     username?: string;
@@ -32,8 +31,6 @@ interface UserProfileDropdownProps {
 export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownProps) {
   const auth = useAuth();
   const router = useRouter();
-  const { toast } = useToast();
-  const [isPending, startTransition] = useTransition();
 
   // State must be at the top level
   const [isProfileSheetOpen, setProfileSheetOpen] = useState(false);
@@ -45,30 +42,6 @@ export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownPr
     }
   };
 
-  const handleTestNotification = () => {
-    startTransition(async () => {
-      try {
-        const res = await fetch('/api/send-reminders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.uid }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Request failed');
-        toast({
-          title: 'Test Sent!',
-          description: data.message || 'Check your notification bell.',
-        });
-      } catch (error: any) {
-        toast({
-          variant: 'destructive',
-          title: 'Test Failed',
-          description: error.message,
-        });
-      }
-    });
-  };
-  
   const getInitials = (name?: string) => {
     if (!name) return 'U';
     return name.charAt(0).toUpperCase();
@@ -97,10 +70,6 @@ export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownPr
           <DropdownMenuItem onSelect={() => setProfileSheetOpen(true)}>
             <UserIcon className="mr-2 h-4 w-4" />
             <span>Profile</span>
-          </DropdownMenuItem>
-           <DropdownMenuItem onSelect={handleTestNotification} disabled={isPending}>
-            <Send className="mr-2 h-4 w-4" />
-            <span>{isPending ? 'Sending...' : 'Test Notification'}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
            <a href="https://prakakura.com/journals" target="_blank" rel="noopener noreferrer">
