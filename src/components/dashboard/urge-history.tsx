@@ -119,8 +119,8 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
                                 <CardDescription>A look back at your logged activity.</CardDescription>
                             </div>
                             <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
                                         <Info className="w-4 h-4 text-muted-foreground" />
                                     </Button>
                                 </DialogTrigger>

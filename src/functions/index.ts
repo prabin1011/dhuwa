@@ -9,26 +9,23 @@ import { notificationTemplates } from '../lib/notification-templates';
 // Simplified initialization for Vercel environment
 if (!getApps().length) {
     try {
-        // Vercel escapes the private key. We must un-escape it.
-        const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
-        
-        // Use individual env vars if available (common for Vercel)
-        const serviceAccount = process.env.FIREBASE_CLIENT_EMAIL && privateKey ? 
-        {
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: privateKey,
-            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+        if (!serviceAccountString) {
+            throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set.');
         }
-        : JSON.parse(
-            process.env.FIREBASE_SERVICE_ACCOUNT_KEY ||
-            Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS || '', 'base64').toString('utf-8')
-        );
+
+        // Vercel escapes the private key. We must un-escape it.
+        const serviceAccount = JSON.parse(serviceAccountString);
+        if (serviceAccount.private_key) {
+            serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+        }
 
         initializeApp({ credential: cert(serviceAccount) });
-        console.log('Firebase Admin SDK initialized.');
+        console.log('Firebase Admin SDK initialized successfully.');
     } catch (e: any) {
         console.error('Failed to initialize Firebase Admin SDK:', e.message);
-        throw new Error(`Could not initialize Firebase Admin. Details: ${e.message}`);
+        // Do not re-throw here, as it can crash the entire server process on startup.
+        // The functions that use the SDK will handle the uninitialized state.
     }
 }
 
@@ -44,6 +41,10 @@ const getRandomTemplate = (templateArray: {title: string, body: string}[]) => {
 }
 
 const sendNotification = async (userId: string, tokens: string[], template: {title: string, body: string}) => {
+    if (!getApps().length) {
+        console.error('Firebase Admin SDK not initialized. Cannot send notification.');
+        return false;
+    }
     if (!tokens || tokens.length === 0) return false;
     try {
         const notificationPayload = {
@@ -150,14 +151,14 @@ const handleMilestoneNotifications = async (userId: string, profile: any, tokens
 
 
 export async function sendMomentReminders() {
+  if (!getApps().length) {
+    throw new Error('Firebase Admin SDK is not initialized. Cannot send reminders.');
+  }
+
   const now = new Date();
   const usersSnap = await db.collection('users').where('reminders', '==', 'yes').get();
 
   if (usersSnap.empty) {
-    // If we're likely in a test scenario (e.g. called from a button), we might want to send a test to the user who triggered it
-    // This part of the logic is complex as we don't know who triggered it.
-    // The client-side test button should handle sending to a specific user.
-    // For now, we will return zero if no users are subscribed.
     return { totalUsers: 0, notificationsSent: 0, errors: 0 };
   }
 
@@ -179,7 +180,7 @@ export async function sendMomentReminders() {
         const milestoneReminders = await handleMilestoneNotifications(userId, profile, tokens, now);
         sentThisLoop += milestoneReminders;
 
-        // If no other notification was sent, send a general encouragement one for testing.
+        // If no other notification was sent, send a general encouragement one.
         if (sentThisLoop === 0) {
             const template = getRandomTemplate(notificationTemplates.randomEncouragement);
             const success = await sendNotification(userId, tokens, template);
