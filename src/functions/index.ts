@@ -14,16 +14,13 @@ if (!getApps().length) {
             throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set.');
         }
 
-        // Vercel escapes the private key. We must un-escape it.
+        // The environment variable should be a single-line JSON string.
         const serviceAccount = JSON.parse(serviceAccountString);
-        if (serviceAccount.private_key) {
-            serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-        }
 
         initializeApp({ credential: cert(serviceAccount) });
         console.log('Firebase Admin SDK initialized successfully.');
     } catch (e: any) {
-        console.error('Failed to initialize Firebase Admin SDK:', e.message);
+        console.error('Failed to initialize Firebase Admin SDK. Ensure FIREBASE_SERVICE_ACCOUNT_KEY is a valid, single-line JSON string.', e.message);
         // Do not re-throw here, as it can crash the entire server process on startup.
         // The functions that use the SDK will handle the uninitialized state.
     }
