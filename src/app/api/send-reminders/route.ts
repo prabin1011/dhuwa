@@ -1,9 +1,12 @@
 
-import { NextResponse } from 'next/server'; // ✅ correct import
+import { NextResponse } from 'next/server';
 import { initializeAdminApp } from '@/functions';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { notificationTemplates } from '@/lib/notification-templates';
 import { differenceInHours, differenceInMinutes, parse } from 'date-fns';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 type UserProfile = {
   id: string;
@@ -82,6 +85,7 @@ export async function POST(req: Request) {
     // 1. Upcoming moments (within 15 minutes)
     const upcomingMoment = userProfile.moments?.find(moment => {
       const momentTime = parse(moment.time, 'HH:mm', now);
+      if (isNaN(momentTime.getTime())) return false; // Guard against invalid time strings
       const diff = differenceInMinutes(momentTime, now);
       return diff > 0 && diff <= 15;
     });
