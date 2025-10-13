@@ -13,8 +13,8 @@ export function getFirebaseConfig(): FirebaseOptions {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
   };
 
-  if (!firebaseConfig.apiKey) {
-    throw new Error('Missing Firebase API Key from environment variables. Ensure NEXT_PUBLIC_FIREBASE_API_KEY is set.');
+  if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+    throw new Error('Missing critical Firebase config from environment variables. Ensure NEXT_PUBLIC_FIREBASE_API_KEY and NEXT_PUBLIC_FIREBASE_PROJECT_ID are set.');
   }
   return firebaseConfig;
 }
@@ -24,5 +24,3 @@ export function getVapidKey(): string {
     // Return an empty string if not set, to be handled gracefully by the calling function.
     return process.env.NEXT_PUBLIC_VAPID_KEY || '';
 }
-
-

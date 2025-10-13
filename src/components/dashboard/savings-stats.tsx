@@ -246,5 +246,3 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
         </Card>
     )
 }
-
-    
