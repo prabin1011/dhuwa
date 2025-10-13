@@ -1,3 +1,4 @@
+
 'use server';
 
 import { NextResponse } from 'next/server';
@@ -138,7 +139,9 @@ async function processUser(userId: string) {
 
 
 export async function GET(req: Request) {
-    if (!isAllowedRequest(req)) {
+    // In production, only allow cron jobs. In dev, allow any request for testing.
+    const vercelEnv = process.env.VERCEL_ENV || 'development';
+    if (vercelEnv === 'production' && !isAllowedRequest(req)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
     
