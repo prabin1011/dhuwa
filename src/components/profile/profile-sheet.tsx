@@ -291,7 +291,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a currency" />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent position="popper">
                                         {CURRENCIES.map(c => (
                                             <SelectItem key={c} value={c}>{c}</SelectItem>
                                         ))}
@@ -380,5 +380,6 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     </Sheet>
   );
 }
+
 
     
