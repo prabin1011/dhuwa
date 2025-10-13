@@ -259,7 +259,7 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                             </div>
                             <Dialog>
                                 <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" type="button">
                                         <Info className="w-4 h-4 text-muted-foreground" />
                                     </Button>
                                 </DialogTrigger>

@@ -94,7 +94,7 @@ export function HourlyChart({ urges, habits }: HourlyChartProps) {
                             </div>
                             <Dialog>
                                 <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" type="button">
                                         <Info className="w-4 h-4 text-muted-foreground" />
                                     </Button>
                                 </DialogTrigger>
@@ -117,7 +117,7 @@ export function HourlyChart({ urges, habits }: HourlyChartProps) {
                                     <XAxis 
                                         dataKey="hour" 
                                         stroke="hsl(var(--muted-foreground))"
-                                        fontSize={10} 
+                                        fontSize={10} _
                                         tickLine={false}
                                         axisLine={false}
                                         tickFormatter={(value, index) => index % 3 === 0 ? formatHour(index) : ''}
