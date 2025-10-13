@@ -9,10 +9,21 @@ import { notificationTemplates } from '../lib/notification-templates';
 // Simplified initialization for Vercel environment
 if (!getApps().length) {
     try {
-        const serviceAccount = JSON.parse(
+        // Vercel escapes the private key. We must un-escape it.
+        const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+        
+        // Use individual env vars if available (common for Vercel)
+        const serviceAccount = process.env.FIREBASE_CLIENT_EMAIL && privateKey ? 
+        {
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: privateKey,
+            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        }
+        : JSON.parse(
             process.env.FIREBASE_SERVICE_ACCOUNT_KEY ||
             Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS || '', 'base64').toString('utf-8')
         );
+
         initializeApp({ credential: cert(serviceAccount) });
         console.log('Firebase Admin SDK initialized.');
     } catch (e: any) {
