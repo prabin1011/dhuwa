@@ -5,22 +5,33 @@ import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
 import { addMinutes, isAfter, isBefore, parse, differenceInHours } from 'date-fns';
 import { notificationTemplates } from '../lib/notification-templates';
+import * as fs from 'fs';
+import * as path from 'path';
 
-// Simplified initialization for Vercel environment
+// More robust initialization for Vercel and local environments
 if (!getApps().length) {
     try {
-        const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-        if (!serviceAccountString) {
-            throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set or is empty.');
+        let serviceAccount;
+        // Vercel/production: Read from environment variable
+        if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+            serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+        } 
+        // Local development: Read from file
+        else {
+            const serviceAccountPath = path.join(process.cwd(), 'service-account.json');
+            if (fs.existsSync(serviceAccountPath)) {
+                const fileContents = fs.readFileSync(serviceAccountPath, 'utf8');
+                serviceAccount = JSON.parse(fileContents);
+            } else {
+                 throw new Error('Could not find service-account.json or FIREBASE_SERVICE_ACCOUNT_KEY.');
+            }
         }
-
-        // Directly parse the single-line JSON string from the environment variable.
-        const serviceAccount = JSON.parse(serviceAccountString);
-
+        
         initializeApp({ credential: cert(serviceAccount) });
         console.log('Firebase Admin SDK initialized successfully.');
+
     } catch (e: any) {
-        console.error('Failed to initialize Firebase Admin SDK. Ensure FIREBASE_SERVICE_ACCOUNT_KEY is a valid, single-line JSON string.', e.message);
+        console.error('Failed to initialize Firebase Admin SDK.', e.message);
         // Do not re-throw, to avoid crashing the server process on startup.
         // Functions using the SDK will handle the uninitialized state.
     }
