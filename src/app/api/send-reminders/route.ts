@@ -24,7 +24,7 @@ function isAllowedRequest(req: Request): boolean {
     return true;
   }
 
-  // Optional fallback for older schedulers
+  // Optional fallback for older schedulers like Google Cloud Scheduler
   const fromScheduler =
     req.headers.get('x-cloudscheduler') === 'true' ||
     req.headers.get('user-agent')?.toLowerCase().includes('google-cloud-scheduler');
@@ -36,7 +36,7 @@ function isAllowedRequest(req: Request): boolean {
 export async function GET(req: Request) {
   if (!isAllowedRequest(req)) {
     console.warn(
-      '[send-reminders] Unauthorized request rejected.',
+      '[send-reminders] Unauthorized GET request rejected.',
       'Origin:', req.headers.get('origin'),
       'User-Agent:', req.headers.get('user-agent')
     );
@@ -55,7 +55,7 @@ export async function GET(req: Request) {
   }
 }
 
-// POST handler for manual testing
+// POST handler for manual testing from the app dashboard
 export async function POST(req: Request) {
   if (!isAllowedRequest(req)) {
     console.warn('[send-reminders] Unauthorized POST request rejected.');
