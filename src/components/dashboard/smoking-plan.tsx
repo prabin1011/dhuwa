@@ -249,31 +249,33 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
         <Card>
             <Accordion type="single" collapsible defaultValue="item-1">
                 <AccordionItem value="item-1" className="border-b-0">
-                    <AccordionTrigger className="p-4 hover:no-underline [&[data-state=open]]:pb-0">
-                            <div className="flex justify-between items-start w-full gap-2">
-                            <div className="flex-1">
-                                <CardTitle>{isToday(selectedDate) ? "Today's" : format(selectedDate, 'MMMM d')} Plan</CardTitle>
-                                <CardDescription className="text-left mt-1">
-                                    Your scheduled moments for the day.
-                                </CardDescription>
-                            </div>
-                            <Dialog>
-                                <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" type="button">
-                                        <Info className="w-4 h-4 text-muted-foreground" />
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-xs">
-                                    <DialogHeader>
-                                        <DialogTitle>About the Daily Plan</DialogTitle>
-                                        <DialogDescription>
-                                            Create a plan for your day. For each moment, you can log that you smoked or that you chose a positive replacement activity.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                </DialogContent>
-                            </Dialog>
-                            </div>
-                    </AccordionTrigger>
+                    <div className="p-4 hover:no-underline [&[data-state=open]]:pb-0">
+                        <div className="flex justify-between items-start w-full gap-2">
+                        <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
+                                <div>
+                                    <CardTitle>{isToday(selectedDate) ? "Today's" : format(selectedDate, 'MMMM d')} Plan</CardTitle>
+                                    <CardDescription className="text-left mt-1">
+                                        Your scheduled moments for the day.
+                                    </CardDescription>
+                                </div>
+                        </AccordionTrigger>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                    <Info className="w-4 h-4 text-muted-foreground" />
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-xs">
+                                <DialogHeader>
+                                    <DialogTitle>About the Daily Plan</DialogTitle>
+                                    <DialogDescription>
+                                        Create a plan for your day. For each moment, you can log that you smoked or that you chose a positive replacement activity.
+                                    </DialogDescription>
+                                </DialogHeader>
+                            </DialogContent>
+                        </Dialog>
+                        </div>
+                    </div>
                     <AccordionContent>
                         <div className="p-4 pt-2">
                             <div className="space-y-4">
@@ -434,3 +436,5 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
         </Card>
     );
 }
+
+    

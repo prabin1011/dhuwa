@@ -139,7 +139,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <NotificationBell messages={messages} clearMessages={clearMessages} />
+                        <NotificationBell />
                         <UserProfileDropdown user={user} userProfile={userProfile} />
                     </div>
                 </header>
@@ -182,3 +182,5 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
     </div>
   );
 }
+
+    

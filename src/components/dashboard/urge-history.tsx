@@ -112,15 +112,17 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
         <Card>
             <Accordion type="single" collapsible>
                 <AccordionItem value="item-1" className="border-b-0">
-                    <AccordionTrigger className="p-4 text-left hover:no-underline [&[data-state=open]]:pb-0">
+                    <div className="p-4 hover:no-underline [&[data-state=open]]:pb-0">
                         <div className="flex justify-between items-start w-full gap-2">
-                            <div className="flex-1">
-                                <CardTitle>Daily Summary</CardTitle>
-                                <CardDescription>A look back at your logged activity.</CardDescription>
-                            </div>
+                            <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
+                                <div>
+                                    <CardTitle>Daily Summary</CardTitle>
+                                    <CardDescription>A look back at your logged activity.</CardDescription>
+                                </div>
+                            </AccordionTrigger>
                             <Dialog>
-                                <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                     <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" type="button">
+                                <DialogTrigger asChild>
+                                     <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
                                         <Info className="w-4 h-4 text-muted-foreground" />
                                     </Button>
                                 </DialogTrigger>
@@ -134,7 +136,7 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
                                 </DialogContent>
                             </Dialog>
                         </div>
-                    </AccordionTrigger>
+                    </div>
                     <AccordionContent>
                         <div className="p-4 pt-2">
                              <ScrollArea className="h-72 w-full">
@@ -195,3 +197,5 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
         </Card>
     );
 }
+
+    

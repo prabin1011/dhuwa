@@ -8,6 +8,10 @@ import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from './use-toast';
 import { getVapidKey } from '@/firebase/config';
 
+// This hook is no longer in active use for generating notifications,
+// but is kept for potential future re-integration of push notifications.
+// It manages FCM token registration and foreground message handling.
+
 const SW_URL = '/firebase-messaging-sw.js';
 
 async function ensureMessagingSW(): Promise<ServiceWorkerRegistration | null> {
@@ -46,37 +50,6 @@ export function useNotifications() {
     }
   }, []);
 
-  useEffect(() => {
-    const setupMessaging = async () => {
-      if (firebaseApp && (await isSupported())) {
-        try {
-          const messaging = getMessaging(firebaseApp);
-          const unsubscribe = onMessage(messaging, (payload) => {
-            console.log('Foreground message received.', payload);
-            toast({
-              title: payload.notification?.title || "New Message",
-              description: payload.notification?.body,
-            });
-            setMessages(prev => [payload, ...prev]);
-          });
-          return unsubscribe;
-        } catch (error) {
-          console.error("Error setting up foreground message handler:", error);
-        }
-      } else {
-        console.log("FCM is not supported in this browser or Firebase app is not available.");
-      }
-    };
-    
-    const unsubscribePromise = setupMessaging();
-
-    return () => {
-      unsubscribePromise.then(unsubscribe => {
-        if (unsubscribe) unsubscribe();
-      });
-    };
-  }, [firebaseApp, toast]);
-
   const requestPermissionAndToken = useCallback(async () => {
     if (!firebaseApp || !firestore || !user) {
       toast({ variant: 'destructive', title: 'Error', description: 'Sign in first.' });
@@ -90,11 +63,9 @@ export function useNotifications() {
     }
     
     const vapidKey = getVapidKey();
-    // Sanity-check the VAPID key before using it.
-    if (!vapidKey || !vapidKey.startsWith('B') || vapidKey.length < 80) {
-      console.warn('[FCM] Likely invalid VAPID key detected. Halting push setup. Key:', vapidKey);
-      toast({ variant: 'destructive', title: 'Config error', description: 'Notifications are not configured correctly for this app.' });
-      return null;
+    if (!vapidKey) {
+        console.warn('[FCM] VAPID key is missing. Cannot request token.');
+        return null;
     }
 
     const swReg = await ensureMessagingSW();
@@ -140,3 +111,5 @@ export function useNotifications() {
 
   return { requestPermissionAndToken, fcmToken, permissionStatus, messages, clearMessages };
 }
+
+    

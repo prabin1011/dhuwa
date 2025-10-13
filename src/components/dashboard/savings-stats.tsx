@@ -195,17 +195,19 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
         <Card>
             <Accordion type="single" collapsible>
                 <AccordionItem value="item-1" className="border-b-0">
-                    <AccordionTrigger className="p-4 text-left hover:no-underline [&[data-state=open]]:pb-0">
+                    <div className="p-4 hover:no-underline [&[data-state=open]]:pb-0">
                          <div className="flex justify-between items-start w-full gap-2">
-                            <div className="flex-1">
-                                <CardTitle>Financials</CardTitle>
-                                <CardDescription className="text-left mt-1">
-                                    {description.expenses}
-                                </CardDescription>
-                            </div>
+                            <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
+                                <div>
+                                    <CardTitle>Financials</CardTitle>
+                                    <CardDescription className="text-left mt-1">
+                                        {description.expenses}
+                                    </CardDescription>
+                                </div>
+                            </AccordionTrigger>
                             <Dialog>
-                                <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" type="button">
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
                                         <Info className="w-4 h-4 text-muted-foreground" />
                                     </Button>
                                 </DialogTrigger>
@@ -219,7 +221,7 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
                                 </DialogContent>
                             </Dialog>
                          </div>
-                    </AccordionTrigger>
+                    </div>
                     <AccordionContent>
                         <div className="space-y-8 p-4 pt-2">
                              <div>
@@ -246,3 +248,5 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
         </Card>
     )
 }
+
+    

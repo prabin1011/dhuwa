@@ -1,17 +1,18 @@
+
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Bell, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetTrigger } from '@/components/ui/sheet';
-import type { MessagePayload } from 'firebase/messaging';
 import { formatDistanceToNow } from 'date-fns';
-import { useFirebase, useCollection, useMemoFirebase, type WithId } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, query, orderBy, limit } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import { ScrollArea } from '../ui/scroll-area';
 
 interface StoredNotification {
+  id: string;
   title: string;
   body: string;
   timestamp: Timestamp;
@@ -19,16 +20,10 @@ interface StoredNotification {
   link?: string;
 }
 
-interface NotificationBellProps {
-  messages: MessagePayload[];
-  clearMessages: () => void;
-}
-
-export function NotificationBell({ messages, clearMessages }: NotificationBellProps) {
+export function NotificationBell() {
   const { firestore, user } = useFirebase();
   const [isOpen, setIsOpen] = useState(false);
 
-  // This query fetches the last 20 notifications from Firestore.
   const notificationsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(
@@ -39,9 +34,11 @@ export function NotificationBell({ messages, clearMessages }: NotificationBellPr
   }, [firestore, user]);
 
   const { data: storedNotifications } = useCollection<StoredNotification>(notificationsQuery);
-  const unreadCount = useMemo(() => storedNotifications?.filter(n => !n.read).length || 0, [storedNotifications]);
+  
+  const unreadCount = useMemo(() => {
+      return storedNotifications?.filter(n => !n.read).length || 0
+  }, [storedNotifications]);
 
-  // Marks all unread notifications in Firestore as read.
   const markAllAsRead = async () => {
     if (!firestore || !user || !storedNotifications || unreadCount === 0) return;
 
@@ -60,7 +57,6 @@ export function NotificationBell({ messages, clearMessages }: NotificationBellPr
     }
   };
   
-  // Deletes all notifications shown in the history from Firestore.
   const handleClearHistory = async () => {
     if (!firestore || !user || !storedNotifications || storedNotifications.length === 0) return;
 
@@ -76,41 +72,16 @@ export function NotificationBell({ messages, clearMessages }: NotificationBellPr
     }
   }
 
-  // When the sheet is opened, mark all notifications as read.
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (open && unreadCount > 0) {
       markAllAsRead();
     }
   };
-
-  // Combine real-time messages with stored notifications.
+  
   const allNotifications = useMemo(() => {
-    // New messages from the current session (not yet in Firestore)
-    const newMessages = messages.map(msg => ({
-        id: msg.messageId || new Date().toISOString(),
-        title: msg.notification?.title || 'Notification',
-        body: msg.notification?.body || '',
-        timestamp: msg.sentTime ? new Date(Number(msg.sentTime)) : new Date(),
-        read: false // They are new by definition
-    }));
-
-    // Historical notifications from Firestore
-    const historicalNotifications = storedNotifications?.map(n => ({
-        id: n.id,
-        title: n.title,
-        body: n.body,
-        timestamp: n.timestamp?.toDate() || new Date(),
-        read: n.read
-    })) || [];
-    
-    // Combine, de-duplicate, and sort
-    const combined = [...newMessages, ...historicalNotifications];
-    const uniqueNotifications = Array.from(new Map(combined.map(item => [item.id, item])).values());
-    
-    return uniqueNotifications.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-
-  }, [messages, storedNotifications]);
+      return (storedNotifications || []).map(n => ({...n, timestamp: n.timestamp?.toDate() || new Date()}))
+  }, [storedNotifications]);
 
 
   return (
@@ -163,3 +134,5 @@ export function NotificationBell({ messages, clearMessages }: NotificationBellPr
     </Sheet>
   );
 }
+
+    
