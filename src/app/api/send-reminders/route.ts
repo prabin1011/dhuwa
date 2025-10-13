@@ -1,7 +1,7 @@
+
 'use server';
 
-import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
+import { NextResponse } from 'next/headers';
 import { initializeAdminApp } from '@/functions';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { notificationTemplates } from '@/lib/notification-templates';
@@ -20,17 +20,21 @@ type Urge = {
   timestamp: Timestamp;
 };
 
-// Security check for the API route
+// Helper: decide if this request is allowed to run the job
 function isAllowedRequest(req: Request): boolean {
-  const host = headers().get('host');
-  const origin = headers().get('origin');
-  const referer = headers().get('referer');
+  const origin = req.headers.get('origin');
+  const referer = req.headers.get('referer');
   
-  // The app's URL, constructed dynamically for different environments
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://${host}`);
-  
-  // Allow if the request origin or referer header starts with the app's URL.
-  // This is a robust way to verify the request comes from the app itself.
+  // Vercel Cron Job security: Check for the 'Bearer' token from the injected CRON_SECRET
+  if (process.env.CRON_SECRET && req.headers.get('authorization') === `Bearer ${process.env.CRON_SECRET}`) {
+    return true;
+  }
+
+  // Allow requests from the app's own origin for testing (e.g., "Test Notification" button)
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
   if (origin === appUrl || (referer && referer.startsWith(appUrl))) {
     return true;
   }
@@ -44,13 +48,15 @@ function isAllowedRequest(req: Request): boolean {
   return false;
 }
 
+
 // Selects a random template from an array
 const getRandomTemplate = (templateArray: { title: string; body: string }[]) => {
   return templateArray[Math.floor(Math.random() * templateArray.length)];
 };
 
 export async function POST(req: Request) {
-  if (!isAllowedRequest(req)) {
+  // IMPORTANT: Only run the security check in production.
+  if (process.env.NODE_ENV === 'production' && !isAllowedRequest(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 

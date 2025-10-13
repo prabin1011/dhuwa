@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useUser } from '@/firebase';
+import { useUser, useFirebase } from '@/firebase';
 import { useAuthActions } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,12 +12,14 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { WelcomeIllustration } from '@/components/illustrations/welcome';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function LoginPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { signInWithEmail, signUpWithEmail, sendPasswordReset } = useAuthActions();
   const { toast } = useToast();
+  const { firestore } = useFirebase();
 
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<'signin' | 'signup'>('signin');
@@ -120,7 +123,18 @@ export default function LoginPage() {
                 }
 
                 try {
-                    await signUpWithEmail(email, password, username || undefined);
+                    const cred = await signUpWithEmail(email, password, username || undefined);
+                    // Add a welcome notification
+                    if (firestore && cred.user) {
+                        const notificationsCollection = collection(firestore, 'users', cred.user.uid, 'notifications');
+                        await addDoc(notificationsCollection, {
+                            title: 'Welcome to Dhuwa!',
+                            body: 'Your journey to freedom starts now. We are here to support you every step of the way.',
+                            timestamp: serverTimestamp(),
+                            read: false,
+                        });
+                    }
+
                     toast({ title: 'Account created!', description: "You're now logged in."});
                     router.replace('/dashboard');
                 } catch (e: any) {
