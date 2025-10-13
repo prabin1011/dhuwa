@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useMemo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { eachDayOfInterval, endOfDay, format, isSameDay, startOfMonth, startOfWeek, startOfDay } from 'date-fns';
 import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
@@ -207,7 +206,7 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
                             </AccordionTrigger>
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="More Info">
                                         <Info className="w-4 h-4 text-muted-foreground" />
                                     </Button>
                                 </DialogTrigger>
@@ -248,5 +247,3 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
         </Card>
     )
 }
-
-    

@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { ScrollArea } from "../ui/scroll-area";
-import { format, parseISO, isToday, isYesterday, isSameDay } from "date-fns";
+import { format, parseISO, isToday, isYesterday } from "date-fns";
 import { Info } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Button } from "../ui/button";
@@ -110,7 +109,7 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
                             </AccordionTrigger>
                              <Dialog>
                                 <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="More Info">
                                         <Info className="w-4 h-4 text-muted-foreground" />
                                     </Button>
                                 </DialogTrigger>
@@ -160,5 +159,3 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
         </Card>
     );
 }
-
-    

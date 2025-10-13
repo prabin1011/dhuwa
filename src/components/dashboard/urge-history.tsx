@@ -1,4 +1,3 @@
-
 "use client";
 
 import { WithId } from "@/firebase";
@@ -122,7 +121,7 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
                             </AccordionTrigger>
                             <Dialog>
                                 <DialogTrigger asChild>
-                                     <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                     <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="More Info">
                                         <Info className="w-4 h-4 text-muted-foreground" />
                                     </Button>
                                 </DialogTrigger>
@@ -197,5 +196,3 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
         </Card>
     );
 }
-
-    

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from "react";
@@ -261,7 +260,7 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                         </AccordionTrigger>
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="More Info">
                                     <Info className="w-4 h-4 text-muted-foreground" />
                                 </Button>
                             </DialogTrigger>
@@ -304,13 +303,13 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                                                             
                                                             {!isProcessed && isToday(selectedDate) && (
                                                                 <>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/20 text-destructive" onClick={() => setMoodMoment(moment)}>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/20 text-destructive" onClick={() => setMoodMoment(moment)} aria-label="Log smoke for this moment">
                                                                         <Cigarette className="w-4 h-4" />
                                                                     </Button>
                                                                     
                                                                     <Dialog open={activeDialog === moment.id} onOpenChange={(isOpen) => !isOpen && setActiveDialog(null)}>
                                                                         <DialogTrigger asChild>
-                                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/20 text-primary" onClick={() => setActiveDialog(moment.id)}>
+                                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/20 text-primary" onClick={() => setActiveDialog(moment.id)} aria-label="Replace this moment">
                                                                                 <Replace className="w-4 h-4" />
                                                                             </Button>
                                                                         </DialogTrigger>
@@ -352,7 +351,7 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                                                                 </>
                                                             )}
                                                             
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted" onClick={() => handleDeleteMoment(moment.id)}>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted" onClick={() => handleDeleteMoment(moment.id)} aria-label="Delete this moment">
                                                                 <Trash2 className="w-4 h-4" />
                                                             </Button>
                                                         </div>
@@ -436,5 +435,3 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
         </Card>
     );
 }
-
-    

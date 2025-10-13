@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Progress } from "../ui/progress";
-import { format, startOfWeek, startOfMonth, isWithinInterval, parseISO, endOfWeek, endOfMonth, endOfDay } from "date-fns";
+import { format, startOfWeek, startOfMonth, isWithinInterval, parseISO, endOfWeek, endOfMonth } from "date-fns";
 import { Info } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Button } from "../ui/button";
@@ -118,7 +117,7 @@ export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerPr
                             </AccordionTrigger>
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="More Info">
                                         <Info className="w-4 h-4 text-muted-foreground" />
                                     </Button>
                                 </DialogTrigger>
@@ -163,5 +162,3 @@ export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerPr
         </Card>
     );
 }
-
-    

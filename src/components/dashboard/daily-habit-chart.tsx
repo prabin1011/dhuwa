@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useMemo } from 'react';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, StackedBar } from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import type { WithId } from '@/firebase';
 import type { Timestamp } from 'firebase/firestore';
@@ -108,7 +107,7 @@ export function DailyHabitChart({ urges, selectedDate, habits }: DailyHabitChart
                             </AccordionTrigger>
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="More Info">
                                         <Info className="w-4 h-4 text-muted-foreground" />
                                     </Button>
                                 </DialogTrigger>
@@ -169,5 +168,3 @@ export function DailyHabitChart({ urges, selectedDate, habits }: DailyHabitChart
         </Card>
     );
 }
-
-    
