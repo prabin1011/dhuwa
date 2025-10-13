@@ -30,7 +30,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-4 relative">
-      <div className="flex flex-col items-center w-full">
+      <div className="flex flex-col items-center w-full flex-1 justify-center pb-20">
         <Link href="/" className="mb-8">
             <WelcomeIllustration className="w-40 h-40" />
         </Link>
