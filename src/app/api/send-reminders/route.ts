@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { sendMomentReminders } from '@/functions';
 import { headers } from 'next/headers';
@@ -8,7 +9,15 @@ export const dynamic = 'force-dynamic';
 // Helper: decide if this request is allowed to run the job
 function isAllowedRequest(): boolean {
   const h = headers();
+  const origin = h.get('origin');
+  const referer = h.get('referer');
 
+  // Allow requests originating from the app itself (for the test button)
+  const appUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+  if (origin === appUrl || referer?.startsWith(appUrl)) {
+    return true;
+  }
+  
   // Vercel environment: 'development' | 'preview' | 'production'
   const vercelEnv = process.env.VERCEL_ENV || '';
   const isNonProd = vercelEnv !== 'production';
