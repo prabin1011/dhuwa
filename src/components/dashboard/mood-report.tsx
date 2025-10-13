@@ -149,30 +149,28 @@ export function MoodReport({ urges, selectedDate }: MoodReportProps) {
         <Card>
             <Accordion type="single" collapsible>
                 <AccordionItem value="item-1" className="border-b-0">
-                    <div className="p-4 hover:no-underline [&[data-state=open]]:pb-0">
-                        <div className="flex justify-between items-start w-full gap-2">
-                            <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
-                                <div>
-                                    <CardTitle>Mood Analysis</CardTitle>
-                                    <CardDescription>{description}</CardDescription>
-                                </div>
-                            </AccordionTrigger>
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="More Info">
-                                        <Info className="w-4 h-4 text-muted-foreground" />
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-xs">
-                                    <DialogHeader>
-                                        <DialogTitle>About Mood Analysis</DialogTitle>
-                                        <DialogDescription>
-                                            This card shows a breakdown of the moods you logged before and after smoking on the selected day, helping you understand your emotional triggers.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
+                    <div className="flex justify-between items-start w-full gap-2 p-4 hover:no-underline [&[data-state=open]]:pb-0">
+                        <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
+                            <div>
+                                <CardTitle>Mood Analysis</CardTitle>
+                                <CardDescription>{description}</CardDescription>
+                            </div>
+                        </AccordionTrigger>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="More Info">
+                                    <Info className="w-4 h-4 text-muted-foreground" />
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-xs">
+                                <DialogHeader>
+                                    <DialogTitle>About Mood Analysis</DialogTitle>
+                                    <DialogDescription>
+                                        This card shows a breakdown of the moods you logged before and after smoking on the selected day, helping you understand your emotional triggers.
+                                    </DialogDescription>
+                                </DialogHeader>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                     <AccordionContent>
                         <div className="p-4 pt-2">

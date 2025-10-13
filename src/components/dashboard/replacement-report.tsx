@@ -99,30 +99,28 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
         <Card>
             <Accordion type="single" collapsible>
                 <AccordionItem value="item-1" className="border-b-0">
-                    <div className="p-4 hover:no-underline [&[data-state=open]]:pb-0">
-                        <div className="flex justify-between items-start w-full gap-2">
-                            <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
-                                <div>
-                                    <CardTitle>Replacement Report</CardTitle>
-                                    <CardDescription>{description}</CardDescription>
-                                </div>
-                            </AccordionTrigger>
-                             <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="More Info">
-                                        <Info className="w-4 h-4 text-muted-foreground" />
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-xs">
-                                    <DialogHeader>
-                                        <DialogTitle>About the Replacement Report</DialogTitle>
-                                        <DialogDescription>
-                                            This card shows a log of the positive activities you chose instead of smoking for your planned moments.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
+                    <div className="flex justify-between items-start w-full gap-2 p-4 hover:no-underline [&[data-state=open]]:pb-0">
+                        <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
+                            <div>
+                                <CardTitle>Replacement Report</CardTitle>
+                                <CardDescription>{description}</CardDescription>
+                            </div>
+                        </AccordionTrigger>
+                         <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" aria-label="More Info">
+                                    <Info className="w-4 h-4 text-muted-foreground" />
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-xs">
+                                <DialogHeader>
+                                    <DialogTitle>About the Replacement Report</DialogTitle>
+                                    <DialogDescription>
+                                        This card shows a log of the positive activities you chose instead of smoking for your planned moments.
+                                    </DialogDescription>
+                                </DialogHeader>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                     <AccordionContent>
                         <div className="p-4 pt-2">
