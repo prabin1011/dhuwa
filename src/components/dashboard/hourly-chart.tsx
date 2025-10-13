@@ -116,7 +116,7 @@ export function HourlyChart({ urges, habits }: HourlyChartProps) {
                                     <XAxis 
                                         dataKey="hour" 
                                         stroke="hsl(var(--muted-foreground))"
-                                        fontSize={10} _
+                                        fontSize={10}
                                         tickLine={false}
                                         axisLine={false}
                                         tickFormatter={(value, index) => index % 3 === 0 ? formatHour(index) : ''}

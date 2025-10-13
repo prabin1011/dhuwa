@@ -18,7 +18,7 @@ type Urge = {
   timestamp: Timestamp;
 };
 
-// --- Helper: allow only Vercel Cron or internal requests ---
+// Helper: allow only Vercel Cron or internal requests
 function isAllowedRequest(req: Request): boolean {
   const origin = req.headers.get('origin');
   const referer = req.headers.get('referer');
@@ -45,14 +45,17 @@ function isAllowedRequest(req: Request): boolean {
   return false;
 }
 
-// --- Random template picker ---
+// Random template picker
 const getRandomTemplate = (templateArray: { title: string; body: string }[]) => {
   return templateArray[Math.floor(Math.random() * templateArray.length)];
 };
 
-// --- POST handler ---
+const vercelEnv = process.env.VERCEL_ENV || (process.env.NODE_ENV === 'development' ? 'development' : 'production');
+const isProd = vercelEnv === 'production';
+
+// POST handler
 export async function POST(req: Request) {
-  if (process.env.NODE_ENV === 'production' && !isAllowedRequest(req)) {
+  if (isProd && !isAllowedRequest(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 
