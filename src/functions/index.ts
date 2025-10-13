@@ -14,7 +14,7 @@ if (!getApps().length) {
             throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set or is empty.');
         }
 
-        // The environment variable MUST be a single-line JSON string.
+        // Directly parse the single-line JSON string from the environment variable.
         const serviceAccount = JSON.parse(serviceAccountString);
 
         initializeApp({ credential: cert(serviceAccount) });
