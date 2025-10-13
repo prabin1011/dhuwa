@@ -32,8 +32,9 @@ export default function LoginPage() {
   if (user) return null;
 
   return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-4 relative">
-      <div className="flex flex-col items-center w-full flex-1 justify-center pb-20">
+    <div className="flex h-screen w-screen flex-col items-center justify-between bg-background p-4">
+      <div/>
+      <div className="flex flex-col items-center w-full">
         <Link href="/" className="mb-8">
             <WelcomeIllustration className="w-40 h-40" />
         </Link>
@@ -166,7 +167,7 @@ export default function LoginPage() {
         </Tabs>
       </div>
 
-      <footer className="absolute bottom-8 text-xs text-muted-foreground">
+      <footer className="text-xs text-muted-foreground pb-4">
         <Link href="/about" className="hover:underline">About</Link> · <Link href="/terms" className="hover:underline">Terms</Link>
       </footer>
     </div>

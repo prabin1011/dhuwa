@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -9,8 +10,9 @@ export default function HomePage() {
   const { user, isUserLoading } = useUser();
 
   return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-4 text-center">
-      <div className="flex flex-col items-center mb-8 flex-1 justify-center pb-20">
+    <div className="flex h-screen w-screen flex-col items-center justify-between bg-background p-4 text-center">
+      <div />
+      <div className="flex flex-col items-center">
         <WelcomeIllustration className="w-48 h-48" />
         <h1 className="text-4xl font-bold mt-4 font-heading">Welcome to Dhuwa</h1>
         <p className="text-muted-foreground mt-2 max-w-md">
@@ -27,7 +29,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <footer className="absolute bottom-8 text-xs text-muted-foreground">
+      <footer className="text-xs text-muted-foreground pb-4">
         <Link href="/about" className="hover:underline">About</Link> · <Link href="/terms" className="hover:underline">Terms</Link>
       </footer>
     </div>
