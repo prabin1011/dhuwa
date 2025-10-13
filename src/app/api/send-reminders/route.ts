@@ -24,12 +24,23 @@ type Urge = {
 function isAllowedRequest(req: Request): boolean {
   const host = headers().get('host');
   const origin = headers().get('origin');
+  const referer = headers().get('referer');
   
-  // Allow requests from the app's own origin for testing
+  // The app's URL, constructed dynamically for different environments
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://${host}`);
-  if (origin === appUrl) {
+  
+  // Allow if the request origin or referer header starts with the app's URL.
+  // This is a robust way to verify the request comes from the app itself.
+  if (origin === appUrl || (referer && referer.startsWith(appUrl))) {
     return true;
   }
+  
+  console.warn('[API Auth] Blocked request. Origin/Referer did not match app URL.', {
+      origin,
+      referer,
+      appUrl
+  });
+
   return false;
 }
 
