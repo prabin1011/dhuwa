@@ -1,43 +1,45 @@
 
 import { NextResponse } from 'next/server';
 import { sendMomentReminders } from '@/functions';
-import { headers } from 'next/headers';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // Helper: decide if this request is allowed to run the job
-function isAllowedRequest(request: Request): boolean {
-  const h = headers();
-  const authHeader = h.get('authorization');
-  
+function isAllowedRequest(req: Request): boolean {
+  const authHeader = req.headers.get('authorization');
+  const origin = req.headers.get('origin');
+
   // Vercel Cron Job security: Check for the 'Bearer' token from the injected CRON_SECRET
   if (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) {
     return true;
   }
-  
+
   // Allow requests from the app's own origin for testing (e.g., "Test Notification" button)
-  const origin = h.get('origin');
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-  
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
   if (origin === appUrl) {
     return true;
   }
 
-  // Fallback for older Google Cloud Scheduler checks if needed, though Vercel's is preferred
+  // Optional fallback for older schedulers
   const fromScheduler =
-    h.get('x-cloudscheduler') === 'true' ||
-    h.get('user-agent')?.toLowerCase().includes('google-cloud-scheduler');
-  
-  if (fromScheduler) return true;
-  
-  return false;
+    req.headers.get('x-cloudscheduler') === 'true' ||
+    req.headers.get('user-agent')?.toLowerCase().includes('google-cloud-scheduler');
+
+  return fromScheduler;
 }
 
-// NOTE: Vercel Cron jobs use GET requests.
-export async function GET(request: Request) {
-  if (!isAllowedRequest(request)) {
-    console.warn('[send-reminders] Unauthorized request rejected. Origin:', headers().get('origin'), 'User-Agent:', headers().get('user-agent'));
+// Vercel Cron Jobs send GET requests
+export async function GET(req: Request) {
+  if (!isAllowedRequest(req)) {
+    console.warn(
+      '[send-reminders] Unauthorized request rejected.',
+      'Origin:', req.headers.get('origin'),
+      'User-Agent:', req.headers.get('user-agent')
+    );
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 
@@ -53,21 +55,25 @@ export async function GET(request: Request) {
   }
 }
 
-// The POST handler is now only for manual testing from the dashboard.
-export async function POST(request: Request) {
-    if (!isAllowedRequest(request)) {
-        console.warn('[send-reminders] Unauthorized POST request rejected.');
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-     try {
-        // We can reuse the same core logic.
-        const result = await sendMomentReminders();
-        return NextResponse.json({ ok: true, message: "Test reminder job triggered successfully.", details: result }, { status: 200 });
-    } catch (err: any) {
-        console.error('[send-reminders-post] error:', err);
-        return NextResponse.json(
-            { error: err?.message ?? 'Failed to send test reminders' },
-            { status: 500 }
-        );
-    }
+// POST handler for manual testing
+export async function POST(req: Request) {
+  if (!isAllowedRequest(req)) {
+    console.warn('[send-reminders] Unauthorized POST request rejected.');
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  }
+
+  try {
+    const result = await sendMomentReminders();
+    return NextResponse.json({
+      ok: true,
+      message: 'Test reminder job triggered successfully.',
+      details: result,
+    }, { status: 200 });
+  } catch (err: any) {
+    console.error('[send-reminders-post] error:', err);
+    return NextResponse.json(
+      { error: err?.message ?? 'Failed to send test reminders' },
+      { status: 500 }
+    );
+  }
 }
