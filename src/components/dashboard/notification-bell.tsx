@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -95,6 +96,7 @@ export function NotificationBell() {
       const data = await res.json();
 
       if (res.ok && lastCheckKey) {
+        // Sync client cooldown with server decision
         localStorage.setItem(lastCheckKey, String(Date.now()));
       }
 
@@ -208,3 +210,5 @@ export function NotificationBell() {
     </Sheet>
   );
 }
+
+    

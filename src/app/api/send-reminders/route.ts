@@ -177,7 +177,12 @@ async function generateNotificationsForUser(userId: string, userProfile: UserPro
     add('weekly', weekKey, notificationTemplates.weekly, { total, window: `${fmt(bestStart)}–${fmt((bestStart + 2) % 24)}` });
   }
 
+  // Always update the server-side cooldown timestamp, even if no new insights are created
+  lastNotifiedUpdates['lastNotified.lastInsightCheckAt'] = new Date().toISOString();
+
   if (toCreate.length === 0) {
+    // If no new notifications, just update the timestamp
+    await userRef.update(lastNotifiedUpdates);
     return { created: 0 };
   }
 
@@ -195,9 +200,6 @@ async function generateNotificationsForUser(userId: string, userProfile: UserPro
       timestamp: FieldValue.serverTimestamp(),
     });
   });
-
-  // Also update the server-side cooldown timestamp
-  lastNotifiedUpdates['lastNotified.lastInsightCheckAt'] = new Date().toISOString();
 
   if (Object.keys(lastNotifiedUpdates).length) {
     batch.update(userRef, lastNotifiedUpdates);
@@ -254,3 +256,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: error.message ?? 'Internal Server Error' }, { status: 500 });
     }
 }
+
+    
