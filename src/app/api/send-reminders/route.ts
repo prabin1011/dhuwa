@@ -17,13 +17,14 @@ type UserProfile = {
   fcmTokens?: string[];
   lastNotified?: Record<string, string>;
   moments?: any[];
+  reminders?: string;
 };
 
 type Urge = {
   timestamp: Timestamp;
 };
 
-// --- Helper: allow only Vercel Cron or internal requests ---
+// Helper: allow only Vercel Cron or internal requests
 function isAllowedRequest(req: Request): boolean {
   const origin = req.headers.get('origin');
   const referer = req.headers.get('referer');
@@ -139,7 +140,6 @@ async function processUser(userId: string) {
 
 
 export async function GET(req: Request) {
-    // In production, only allow cron jobs. In dev, allow any request for testing.
     const vercelEnv = process.env.VERCEL_ENV || 'development';
     if (vercelEnv === 'production' && !isAllowedRequest(req)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
@@ -162,4 +162,26 @@ export async function GET(req: Request) {
         console.error('[send-reminders-get] error:', error);
         return NextResponse.json({ error: error.message ?? 'Internal Server Error' }, { status: 500 });
     }
+}
+
+export async function POST(req: Request) {
+  const vercelEnv = process.env.VERCEL_ENV || 'development';
+  if (vercelEnv === 'production' && !isAllowedRequest(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  }
+
+  const { userId } = await req.json();
+  if (!userId) {
+    return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });
+  }
+
+  try {
+    // Manually run the logic for a single user for testing
+    await processUser(userId);
+    return NextResponse.json({ ok: true, message: 'Test notification process completed.' });
+
+  } catch (error: any) {
+    console.error('[send-reminders-post] error:', error);
+    return NextResponse.json({ error: error.message ?? 'Internal Server Error' }, { status: 500 });
+  }
 }

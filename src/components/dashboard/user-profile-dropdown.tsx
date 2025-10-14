@@ -10,14 +10,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useAuth } from "@/firebase";
+import { useAuth, useFirebase } from "@/firebase";
 import Link from 'next/link';
 import { Button } from "../ui/button";
-import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather } from "lucide-react";
+import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather, BellRing } from "lucide-react";
 import { ProfileSheet } from '../profile/profile-sheet';
 import type { WithId } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import type { User } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
 
 interface UserProfile {
     username?: string;
@@ -30,9 +31,10 @@ interface UserProfileDropdownProps {
 
 export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownProps) {
   const auth = useAuth();
+  const { user: firebaseUser } = useFirebase();
   const router = useRouter();
+  const { toast } = useToast();
 
-  // State must be at the top level
   const [isProfileSheetOpen, setProfileSheetOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -41,6 +43,25 @@ export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownPr
       router.push('/login');
     }
   };
+
+  const handleTestNotification = async () => {
+    if (!firebaseUser) {
+      toast({ variant: 'destructive', title: 'Not logged in' });
+      return;
+    }
+    try {
+      const res = await fetch('/api/send-reminders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: firebaseUser.uid }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to send notification');
+      toast({ title: 'Test Sent', description: data.message });
+    } catch (err: any) {
+      toast({ variant: 'destructive', title: 'Test Failed', description: err.message });
+    }
+  }
 
   const getInitials = (name?: string) => {
     if (!name) return 'U';
@@ -70,6 +91,10 @@ export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownPr
           <DropdownMenuItem onSelect={() => setProfileSheetOpen(true)}>
             <UserIcon className="mr-2 h-4 w-4" />
             <span>Profile</span>
+          </DropdownMenuItem>
+           <DropdownMenuItem onClick={handleTestNotification}>
+            <BellRing className="mr-2 h-4 w-4" />
+            <span>Test Notification</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
            <a href="https://prakakura.com/journals" target="_blank" rel="noopener noreferrer">
