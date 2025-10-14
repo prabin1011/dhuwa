@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -14,7 +13,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/firebase";
 import Link from 'next/link';
 import { Button } from "../ui/button";
-import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather } from "lucide-react";
+import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather, MessageSquare, Shield } from "lucide-react";
 import { ProfileSheet } from '../profile/profile-sheet';
 import type { WithId } from '@/firebase';
 import { useRouter } from 'next/navigation';
@@ -91,10 +90,35 @@ export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownPr
                 <span>About Us</span>
              </DropdownMenuItem>
           </Link>
+           <Link href="/features" passHref>
+             <DropdownMenuItem>
+                <LifeBuoy className="mr-2 h-4 w-4" />
+                <span>Features</span>
+             </DropdownMenuItem>
+          </Link>
+           <Link href="/contact" passHref>
+             <DropdownMenuItem>
+                <MessageSquare className="mr-2 h-4 w-4" />
+                <span>Contact Us</span>
+             </DropdownMenuItem>
+          </Link>
+          <DropdownMenuSeparator />
           <Link href="/terms" passHref>
             <DropdownMenuItem>
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Terms & Conditions</span>
+            </DropdownMenuItem>
+          </Link>
+           <Link href="/privacy" passHref>
+            <DropdownMenuItem>
+                <Shield className="mr-2 h-4 w-4" />
+                <span>Privacy Policy</span>
+            </DropdownMenuItem>
+          </Link>
+           <Link href="/disclaimer" passHref>
+            <DropdownMenuItem>
+                <Shield className="mr-2 h-4 w-4" />
+                <span>Disclaimer</span>
             </DropdownMenuItem>
           </Link>
           <DropdownMenuSeparator />

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -167,8 +166,12 @@ export default function LoginPage() {
         </Tabs>
       </div>
 
-      <footer className="text-xs text-muted-foreground pb-4">
-        <Link href="/about" className="hover:underline">About</Link> · <Link href="/terms" className="hover:underline">Terms</Link>
+      <footer className="text-xs text-muted-foreground pb-4 flex gap-x-4">
+        <Link href="/about" className="hover:underline">About</Link>
+        <Link href="/features" className="hover:underline">Features</Link>
+        <Link href="/terms" className="hover:underline">Terms</Link>
+        <Link href="/privacy" className="hover:underline">Privacy</Link>
+        <Link href="/contact" className="hover:underline">Contact</Link>
       </footer>
     </div>
   );

@@ -1,8 +1,8 @@
-
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About Dhuwa',
+  title: 'About Dhuwa – Mission, Vision & Philosophy of Smoke-Free Living',
+  description: 'Learn about Dhuwa’s mission, vision, and philosophy inspired by Allen Carr’s Easy Way. Discover how we help you quit smoking mindfully, without willpower.',
 };
 
 export default function AboutPage() {
@@ -11,27 +11,48 @@ export default function AboutPage() {
       <h2 className="text-2xl font-bold">About Dhuwa</h2>
       <div className="space-y-4 text-base italic text-foreground/90">
           <p>
-              In Nepali, "Dhuwa" means smoke. It is the ghost we are chasing away.
+              In Nepali, "Dhuwa" means smoke — the ghost we are gently chasing away.
           </p>
           <p>
-              In the language of the Yolŋu people of Australia, "Dhuwa" is one half of everything; a cosmic balance. It represents a fundamental part of the whole, a piece of a larger story.
+              In Yolŋu (First Nations of Australia), Dhuwa is one half of everything: balance, harmony, and cosmic wholeness.
           </p>
           <p>
-              In the Bidjara tongue, it means "to feel alive."
-          </p>
-          <p>
-              This app is built on that poetry.
+              In Bidjara (an Aboriginal language of Queensland), it means "to feel alive" — the very goal of this journey.
           </p>
       </div>
       <p>
-        It is a companion to help you see the smoke for what it is, to find the balance in your life that it has disturbed, and to step back into the vibrant, beautiful feeling of being truly alive.
+        This app was born from the belief that smoking is not your comfort or your friend — it’s the trap. Inspired by Allen Carr’s philosophy, we focus on clarity, not willpower. Freedom comes from seeing the truth, not fighting cravings like an endless battle.
       </p>
-      <p>
-        Here, we don’t fight with willpower. We don’t count days as if they are a prison sentence. Instead, we observe. We understand. We dismantle the trap, piece by piece, until we can simply walk away, not as someone who is "quitting," but as someone who is free.
+
+       <div className="space-y-2">
+        <h3 className="text-xl font-semibold">Our Mission</h3>
+        <p>To guide people into freedom from smoking — gently, mindfully, and without fear.</p>
+        <p>We don’t measure success in numbers of cigarettes avoided. We measure it in clarity gained, balance restored, and the return of life’s simple joys.</p>
+      </div>
+      
+       <div className="space-y-2">
+        <h3 className="text-xl font-semibold">Our Vision</h3>
+        <p>A world where smoking is not a struggle to resist, but simply irrelevant.</p>
+        <p>We envision millions of people waking up each day without the weight of nicotine, discovering energy, presence, and balance in their lives.</p>
+      </div>
+
+       <div className="space-y-2">
+        <h3 className="text-xl font-semibold">Our Aspiration</h3>
+        <p>To dismantle the myths and illusions that make smoking seem necessary.</p>
+        <p>To transform quitting into an act of freedom, not punishment.</p>
+        <p>To give people tools to observe their patterns, reflect deeply, and reclaim control at their own pace.</p>
+      </div>
+
+       <p className="italic text-foreground/80">
+        We believe, as Allen Carr once wrote: “When you stop, you are not giving up anything — you are returning to everything.”
       </p>
-       <p>
-        Welcome to your journey. Welcome to Dhuwa.
-      </p>
+      
+       <div className="space-y-2">
+        <h3 className="text-xl font-semibold">Why Dhuwa is Different</h3>
+        <p>Unlike willpower-based trackers that turn your journey into punishment and countdowns, Dhuwa acts as a silent observer. It reflects back your choices, your wins, and your patterns — so you can see the truth for yourself.</p>
+      </div>
+      
+       <p>Welcome to your journey. Welcome to Dhuwa.</p>
     </div>
   );
 }

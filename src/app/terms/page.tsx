@@ -1,8 +1,7 @@
-
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Terms and Conditions',
+  title: 'Dhuwa App Terms & Conditions | Usage, Data, Disclaimer',
 };
 
 export default function TermsPage() {
@@ -12,58 +11,64 @@ export default function TermsPage() {
       <p>Last updated: October 06, 2025</p>
 
       <div className="space-y-2">
-        <h3 className="text-xl font-semibold">1. Introduction</h3>
+        <h3 className="text-xl font-semibold">Introduction</h3>
         <p>
-          Welcome to "Dhuwa" ("App"). This App is provided to you as a tool to help you understand and change your smoking habits. By using our App, you agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, do not use the App.
+          Welcome to "Dhuwa" (the “App”). By accessing or using the App, you agree to these Terms and Conditions (“Terms”). If you do not agree, please discontinue use.
         </p>
       </div>
       
       <div className="space-y-2">
-        <h3 className="text-xl font-semibold">2. Medical Disclaimer</h3>
+        <h3 className="text-xl font-semibold">Medical Disclaimer</h3>
         <p>
-          The App is not a medical device and does not provide medical advice. It is intended for informational and educational purposes only. The content and insights provided by the App, including any AI-generated suggestions, are not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition. Never disregard professional medical advice or delay in seeking it because of something you have read or received from this App.
+          The App is not a medical device. It provides educational and reflective insights only. It does not replace professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider for health concerns.
         </p>
       </div>
 
       <div className="space-y-2">
-        <h3 className="text-xl font-semibold">3. Use of the App</h3>
+        <h3 className="text-xl font-semibold">Eligibility & Use</h3>
+        <ul className="list-disc pl-6 space-y-1">
+            <li>You must be 18 years or older to use the App.</li>
+            <li>You are responsible for your activity within the App and for complying with applicable laws.</li>
+        </ul>
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-xl font-semibold">Accounts</h3>
+         <ul className="list-disc pl-6 space-y-1">
+            <li>You may use the App anonymously with a username.</li>
+            <li>If you register with email/password, your data can sync across devices.</li>
+            <li>You are responsible for safeguarding your credentials.</li>
+        </ul>
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-xl font-semibold">Data & Privacy</h3>
+        <ul className="list-disc pl-6 space-y-1">
+            <li>Your data (habits, moods, logs) is stored securely in Firebase.</li>
+            <li>We never sell your data.</li>
+            <li>Data is used only to provide App functionality and personalized insights.</li>
+            <li>See our <a href="/privacy" className="font-semibold underline">Privacy Policy</a> for details.</li>
+        </ul>
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-xl font-semibold">Limitation of Liability</h3>
         <p>
-          You must be at least 18 years old to use this App. You agree to use the App in compliance with all applicable laws. You are responsible for any data you enter into the App.
+          To the maximum extent permitted by law, Dhuwa’s creators are not liable for indirect, incidental, or consequential damages arising from use of the App.
         </p>
       </div>
 
       <div className="space-y-2">
-        <h3 className="text-xl font-semibold">4. Anonymous and Registered Accounts</h3>
+        <h3 className="text-xl font-semibold">Changes to Terms</h3>
         <p>
-          You may use the App anonymously by providing a username. If you choose to register with an email and password, your data will be synced across devices. You are responsible for maintaining the confidentiality of your account information.
+          We may update these Terms. Updates will be posted in-app or on this page. Continued use means acceptance of the new Terms.
         </p>
       </div>
 
       <div className="space-y-2">
-        <h3 className="text-xl font-semibold">5. Data and Privacy</h3>
+        <h3 className="text-xl font-semibold">Contact Us</h3>
         <p>
-          Your data, including your habits, moods, and other information you provide, is stored securely in Firebase. We do not sell your personal data. We use this data solely to provide you with the services of the App, such as generating personalized insights. For more information, please see our Privacy Policy (link to be added).
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <h3 className="text-xl font-semibold">6. Limitation of Liability</h3>
-        <p>
-          To the fullest extent permitted by law, the developers of this App shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from (a) your access to or use of or inability to access or use the App; (b) any conduct or content of any third party on the App.
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <h3 className="text-xl font-semibold">7. Changes to Terms</h3>
-        <p>
-          We may modify these Terms at any time. We will notify you of any changes by posting the new Terms on this page. You are advised to review these Terms periodically for any changes.
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <h3 className="text-xl font-semibold">8. Contact Us</h3>
-        <p>
-          If you have any questions about these Terms, please contact us.
+          If you have questions about these Terms, email us at: <a href="mailto:support@dhuwa.app" className="font-semibold underline">support@dhuwa.app</a>
         </p>
       </div>
     </div>
