@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -32,7 +33,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-between bg-background p-4">
-      <div/>
+      <div></div>
       <div className="flex flex-col items-center w-full">
         <Link href="/" className="mb-8">
             <WelcomeIllustration className="w-40 h-40" />
@@ -137,7 +138,7 @@ export default function LoginPage() {
 
                     toast({ title: 'Account created!', description: "You're now logged in."});
                     router.replace('/dashboard');
-                } catch (e: any) => {
+                } catch (e: any) {
                     toast({ variant: 'destructive', title: 'Sign up failed', description: e?.message ?? 'Try again.' });
                 } finally {
                     setLoading(false);
