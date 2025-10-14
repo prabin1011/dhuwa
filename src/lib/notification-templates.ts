@@ -2,7 +2,8 @@
 export const notificationTemplates = {
   // ——— Streaks ———
   streakThreeHours: [
-    { title: "3 hours strong", body: "Well done{{name ? ', ' + name : ''}}. Waves crest and fall—this one fell." },
+    { title: "3 hours strong", body: "Well done." },
+    { title: "3 hours strong", body: "Well done, {{name}}." },
     { title: "Three-hour mark", body: "Your system is already quieter than it was. Keep stacking quiet wins." },
     { title: "A real shift", body: "Three hours without feeding it. Notice the space you just created." },
   ],
