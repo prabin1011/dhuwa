@@ -112,7 +112,9 @@ async function generateNotificationsForUser(userId: string) {
     }
 
     // --- Logic 4: Perfect Day on Plan ---
-    const yesterdayStr = format(new Date(now.setDate(now.getDate() -1)), 'yyyy-MM-dd');
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+    const yesterdayStr = format(yesterday, 'yyyy-MM-dd');
     const yesterdayMoments = userProfile.moments?.filter(m => m.completed?.[yesterdayStr] !== undefined);
     if (yesterdayMoments && yesterdayMoments.length > 0) {
         const allSkippedOrReplaced = yesterdayMoments.every(m => m.completed[yesterdayStr] === false);
