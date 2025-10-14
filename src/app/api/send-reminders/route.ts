@@ -1,20 +1,50 @@
 
 import { NextResponse } from 'next/server';
 import { initializeAdminApp } from '@/functions';
-import { Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { notificationTemplates } from '@/lib/notification-templates';
-import { differenceInHours, differenceInMinutes, parse, format, isToday } from 'date-fns';
+import { differenceInHours, format } from 'date-fns';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const vercelEnv =
+  process.env.VERCEL_ENV || (process.env.NODE_ENV === 'development' ? 'development' : 'production');
+const isProd = vercelEnv === 'production';
+
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// tiny template helper for {{vars}}
+function renderTemplate(
+  tpl: { title: string; body: string; link?: string },
+  vars: Record<string, string | number | undefined> = {}
+) {
+  const interp = (s: string) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => String(vars[k] ?? ''));
+  return {
+    title: interp(tpl.title),
+    body: interp(tpl.body),
+    link: tpl.link ? interp(tpl.link) : undefined,
+  };
+}
+
+// cap how many insights we create per click
+const MAX_NOTIFS_PER_CHECK = 4;
+
 type UserProfile = {
   id: string;
-  username: string;
-  email: string;
+  username?: string;
+  email?: string;
   fcmTokens?: string[];
-  lastNotified?: Record<string, string>;
-  moments?: any[];
+  lastNotified?: Record<string, any>;
+  moments?: Array<{
+    id: string;
+    label?: string;
+    time?: string; // 'HH:mm'
+    completed?: Record<string, boolean>;
+    replacementActivity?: Record<string, string>;
+  }>;
   reminders?: string;
 };
 
@@ -22,6 +52,7 @@ type Urge = {
   id: string;
   timestamp: Timestamp;
   count?: number;
+  type?: string;
 };
 
 // Helper: allow only Vercel Cron or internal requests
@@ -29,12 +60,10 @@ function isAllowedRequest(req: Request): boolean {
   const origin = req.headers.get('origin');
   const referer = req.headers.get('referer');
   
-  // Vercel Cron Job security: Check for the 'Bearer' token from the injected CRON_SECRET
   if (process.env.CRON_SECRET && req.headers.get('authorization') === `Bearer ${process.env.CRON_SECRET}`) {
     return true;
   }
 
-  // Allow requests from the app's own origin for testing (e.g., "Test Notification" button)
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
@@ -52,102 +81,129 @@ function isAllowedRequest(req: Request): boolean {
   return false;
 }
 
-
-// Selects a random template from an array
-const getRandomTemplate = (templateArray: { title: string; body: string }[]) => {
-  return templateArray[Math.floor(Math.random() * templateArray.length)];
-};
-
-
 async function generateNotificationsForUser(userId: string) {
-    const { db } = initializeAdminApp();
-    const userRef = db.collection('users').doc(userId);
-    const userDoc = await userRef.get();
+  const { db } = initializeAdminApp();
+  const userRef = db.collection('users').doc(userId);
+  const userDoc = await userRef.get();
+  if (!userDoc.exists) return;
 
-    if (!userDoc.exists) {
-      console.log(`User ${userId} not found.`);
-      return;
+  const userProfile = { id: userDoc.id, ...userDoc.data() } as UserProfile;
+  const lastNotified = userProfile.lastNotified || {};
+  const now = new Date();
+  const todayStr = format(now, 'yyyy-MM-dd');
+
+  // safe “yesterday” (don’t mutate `now`)
+  const y = new Date(now);
+  y.setDate(y.getDate() - 1);
+  const yesterdayStr = format(y, 'yyyy-MM-dd');
+
+  // recent urges
+  const urgesSnapshot = await userRef.collection('urges').orderBy('timestamp', 'desc').limit(50).get();
+  const urges = urgesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })) as Urge[];
+
+  // queue we’ll batch-write
+  const toCreate: Array<{ key: string; title: string; body: string; link?: string; rule: string }> = [];
+  const lastNotifiedUpdates: Record<string, any> = {};
+  const add = (
+    rule: string,
+    key: string,
+    group: { title: string; body: string; link?: string }[],
+    vars: Record<string, string | number | undefined> = {}
+  ) => {
+    if (toCreate.length >= MAX_NOTIFS_PER_CHECK) return;
+    const tpl = pick(group);
+    const rendered = renderTemplate(tpl, { name: userProfile.username, ...vars });
+    toCreate.push({ key, rule, ...rendered });
+    lastNotifiedUpdates[`lastNotified.${key}`] = true;
+  };
+
+  // --- Rule 1: High-volume log (>= 5 in one entry)
+  const spike = urges.find(u => (u.count ?? 1) >= 5);
+  if (spike) {
+    const key = `high_log_${spike.id}`;
+    if (!lastNotified[key]) add('high_volume', key, notificationTemplates.highVolumeLog, { count: spike.count ?? 5 });
+  }
+
+  // --- Rule 2: Streaks since last urge (3h/8h/24h) — only once per day per tier
+  const lastUrge = urges[0];
+  if (lastUrge?.timestamp) {
+    const hours = differenceInHours(now, lastUrge.timestamp.toDate());
+    if (hours >= 3 && !lastNotified[`streak_3h_${todayStr}`]) add('streak_3h', `streak_3h_${todayStr}`, notificationTemplates.streakThreeHours, { hours: 3 });
+    if (hours >= 8 && !lastNotified[`streak_8h_${todayStr}`]) add('streak_8h', `streak_8h_${todayStr}`, notificationTemplates.streakEightHours, { hours: 8 });
+    if (hours >= 24 && !lastNotified[`streak_24h_${todayStr}`]) add('streak_24h', `streak_24h_${todayStr}`, notificationTemplates.streakOneDay, { hours: 24 });
+  }
+
+  // --- Rule 3: First replacement ever
+  const hasReplacement = (userProfile.moments || []).some(m => m.replacementActivity && Object.keys(m.replacementActivity).length > 0);
+  if (hasReplacement && !lastNotified.first_replacement) add('first_replacement', 'first_replacement', notificationTemplates.firstReplacement);
+
+  // --- Rule 4: Perfect yesterday on plan (all planned completed[yesterday] === false)
+  const plannedYesterday = (userProfile.moments || []).filter(m => m.completed && yesterdayStr in m.completed);
+  if (plannedYesterday.length > 0) {
+    const perfect = plannedYesterday.every(m => m.completed?.[yesterdayStr] === false);
+    const key = `perfect_day_${yesterdayStr}`;
+    if (perfect && !lastNotified[key]) add('perfect_day', key, notificationTemplates.perfectDay);
+  }
+
+  // --- Rule 5: Morning pattern today (>=2 urges before 9am)
+  const morningCount = urges.filter(u => {
+    const dt = u.timestamp?.toDate();
+    return dt && format(dt, 'yyyy-MM-dd') === todayStr && dt.getHours() < 9;
+  }).length;
+  if (morningCount >= 2) {
+    const key = `morning_pattern_${todayStr}`;
+    if (!lastNotified[key]) add('morning_pattern', key, notificationTemplates.morningPattern, { count: morningCount });
+  }
+
+  // --- Rule 6: Weekly reflection (once per ISO week)
+  const weekKey = `weekly_${format(now, "yyyy-'W'ww")}`;
+  if (!lastNotified[weekKey]) {
+    // compute quick weekly stats from the same 50-doc window
+    const buckets = new Array(24).fill(0);
+    let total = 0;
+    const weekId = format(now, "yyyy-'W'ww");
+    urges.forEach(u => {
+      const dt = u.timestamp?.toDate();
+      if (!dt) return;
+      if (format(dt, "yyyy-'W'ww") === weekId) {
+        total += u.count ?? 1;
+        buckets[dt.getHours()] += u.count ?? 1;
+      }
+    });
+    // best 3-hour window
+    let bestStart = 0, bestSum = -1;
+    for (let i = 0; i < 24; i++) {
+      const s = buckets[i] + buckets[(i + 1) % 24] + buckets[(i + 2) % 24];
+      if (s > bestSum) { bestSum = s; bestStart = i; }
     }
+    const fmt = (h: number) => `${(h % 12) || 12} ${h >= 12 ? 'PM' : 'AM'}`;
+    add('weekly', weekKey, notificationTemplates.weekly, { total, window: `${fmt(bestStart)}–${fmt((bestStart + 2) % 24)}` });
+  }
 
-    const userProfile = { id: userDoc.id, ...userDoc.data() } as UserProfile;
-    const now = new Date();
-    const todayStr = format(now, 'yyyy-MM-dd');
+  if (toCreate.length === 0) return;
 
-    const lastNotified = userProfile.lastNotified || {};
-    const notificationsToAdd: { title: string; body: string; link?: string }[] = [];
-
-    const urgesSnapshot = await userRef.collection('urges').orderBy('timestamp', 'desc').limit(50).get();
-    const urges = urgesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })) as Urge[];
-
-    // --- Logic 1: High-Volume Log ---
-    const recentHighLog = urges.find(urge => urge.count && urge.count >= 5 && !lastNotified[`high_log_${urge.id}`]);
-    if (recentHighLog) {
-        notificationsToAdd.push(getRandomTemplate(notificationTemplates.highVolumeLog));
-        await userRef.update({ [`lastNotified.high_log_${recentHighLog.id}`]: todayStr });
-    }
-
-    // --- Logic 2: Smoke-Free Streaks ---
-    const lastUrgeTime = urges[0]?.timestamp.toDate();
-    if (lastUrgeTime) {
-        const hoursSince = differenceInHours(now, lastUrgeTime);
-        if (hoursSince >= 3 && !lastNotified[`streak_3h_${todayStr}`]) {
-             notificationsToAdd.push(getRandomTemplate(notificationTemplates.streakThreeHours));
-             await userRef.update({ [`lastNotified.streak_3h_${todayStr}`]: true });
-        }
-        if (hoursSince >= 8 && !lastNotified[`streak_8h_${todayStr}`]) {
-             notificationsToAdd.push(getRandomTemplate(notificationTemplates.streakEightHours));
-             await userRef.update({ [`lastNotified.streak_8h_${todayStr}`]: true });
-        }
-         if (hoursSince >= 24 && !lastNotified[`streak_24h_${todayStr}`]) {
-             notificationsToAdd.push(getRandomTemplate(notificationTemplates.streakOneDay));
-             await userRef.update({ [`lastNotified.streak_24h_${todayStr}`]: true });
-        }
-    }
-    
-    // --- Logic 3: First Replacement ---
-    const hasAnyReplacement = userProfile.moments?.some(m => m.replacementActivity && Object.keys(m.replacementActivity).length > 0);
-    if (hasAnyReplacement && !lastNotified.first_replacement) {
-        notificationsToAdd.push(getRandomTemplate(notificationTemplates.firstReplacement));
-        await userRef.update({ 'lastNotified.first_replacement': todayStr });
-    }
-
-    // --- Logic 4: Perfect Day on Plan ---
-    const yesterday = new Date();
-    yesterday.setDate(now.getDate() - 1);
-    const yesterdayStr = format(yesterday, 'yyyy-MM-dd');
-    const yesterdayMoments = userProfile.moments?.filter(m => m.completed?.[yesterdayStr] !== undefined);
-    if (yesterdayMoments && yesterdayMoments.length > 0) {
-        const allSkippedOrReplaced = yesterdayMoments.every(m => m.completed[yesterdayStr] === false);
-        if (allSkippedOrReplaced && !lastNotified[`perfect_day_${yesterdayStr}`]) {
-            notificationsToAdd.push(getRandomTemplate(notificationTemplates.perfectDay));
-            await userRef.update({ [`lastNotified.perfect_day_${yesterdayStr}`]: true });
-        }
-    }
-
-
-    // --- Batch write all new notifications ---
-    if (notificationsToAdd.length > 0) {
-        const batch = db.batch();
-        notificationsToAdd.forEach(notif => {
-            const notifRef = userRef.collection('notifications').doc();
-            batch.set(notifRef, {
-                ...notif,
-                timestamp: FieldValue.serverTimestamp(),
-                read: false,
-            });
-        });
-        await batch.commit();
-        console.log(`Added ${notificationsToAdd.length} new notifications for user ${userId}.`);
-    }
+  // --- Atomic batch write: notifications + lastNotified flags together
+  const batch = db.batch();
+  toCreate.forEach(n => {
+    const ref = userRef.collection('notifications').doc();
+    batch.set(ref, {
+      title: n.title,
+      body: n.body,
+      link: n.link ?? null,
+      rule: n.rule,
+      key: n.key,
+      read: false,
+      timestamp: FieldValue.serverTimestamp(),
+    });
+  });
+  if (Object.keys(lastNotifiedUpdates).length) batch.update(userRef, lastNotifiedUpdates);
+  await batch.commit();
 }
 
 
 export async function POST(req: Request) {
-    const vercelEnv = process.env.VERCEL_ENV || 'development';
-
-    // In production, only allow requests from the app's own origin or the cron job
-    if (vercelEnv === 'production' && !isAllowedRequest(req)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    if (isProd && !isAllowedRequest(req)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
   
     const { userId } = await req.json();
@@ -162,24 +218,6 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error('[send-reminders-post] error name:', error?.name, 'code:', error?.code);
         console.error('[send-reminders-post] error stack:', error?.stack);
-        return NextResponse.json({ error: error.message ?? 'Internal Server Error' }, { status: 500 });
-    }
-}
-
-// GET handler for Vercel Cron Job
-export async function GET(req: Request) {
-    // This check ensures only Vercel's cron service can trigger this endpoint
-    if (process.env.CRON_SECRET && req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-    
-    try {
-        // Since we removed cron jobs, this is now a no-op but kept for safety.
-        return NextResponse.json({ ok: true, message: 'Cron job endpoint is inactive.' });
-
-    } catch (error: any) {
-        console.error('[send-reminders-get] error name:', error?.name, 'code:', error?.code);
-        console.error('[send-reminders-get] error stack:', error?.stack);
         return NextResponse.json({ error: error.message ?? 'Internal Server Error' }, { status: 500 });
     }
 }

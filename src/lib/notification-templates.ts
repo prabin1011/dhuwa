@@ -1,75 +1,48 @@
 
-
 export const notificationTemplates = {
-  // === Milestone Streaks ===
+  // ——— Streaks ———
   streakThreeHours: [
-    {
-      title: "3 Hours Strong",
-      body: "It's been three hours. The physical craving is fading. This is a real win. Keep going.",
-    },
-     {
-      title: "Three-hour mark",
-      body: "Your system is already quieter. Keep stacking these quiet wins.",
-    },
-    {
-      title: "A real shift",
-      body: "Three hours without feeding the habit. Notice the space you just created for yourself.",
-    },
+    { title: "3 hours strong", body: "Well done{{name ? ', ' + name : ''}}. Waves crest and fall—this one fell." },
+    { title: "Three-hour mark", body: "Your system is already quieter than it was. Keep stacking quiet wins." },
+    { title: "A real shift", body: "Three hours without feeding it. Notice the space you just created." },
   ],
   streakEightHours: [
-    {
-      title: "8 Hours of Freedom",
-      body: "You've made it through a full work day without it. You are capable of so much more than you think.",
-    },
-     {
-      title: "Workday Win",
-      body: "You kept your momentum through the busiest hours. That's skill, not luck.",
-    },
+    { title: "8 hours free", body: "You moved through a whole workday without it. Capacity > craving." },
+    { title: "Workday win", body: "You kept momentum through the busy hours. That’s skill, not luck." },
+    { title: "Solid distance", body: "Eight hours is substance. The little pull gets smaller when ignored." },
   ],
   streakOneDay: [
-    {
-      title: "One Day Down!",
-      body: "You made it a full 24 hours. The 'little monster' is starving. Don't feed it.",
-    },
-     {
-      title: "A New Baseline",
-      body: "One full day is proof. Bank this feeling in your memory—you can do this.",
-    },
+    { title: "24 hours down", body: "A full day. The little monster weakens when you don’t feed it." },
+    { title: "One-day streak", body: "Yesterday didn’t own you. That’s what control feels like." },
+    { title: "A new baseline", body: "One day is proof. Bank it in your memory—you can do this." },
   ],
 
-  // === Activity-Based Insights ===
+  // ——— Events ———
   highVolumeLog: [
-      {
-          title: "A Moment for Reflection",
-          body: "That was a tough moment. Don't judge it, just observe it. What led to it? What can you learn?"
-      },
-       {
-          title: "Pause & Look",
-          body: "You logged a spike. What were the 10 minutes leading into it? The answer is there."
-      },
-      {
-          title: "A Useful Mirror",
-          body: "No judgement. Map the trigger → the urge → the choice. That’s the entire lesson."
-      },
+    { title: "A heavy moment", body: "That was a lot at once. Be curious, not harsh: what set it up?" },
+    { title: "Pause & look", body: "You logged a spike. What were the 10 minutes leading into it?" },
+    { title: "A useful mirror", body: "No judgement. Map the trigger → the urge → the choice. That’s the lesson." },
   ],
   firstReplacement: [
-      {
-          title: "A Critical Choice",
-          body: "You chose a different path. This is the single most powerful action you can take. Remember this feeling of control."
-      },
-       {
-          title: "A Turning Point",
-          body: "Replacement beats resistance. You didn’t fight the urge—you redirected it. That's the key."
-      },
+    { title: "You chose different", body: "That’s the exact muscle that frees you. Small, repeatable, yours." },
+    { title: "A turning point", body: "Replacement beats resistance. You didn’t fight the urge—you redirected it." },
+    { title: "That’s the move", body: "You picked a healthier default. Make it easy to repeat tomorrow." },
   ],
   perfectDay: [
-      {
-          title: "A Day of Perfect Choices",
-          body: "Yesterday, you followed your plan and chose freedom every time. This is proof that you are the one in control."
-      },
-      {
-          title: "Promise Kept",
-          body: "Yesterday you backed yourself on every single planned moment. Savor that feeling of integrity."
-      },
+    { title: "A perfect day on plan", body: "Every planned moment: respected. That’s real control." },
+    { title: "Promise kept", body: "Yesterday you backed yourself all day. Savor that feeling." },
+    { title: "Clean sheet", body: "You chose alignment again and again. That’s how identity shifts." },
+  ],
+
+  // ——— Patterns & Weekly ———
+  morningPattern: [
+    { title: "Morning spike", body: "Mornings bit today ({{count}} logs). Put one tiny default before 9am." },
+    { title: "AM pattern spotted", body: "Early hours stacked up. Put water/breath/walk at arm’s reach." },
+    { title: "Set the first domino", body: "Two+ before 9. One pre-decided action beats groggy willpower." },
+  ],
+  weekly: [
+    { title: "Your week at a glance", body: "Logged {{total}}. Peak window: {{window}}. Pick one tiny lever for next week." },
+    { title: "Weekly reflection", body: "This week tells a story. {{total}} total; strongest pull: {{window}}." },
+    { title: "A quiet review", body: "{{total}} logged; most activity near {{window}}. Adjust one habit in that slot." },
   ],
 };
