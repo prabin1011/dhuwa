@@ -33,6 +33,15 @@ const PREMADE_REPLACEMENTS = [
     "5 mins deep breathing"
 ];
 
+const REPLACEMENT_MOOD_OPTIONS = [
+    { value: 'proud', label: 'Proud', emoji: '😊' },
+    { value: 'hopeful', label: 'Hopeful', emoji: '✨' },
+    { value: 'calm', label: 'Calm', emoji: '😌' },
+    { value: 'uneasy', label: 'Uneasy', emoji: '🤔' },
+    { value: 'distracted', label: 'Distracted', emoji: ' diverted' },
+    { value: 'neutral', label: 'Neutral', emoji: '😐' },
+]
+
 const MOOD_OPTIONS = [
     {value: 'stressed', label: 'Stressed'},
     {value: 'bored', label: 'Bored'},
@@ -49,7 +58,7 @@ interface SmokingMoment {
     time: string;
     label: string;
     completed: Record<string, boolean>;
-    replacementActivity?: Record<string, string>;
+    replacementActivity?: Record<string, { activity: string; mood?: string; }>;
     type?: string;
 }
 
@@ -70,10 +79,14 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
 
     const [newMomentTime, setNewMomentTime] = useState('');
     const [newMomentLabel, setNewMomentLabel] = useState('');
+    
+    // State for replacement flow
+    const [replacementMoment, setReplacementMoment] = useState<SmokingMoment | null>(null);
     const [customReplacement, setCustomReplacement] = useState("");
     const [selectedReplacement, setSelectedReplacement] = useState("");
-    const [activeDialog, setActiveDialog] = useState<string | null>(null);
-
+    const [replacementMood, setReplacementMood] = useState<string | null>(null);
+    
+    // State for logging smoke flow
     const [moodMoment, setMoodMoment] = useState<SmokingMoment | null>(null);
     const [selectedMood, setSelectedMood] = useState<string | null>(null);
     const [isAfterMoodDialogOpen, setIsAfterMoodDialogOpen] = useState(false);
@@ -125,7 +138,6 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
             time: newMomentTime,
             label: newMomentLabel,
             completed: {},
-            replacementActivity: {}
         };
         
         const newMomentsArray = [...(userProfile.moments || []), newMoment];
@@ -206,21 +218,31 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
         }
     };
     
-    const handleSaveReplacement = async (momentId: string) => {
-        if (!user || !firestore) return;
+    const handleSaveReplacement = async () => {
+        if (!user || !firestore || !replacementMoment) return;
 
         const replacementValue = customReplacement || selectedReplacement;
         if (!replacementValue) {
             toast({ variant: 'destructive', title: "Input required", description: "Please choose or enter a replacement activity." });
             return;
         }
+        if (!replacementMood) {
+            toast({ variant: 'destructive', title: "Mood Required", description: "Please select how you feel." });
+            return;
+        }
 
         const updatedMoments = userProfile.moments?.map(m => {
-            if (m.id === momentId) {
+            if (m.id === replacementMoment.id) {
                 return {
                     ...m,
                     completed: { ...(m.completed || {}), [dateStr]: false }, // Mark as skipped
-                    replacementActivity: { ...(m.replacementActivity || {}), [dateStr]: replacementValue }
+                    replacementActivity: { 
+                        ...(m.replacementActivity || {}), 
+                        [dateStr]: {
+                            activity: replacementValue,
+                            mood: replacementMood
+                        } 
+                    }
                 };
             }
             return m;
@@ -231,17 +253,25 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
             toast({ title: "Replacement Logged!", description: `Great choice!` });
             setCustomReplacement("");
             setSelectedReplacement("");
-            setActiveDialog(null); // Close the dialog
+            setReplacementMood(null);
+            setReplacementMoment(null);
         } catch (e) {
             // Error handled in updateMoments
         }
     };
 
-    const resetForms = () => {
+    const resetLogSmokeForms = () => {
         setSelectedMood(null);
         setMoodMoment(null);
         setIsAfterMoodDialogOpen(false);
         setLastUrgeId(null);
+    }
+    
+    const resetReplacementForms = () => {
+        setReplacementMoment(null);
+        setSelectedReplacement("");
+        setCustomReplacement("");
+        setReplacementMood(null);
     }
 
     return (
@@ -282,7 +312,7 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                                     {sortedMoments.length > 0 ? (
                                         sortedMoments.map((moment) => {
                                             const status = moment.completed?.[dateStr]; // true, false, or undefined
-                                            const replacementText = moment.replacementActivity?.[dateStr];
+                                            const replacement = moment.replacementActivity?.[dateStr];
                                             const isProcessed = status !== undefined;
 
                                             return (
@@ -293,8 +323,8 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                                                                     <span className={cn('font-mono text-sm', isProcessed && 'line-through text-muted-foreground')}>{moment.time}</span>
                                                                 <span className={cn('text-sm font-medium', isProcessed && 'line-through text-muted-foreground')}>{moment.label}</span>
                                                             </div>
-                                                            {replacementText && (
-                                                                <div className="mt-2 text-xs pl-1">Replaced with: <span className="font-semibold text-foreground">{replacementText}</span></div>
+                                                            {replacement && (
+                                                                <div className="mt-2 text-xs pl-1">Replaced with: <span className="font-semibold text-foreground">{replacement.activity}</span> ({replacement.mood})</div>
                                                             )}
                                                         </div>
                                                         <div className="flex items-center gap-1">
@@ -307,47 +337,9 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                                                                         <Cigarette className="w-4 h-4" />
                                                                     </Button>
                                                                     
-                                                                    <Dialog open={activeDialog === moment.id} onOpenChange={(isOpen) => !isOpen && setActiveDialog(null)}>
-                                                                        <DialogTrigger asChild>
-                                                                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/20 text-primary" onClick={() => setActiveDialog(moment.id)} aria-label="Replace this moment">
-                                                                                <Replace className="w-4 h-4" />
-                                                                            </Button>
-                                                                        </DialogTrigger>
-                                                                        <DialogContent>
-                                                                            <DialogHeader>
-                                                                                <DialogTitle>Choose Your Replacement</DialogTitle>
-                                                                                <DialogDescription>
-                                                                                    Pick from the list or add your own positive action.
-                                                                                </DialogDescription>
-                                                                            </DialogHeader>
-                                                                            <div className="py-4 space-y-4">
-                                                                                <div className="grid grid-cols-2 gap-2">
-                                                                                    {PREMADE_REPLACEMENTS.map(item => (
-                                                                                        <Button
-                                                                                            key={item}
-                                                                                            variant={selectedReplacement === item ? "default" : "outline"}
-                                                                                            onClick={() => { setSelectedReplacement(item); setCustomReplacement(""); }}
-                                                                                            className="h-auto min-h-10 py-2 whitespace-normal"
-                                                                                        >
-                                                                                            {item}
-                                                                                        </Button>
-                                                                                    ))}
-                                                                                </div>
-                                                                                <Input
-                                                                                    placeholder="Or type your own replacement..."
-                                                                                    value={customReplacement}
-                                                                                    onChange={(e) => { setCustomReplacement(e.target.value); setSelectedReplacement(""); }}
-                                                                                />
-                                                                            </div>
-                                                                            <DialogFooter>
-                                                                                <Button 
-                                                                                    onClick={() => handleSaveReplacement(moment.id)} 
-                                                                                    disabled={!selectedReplacement && !customReplacement}>
-                                                                                    Save Replacement
-                                                                                </Button>
-                                                                            </DialogFooter>
-                                                                        </DialogContent>
-                                                                    </Dialog>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/20 text-primary" onClick={() => setReplacementMoment(moment)} aria-label="Replace this moment">
+                                                                        <Replace className="w-4 h-4" />
+                                                                    </Button>
                                                                 </>
                                                             )}
                                                             
@@ -412,15 +404,70 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                         </RadioGroup>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setMoodMoment(null)}>Cancel</Button>
+                        <Button variant="outline" onClick={() => {setMoodMoment(null); setSelectedMood(null);}}>Cancel</Button>
                         <Button onClick={handleMarkMoment} disabled={!selectedMood}>
                             Log Smoke
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            
+            {/* Dialog for choosing a replacement */}
+            <Dialog open={!!replacementMoment} onOpenChange={(isOpen) => !isOpen && resetReplacementForms()}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Replace this Moment</DialogTitle>
+                        <DialogDescription>
+                            Log a positive action and how it made you feel. This is a huge win.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-6">
+                        <div>
+                             <Label className="font-semibold">What did you do instead?</Label>
+                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                {PREMADE_REPLACEMENTS.map(item => (
+                                    <Button
+                                        key={item}
+                                        variant={selectedReplacement === item ? "default" : "outline"}
+                                        onClick={() => { setSelectedReplacement(item); setCustomReplacement(""); }}
+                                        className="h-auto min-h-10 py-2 whitespace-normal"
+                                    >
+                                        {item}
+                                    </Button>
+                                ))}
+                            </div>
+                            <Input
+                                placeholder="Or type your own replacement..."
+                                value={customReplacement}
+                                onChange={(e) => { setCustomReplacement(e.target.value); setSelectedReplacement(""); }}
+                                className="mt-2"
+                            />
+                        </div>
 
-             {/* This is the second, mandatory dialog for "mood after" */}
+                         <div>
+                            <Label className="font-semibold">And how did that feel?</Label>
+                            <RadioGroup value={replacementMood ?? ''} onValueChange={setReplacementMood} className="grid grid-cols-2 gap-2 mt-2">
+                                {REPLACEMENT_MOOD_OPTIONS.map(item => (
+                                <Label key={item.value} htmlFor={`replacement-mood-${item.value}`} className="flex items-center space-x-3 rounded-md border-2 border-secondary bg-secondary/50 p-3 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary has-[:checked]:bg-primary/10">
+                                    <RadioGroupItem value={item.value} id={`replacement-mood-${item.value}`} />
+                                    <p className="font-medium text-sm flex items-center gap-2">{item.emoji} {item.label}</p>
+                                </Label>
+                                ))}
+                            </RadioGroup>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={resetReplacementForms}>Cancel</Button>
+                        <Button 
+                            onClick={handleSaveReplacement} 
+                            disabled={(!selectedReplacement && !customReplacement) || !replacementMood}>
+                            Save Replacement
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+             {/* This is the second, mandatory dialog for "mood after logging smoke" */}
             <Dialog open={isAfterMoodDialogOpen} onOpenChange={setIsAfterMoodDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -429,7 +476,7 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
                         Your moment of awareness has been logged. One last thing...
                         </DialogDescription>
                     </DialogHeader>
-                    {lastUrgeId && <MoodAfterDialogAction urgeId={lastUrgeId} onMoodSelect={resetForms} />}
+                    {lastUrgeId && <MoodAfterDialogAction urgeId={lastUrgeId} onMoodSelect={resetLogSmokeForms} />}
                 </DialogContent>
             </Dialog>
         </Card>

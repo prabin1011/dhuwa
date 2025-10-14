@@ -1,0 +1,295 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Stores user-specific settings and preferences for the app.",
+      "properties": {
+        "username": {
+          "type": "string",
+          "description": "The user's chosen display name."
+        },
+        "hasOnboarded": {
+          "type": "boolean",
+          "description": "Whether the user has completed the initial onboarding flow."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the profile was created."
+        },
+        "habits": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The habits the user wants to track (Cigarettes, Weed)."
+        },
+        "frequency": {
+          "type": "string",
+          "description": "How often the user partakes in the habit."
+        },
+        "started": {
+          "type": "string",
+          "description": "When the user started the habit."
+        },
+        "packCost": {
+          "type": "number",
+          "description": "The cost of a single pack of the item they are tracking."
+        },
+        "itemsPerPack": {
+          "type": "number",
+          "description": "The number of items in a single pack."
+        },
+        "singleCost": {
+          "type": "number",
+          "description": "The cost of a single item if bought individually."
+        },
+        "itemsPerDay": {
+          "type": "string",
+          "description": "The average number of items consumed per day."
+        },
+        "goal": {
+          "type": "string",
+          "description": "The user's primary goal (e.g., 'quit', 'reduce')."
+        },
+        "motivation": {
+          "type": "string",
+          "description": "The user's primary motivation."
+        },
+        "confidence": {
+          "type": "string",
+          "description": "The user's confidence in achieving their goal."
+        },
+        "cravingTime": {
+          "type": "string",
+          "description": "When the user's cravings are strongest."
+        },
+        "breakDuration": {
+          "type": "string",
+          "description": "Typical duration of a smoke break."
+        },
+        "usualPlace": {
+          "type": "string",
+          "description": "Where the user usually engages in the habit."
+        },
+        "usualCompany": {
+          "type": "string",
+          "description": "Who the user is usually with."
+        },
+        "moodBefore": {
+          "type": "string",
+          "description": "Typical mood before the habit."
+        },
+        "mainTrigger": {
+          "type": "string",
+          "description": "The biggest reason for the habit."
+        },
+        "moodAfter": {
+          "type": "string",
+          "description": "Typical mood after the habit."
+        },
+        "cravingStrength": {
+          "type": "string",
+          "description": "The usual strength of cravings."
+        },
+        "healthEffects": {
+          "type": "string",
+          "description": "Any noticed health effects."
+        },
+        "exerciseFrequency": {
+          "type": "string",
+          "description": "How often the user exercises."
+        },
+        "sleepDuration": {
+          "type": "string",
+          "description": "Average nightly sleep duration."
+        },
+        "stressFrequency": {
+          "type": "string",
+          "description": "How often the user feels stressed."
+        },
+        "checkInTime": {
+          "type": "string",
+          "description": "Preferred time for check-ins."
+        },
+        "preferredTone": {
+          "type": "string",
+          "description": "Preferred AI support tone."
+        },
+        "reminders": {
+          "type": "string",
+          "description": "User's preference for motivational reminders."
+        },
+        "moments": {
+          "type": "array",
+          "description": "User-defined smoking moments/plans.",
+          "items": {
+            "$ref": "#/entities/SmokingMoment"
+          }
+        },
+        "fcmTokens": {
+          "type": "array",
+          "description": "Firebase Cloud Messaging tokens for push notifications.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["createdAt", "username"]
+    },
+    "UrgeEntry": {
+      "title": "UrgeEntry",
+      "type": "object",
+      "description": "Represents a single instance of the user logging a smoking urge.",
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "description": "The exact date and time the urge was logged.",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional user-provided notes about the context of the urge."
+        },
+        "type": {
+            "type": "string",
+            "description": "The type of habit logged (e.g. Cigarette, Weed)"
+        },
+        "moodBefore": {
+          "type": "string",
+          "description": "The user's mood when they logged the urge.",
+          "enum": ["stressed", "bored", "lonely", "happy", "tired", "anxious", "neutral"]
+        },
+        "moodAfter": {
+          "type": "string",
+          "description": "The user's mood after logging the urge.",
+          "enum": ["calm", "guilty", "energized", "sleepy", "same"]
+        },
+        "narrative": {
+          "type": "string",
+          "description": "An AI-generated first-person narrative of the moment."
+        },
+        "shortMessage": {
+          "type": "string",
+          "description": "A short, encouraging message about the moment."
+        },
+        "count": {
+          "type": "number",
+          "description": "The number of items (e.g., cigarettes) consumed in this single urge."
+        }
+      },
+      "required": [
+        "timestamp",
+        "moodBefore",
+        "count"
+      ]
+    },
+    "ReplacementActivity": {
+      "title": "ReplacementActivity",
+      "type": "object",
+      "description": "An activity chosen to replace a smoking moment, and the mood associated.",
+      "properties": {
+        "activity": {
+          "type": "string",
+          "description": "A short description of the replacement activity."
+        },
+        "mood": {
+          "type": "string",
+          "description": "The user's mood after the replacement activity.",
+           "enum": ["proud", "hopeful", "calm", "uneasy", "distracted", "neutral"]
+        }
+      },
+      "required": ["activity", "mood"]
+    },
+    "SmokingMoment": {
+      "title": "SmokingMoment",
+      "type": "object",
+      "description": "A user-defined time and label for a recurring smoking habit.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "A unique identifier for the moment."
+        },
+        "time": {
+          "type": "string",
+          "description": "The time of the planned smoke, in HH:mm format (e.g., '09:00')."
+        },
+        "label": {
+          "type": "string",
+          "description": "A short description for the moment (e.g., 'Morning coffee')."
+        },
+        "completed": {
+          "type": "object",
+          "description": "A map of dates (YYYY-MM-DD) to a boolean indicating if the smoke happened.",
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        },
+        "replacementActivity": {
+          "type": "object",
+          "description": "A map of dates (YYYY-MM-DD) to an object describing the replacement activity and mood.",
+          "additionalProperties": {
+            "$ref": "#/entities/ReplacementActivity"
+          }
+        }
+      },
+      "required": ["id", "time", "label"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "type": "object",
+      "description": "A record of a push notification sent to a user.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the notification."
+        },
+        "body": {
+          "type": "string",
+          "description": "The body content of the notification."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the notification was sent."
+        },
+        "read": {
+          "type": "boolean",
+          "description": "Whether the user has viewed the notification in the app."
+        },
+        "link": {
+            "type": "string",
+            "description": "The URL to navigate to when the notification is clicked."
+        }
+      },
+      "required": ["title", "body", "timestamp", "read"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password"
+    ]
+  },
+  "firestore": {
+    "'/users/{userId}'": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "A singleton document storing the user's app-specific profile and settings."
+    },
+    "'/users/{userId}/urges/{urgeId}'": {
+      "schema": {
+        "$ref": "#/entities/UrgeEntry"
+      },
+      "description": "A collection of all smoking urges logged by a specific user."
+    },
+    "'/users/{userId}/notifications/{notificationId}'": {
+        "schema": {
+            "$ref": "#/entities/Notification"
+        },
+        "description": "A collection of notifications sent to the user."
+    }
+  }
+}

@@ -7,17 +7,11 @@ import { doc } from 'firebase/firestore';
 import { useDoc } from '@/firebase/provider';
 import { Dashboard } from '@/components/dashboard/dashboard';
 import { Onboarding } from '@/components/onboarding/onboarding';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { sendEmailVerification } from 'firebase/auth';
-import { useToast } from '@/hooks/use-toast';
-import { X } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const firestore = useFirestore();
-  const { toast } = useToast();
 
   // If unauthenticated, go to login. No spinner forever.
   useEffect(() => {

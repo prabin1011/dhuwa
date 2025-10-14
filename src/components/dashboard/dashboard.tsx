@@ -1,4 +1,3 @@
-
 'use client';
 
 import { SmokeLogger } from "@/components/dashboard/smoke-logger";
@@ -26,6 +25,7 @@ import { NotificationBell } from "./notification-bell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import Link from 'next/link';
 import { User } from "firebase/auth";
+import { ReplacementMoodReport } from "./replacement-mood-report";
 
 
 interface SmokingMoment {
@@ -33,7 +33,7 @@ interface SmokingMoment {
     time: string;
     label: string;
     completed: Record<string, boolean>;
-    replacementActivity?: Record<string, string>;
+    replacementActivity?: Record<string, { activity: string; mood?: string; }>;
 }
 interface UserProfile {
     habits?: string[];
@@ -63,7 +63,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
   const availableHabits = userProfile.habits || ['Cigarettes'];
   const [activeHabit, setActiveHabit] = useState<string>('All');
   
-  const { requestPermissionAndToken, messages, clearMessages } = useNotifications();
+  const { requestPermissionAndToken } = useNotifications();
 
   useEffect(() => {
     const shouldRequest = userProfile.reminders === 'yes' && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default';
@@ -166,6 +166,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                     <SavingsStats urges={filteredUrges} userProfile={userProfile} selectedDate={selectedDate} activeHabit={activeHabit} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />
+                    <ReplacementMoodReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <MoodReport urges={filteredUrges} selectedDate={selectedDate || new Date()} />
                     <DailyHabitChart urges={urges || []} selectedDate={selectedDate} habits={habitsForCharts} />
                     <HourlyChart urges={urges || []} habits={habitsForCharts} />
@@ -182,5 +183,3 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
     </div>
   );
 }
-
-    

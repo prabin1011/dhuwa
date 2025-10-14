@@ -14,7 +14,7 @@ interface SmokingMoment {
     time: string;
     label: string;
     completed: Record<string, boolean>;
-    replacementActivity?: Record<string, string>;
+    replacementActivity?: Record<string, { activity: string; mood?: string; }>;
 }
 
 interface UserProfile {
@@ -62,12 +62,12 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
         
         moments.forEach(moment => {
             if (moment.replacementActivity) {
-                Object.entries(moment.replacementActivity).forEach(([dateStr, activity]) => {
+                Object.entries(moment.replacementActivity).forEach(([dateStr, replacement]) => {
                     logs.push({
                         date: dateStr,
                         time: moment.time,
                         momentLabel: moment.label,
-                        activity: activity
+                        activity: replacement.activity,
                     });
                 });
             }
