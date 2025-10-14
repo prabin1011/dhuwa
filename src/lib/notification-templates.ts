@@ -1,6 +1,47 @@
 
+
 export const notificationTemplates = {
-  // === Upcoming Planned Moment ===
+  // === Milestone Streaks ===
+  streakThreeHours: [
+    {
+      title: "3 Hours Strong",
+      body: "It's been three hours. The physical craving is fading. This is a real win. Keep going.",
+    },
+  ],
+  streakEightHours: [
+    {
+      title: "8 Hours of Freedom",
+      body: "You've made it through a full work day without it. You are capable of so much more than you think.",
+    },
+  ],
+  streakOneDay: [
+    {
+      title: "One Day Down!",
+      body: "You made it a full 24 hours. The 'little monster' is starving. Don't feed it.",
+    },
+  ],
+
+  // === Activity-Based Insights ===
+  highVolumeLog: [
+      {
+          title: "A Moment for Reflection",
+          body: "The log shows that was a difficult moment. Don't judge it, just observe it. What led to it? What can you learn?"
+      },
+  ],
+  firstReplacement: [
+      {
+          title: "A Critical Choice",
+          body: "You chose a different path. This is the single most powerful action you can take. Remember this feeling of control."
+      }
+  ],
+  perfectDay: [
+      {
+          title: "A Day of Perfect Choices",
+          body: "Yesterday, you followed your plan and chose freedom every time. This is proof that you are the one in control."
+      }
+  ],
+  
+  // === Deprecated Templates (kept for reference, not used by new logic) ===
   upcomingMoment: [
     {
       title: "Dhuwa: Your {{time}} moment is coming up",
@@ -11,69 +52,10 @@ export const notificationTemplates = {
       body: "The craving is a feeling, not a command. You are in control.",
     },
   ],
-
-  // === Milestone Streaks ===
-  streakOneDay: [
-    {
-      title: "Dhuwa: You're doing it!",
-      body: "It's been over 24 hours since your last smoke. Keep that streak going!",
-    },
-    {
-      title: "Dhuwa: One Day Down!",
-      body: "You made it a full day without a smoke. This is a huge first step. Be proud.",
-    },
-  ],
-  streakTwoDays: [
-     {
-      title: "Dhuwa: Momentum is Building!",
-      body: "Over 48 hours smoke-free! You are proving to yourself that you can do this.",
-    },
-  ],
-  streakSevenDays: [
-    {
-      title: "Dhuwa: One Week Strong!",
-      body: "7 days smoke-free! The nicotine is 100% out of your system. It's only psychological now."
-    }
-  ],
-  streakFourteenDays: [
-      {
-        title: "Dhuwa: Two Weeks of Victory!",
-        body: "14 days smoke-free. Your willpower is growing, and the 'little monster' is starving."
-      }
-  ],
-  streakThirtyDays: [
-      {
-        title: "Dhuwa: One Month Milestone!",
-        body: "30 days without smoking! You've broken the cycle. This is what freedom feels like."
-      }
-  ],
-
-  // === Post-Replacement Reinforcement ===
-  replacementSuccess: [
-      {
-          title: "Dhuwa: You Made a Choice!",
-          body: "Great job choosing a healthy replacement. Every small victory counts."
-      },
-      {
-          title: "Dhuwa: Proud of You!",
-          body: "That urge passed, and you didn’t smoke. Keep riding these waves."
-      }
-  ],
-
-  // === General Encouragement ===
   randomEncouragement: [
     {
       title: "Dhuwa: A Reminder",
       body: "You are stronger than the craving. Remember, urges come and go.",
     },
-    {
-      title: "Dhuwa: A Reminder",
-      body: "Small victories count. Every smoke-free moment is a win.",
-    },
-     {
-      title: "Dhuwa: A Reminder",
-      body: "The cigarette does not relieve stress, it creates it. You are escaping the trap.",
-    },
   ],
-
 };
