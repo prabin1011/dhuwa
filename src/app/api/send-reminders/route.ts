@@ -81,13 +81,10 @@ function isAllowedRequest(req: Request): boolean {
   return false;
 }
 
-async function generateNotificationsForUser(userId: string) {
+async function generateNotificationsForUser(userId: string, userProfile: UserProfile) {
   const { db } = initializeAdminApp();
   const userRef = db.collection('users').doc(userId);
-  const userDoc = await userRef.get();
-  if (!userDoc.exists) return;
 
-  const userProfile = { id: userDoc.id, ...userDoc.data() } as UserProfile;
   const lastNotified = userProfile.lastNotified || {};
   const now = new Date();
   const todayStr = format(now, 'yyyy-MM-dd');
@@ -180,7 +177,9 @@ async function generateNotificationsForUser(userId: string) {
     add('weekly', weekKey, notificationTemplates.weekly, { total, window: `${fmt(bestStart)}–${fmt((bestStart + 2) % 24)}` });
   }
 
-  if (toCreate.length === 0) return;
+  if (toCreate.length === 0) {
+    return { created: 0 };
+  }
 
   // --- Atomic batch write: notifications + lastNotified flags together
   const batch = db.batch();
@@ -196,8 +195,16 @@ async function generateNotificationsForUser(userId: string) {
       timestamp: FieldValue.serverTimestamp(),
     });
   });
-  if (Object.keys(lastNotifiedUpdates).length) batch.update(userRef, lastNotifiedUpdates);
+
+  // Also update the server-side cooldown timestamp
+  lastNotifiedUpdates['lastNotified.lastInsightCheckAt'] = new Date().toISOString();
+
+  if (Object.keys(lastNotifiedUpdates).length) {
+    batch.update(userRef, lastNotifiedUpdates);
+  }
   await batch.commit();
+
+  return { created: toCreate.length, keys: toCreate.map(n => n.key) };
 }
 
 
@@ -212,8 +219,34 @@ export async function POST(req: Request) {
     }
 
     try {
-        await generateNotificationsForUser(userId);
-        return NextResponse.json({ ok: true, message: 'Notification check complete.' });
+        const MIN_SERVER_COOLDOWN_MIN = 60 * 4; // 4 hours
+
+        const { db } = initializeAdminApp();
+        const userRef = db.collection('users').doc(userId);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) {
+          return NextResponse.json({ ok: true, message: 'User not found.' });
+        }
+
+        const userProfile = { id: userDoc.id, ...userDoc.data() } as UserProfile;
+        const meta = userProfile.lastNotified || {};
+        const lastCheckIso = meta.lastInsightCheckAt as string | undefined;
+
+        if (lastCheckIso) {
+            const deltaMin = (Date.now() - new Date(lastCheckIso).getTime()) / (60 * 1000);
+            if (deltaMin < MIN_SERVER_COOLDOWN_MIN) {
+                return NextResponse.json({
+                ok: true,
+                skipped: true,
+                message: `Server cooldown active. Try again in ${Math.ceil(
+                    MIN_SERVER_COOLDOWN_MIN - deltaMin
+                )} min.`,
+                });
+            }
+        }
+        
+        const result = await generateNotificationsForUser(userId, userProfile);
+        return NextResponse.json({ ok: true, ...result });
 
     } catch (error: any) {
         console.error('[send-reminders-post] error name:', error?.name, 'code:', error?.code);
