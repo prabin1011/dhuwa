@@ -1,3 +1,4 @@
+
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -9,12 +10,12 @@ export default function ContactLayout({ children }: { children: React.ReactNode 
           <Link href="/" className="p-2 rounded-full hover:bg-secondary">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-base sm:text-lg font-semibold">Contact</h1>
+          <h1 className="text-base sm:text-lg font-semibold">Contact Us</h1>
         </div>
       </header>
 
       <main>
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-12">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 py-8">
           <article className="prose prose-invert mx-auto">
             {children}
           </article>

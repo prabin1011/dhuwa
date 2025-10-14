@@ -8,7 +8,6 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="space-y-6 text-center">
-      <h2 className="text-2xl font-bold">Contact Us</h2>
       <p className="text-muted-foreground">
         For questions, feedback, or support, please reach out.
       </p>

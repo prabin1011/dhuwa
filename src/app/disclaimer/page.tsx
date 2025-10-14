@@ -7,7 +7,6 @@ export const metadata: Metadata = {
 export default function DisclaimerPage() {
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Disclaimer</h2>
       <p className="text-lg text-muted-foreground">
         This app provides educational and reflective support only. It is not medical advice. Always consult a doctor for health matters.
       </p>

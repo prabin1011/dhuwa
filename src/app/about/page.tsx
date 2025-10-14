@@ -8,7 +8,6 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">About Dhuwa</h2>
       <div className="space-y-4 text-base italic text-foreground/90">
           <p>
               In Nepali, "Dhuwa" means smoke — the ghost we are gently chasing away.
