@@ -78,7 +78,7 @@ export function NotificationBell() {
       toast({ variant: 'destructive', title: 'Not logged in' });
       return;
     }
-    toast({ title: 'Checking for new insights...', description: 'Keep an eye on your inbox!' });
+    
     try {
       const res = await fetch('/api/send-reminders', {
         method: 'POST',
@@ -88,7 +88,7 @@ export function NotificationBell() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to check for notifications');
       
-      toast({ title: 'Inbox Synced', description: data.message });
+      toast({ title: 'Notification check complete.' });
 
     } catch (err: any) {
       toast({ variant: 'destructive', title: 'Sync Failed', description: err.message });
