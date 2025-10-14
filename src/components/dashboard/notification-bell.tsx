@@ -10,6 +10,7 @@ import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, query, orderBy, limit } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
 import { ScrollArea } from '../ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
 
 interface StoredNotification {
   id: string;
@@ -23,6 +24,7 @@ interface StoredNotification {
 export function NotificationBell() {
   const { firestore, user } = useFirebase();
   const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
 
   const notificationsQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -72,10 +74,37 @@ export function NotificationBell() {
     }
   }
 
+  const handleTestNotification = async () => {
+    if (!user) {
+      toast({ variant: 'destructive', title: 'Not logged in' });
+      return;
+    }
+    toast({ title: 'Checking for notifications...', description: 'One moment...' });
+    try {
+      const res = await fetch('/api/send-reminders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.uid }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to check for notifications');
+      
+      // The API now returns a message, which we can show in a toast.
+      // This gives the user feedback on what happened.
+      toast({ title: 'Check Complete', description: data.message });
+
+    } catch (err: any) {
+      toast({ variant: 'destructive', title: 'Check Failed', description: err.message });
+    }
+  }
+
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    if (open && unreadCount > 0) {
-      markAllAsRead();
+    if (open) {
+        handleTestNotification(); // Trigger check when opening
+        if (unreadCount > 0) {
+            markAllAsRead();
+        }
     }
   };
   
@@ -134,5 +163,3 @@ export function NotificationBell() {
     </Sheet>
   );
 }
-
-    
