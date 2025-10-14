@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect } from "react";
@@ -32,9 +33,10 @@ interface NextRiskWindowProps {
     user: User;
     userProfile: WithId<UserProfile>;
     urges: WithId<Urge>[];
+    onReplace: (moment: SmokingMoment) => void;
 }
 
-export function NextRiskWindow({ user, userProfile, urges }: NextRiskWindowProps) {
+export function NextRiskWindow({ user, userProfile, urges, onReplace }: NextRiskWindowProps) {
     const { firestore } = useFirebase();
     const { toast } = useToast();
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -92,11 +94,12 @@ export function NextRiskWindow({ user, userProfile, urges }: NextRiskWindowProps
                             <span className='font-mono text-sm'>{nextMoment.time}</span>
                             <span className='text-sm font-medium'>{nextMoment.label}</span>
                         </div>
+                         <Button variant="outline" size="sm" onClick={() => onReplace(nextMoment)}>
+                            <Replace className="mr-2 h-4 w-4" />
+                            Replace
+                        </Button>
                      </div>
                 </div>
-                <p className="text-center text-xs text-muted-foreground">
-                    You can replace this moment in the "Today's Plan" card below.
-                </p>
             </CardContent>
         </Card>
     );

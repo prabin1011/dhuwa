@@ -66,6 +66,9 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
   
   const { requestPermissionAndToken } = useNotifications();
 
+  // State for replacement flow, lifted from SmokingPlan
+  const [replacementMoment, setReplacementMoment] = useState<SmokingMoment | null>(null);
+
   useEffect(() => {
     const shouldRequest = userProfile.reminders === 'yes' && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default';
     if (shouldRequest) {
@@ -162,8 +165,19 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                       selectedDate={selectedDate}
                       onSelectDate={setSelectedDate}
                     />
-                    <NextRiskWindow user={user} userProfile={userProfile} urges={filteredUrges} />
-                    <SmokingPlan user={user} userProfile={userProfile} selectedDate={selectedDate || new Date()} />
+                    <NextRiskWindow 
+                        user={user} 
+                        userProfile={userProfile} 
+                        urges={filteredUrges} 
+                        onReplace={setReplacementMoment}
+                    />
+                    <SmokingPlan 
+                        user={user} 
+                        userProfile={userProfile} 
+                        selectedDate={selectedDate || new Date()} 
+                        replacementMoment={replacementMoment}
+                        setReplacementMoment={setReplacementMoment}
+                    />
                     <SavingsStats urges={filteredUrges} userProfile={userProfile} selectedDate={selectedDate} activeHabit={activeHabit} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />

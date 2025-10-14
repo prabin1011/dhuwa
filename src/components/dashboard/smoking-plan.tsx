@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from "react";
@@ -71,9 +72,11 @@ interface SmokingPlanProps {
     user: User;
     userProfile: WithId<UserProfile>;
     selectedDate: Date;
+    replacementMoment: SmokingMoment | null;
+    setReplacementMoment: (moment: SmokingMoment | null) => void;
 }
 
-export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProps) {
+export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment, setReplacementMoment }: SmokingPlanProps) {
     const { firestore } = useFirebase();
     const { toast } = useToast();
 
@@ -81,7 +84,6 @@ export function SmokingPlan({ user, userProfile, selectedDate }: SmokingPlanProp
     const [newMomentLabel, setNewMomentLabel] = useState('');
     
     // State for replacement flow
-    const [replacementMoment, setReplacementMoment] = useState<SmokingMoment | null>(null);
     const [customReplacement, setCustomReplacement] = useState("");
     const [selectedReplacement, setSelectedReplacement] = useState("");
     const [replacementMood, setReplacementMood] = useState<string | null>(null);
