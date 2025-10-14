@@ -1,6 +1,4 @@
 
-'use server';
-
 import { NextResponse } from 'next/server';
 import { initializeAdminApp } from '@/functions';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
@@ -159,7 +157,8 @@ export async function GET(req: Request) {
         return NextResponse.json({ ok: true, message: `Processed reminders for ${usersSnapshot.size} users.` });
 
     } catch (error: any) {
-        console.error('[send-reminders-get] error:', error);
+        console.error('[send-reminders-get] error name:', error?.name, 'code:', error?.code);
+        console.error('[send-reminders-get] error stack:', error?.stack);
         return NextResponse.json({ error: error.message ?? 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -181,7 +180,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, message: 'Test notification process completed.' });
 
   } catch (error: any) {
-    console.error('[send-reminders-post] error:', error);
+    console.error('[send-reminders-post] error name:', error?.name, 'code:', error?.code);
+    console.error('[send-reminders-post] error stack:', error?.stack);
     return NextResponse.json({ error: error.message ?? 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body>
+      <body suppressHydrationWarning data-grammarly="false">
         <FirebaseClientProvider>
           {children}
           <Toaster />
