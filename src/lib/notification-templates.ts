@@ -36,7 +36,7 @@ export const notificationTemplates = {
 
   // ——— Patterns & Weekly ———
   morningPattern: [
-    { title: "Morning spike", body: "Mornings bit today ({{count}} logs). Put one tiny default before 9am." },
+    { title: "Morning spike", body: "Mornings bite today ({{count}} logs). Put one tiny default before 9am." },
     { title: "AM pattern spotted", body: "Early hours stacked up. Put water/breath/walk at arm’s reach." },
     { title: "Set the first domino", body: "Two+ before 9. One pre-decided action beats groggy willpower." },
   ],
