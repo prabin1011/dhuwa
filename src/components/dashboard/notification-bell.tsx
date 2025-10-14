@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Bell, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetTrigger } from '@/components/ui/sheet';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, differenceInHours } from 'date-fns';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, query, orderBy, limit } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
@@ -20,10 +20,21 @@ interface StoredNotification {
   link?: string;
 }
 
+const SYNC_COOLDOWN_HOURS = 4;
+const LAST_SYNC_KEY = 'lastNotificationSyncTime';
+
 export function NotificationBell() {
   const { firestore, user } = useFirebase();
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
+  const [lastSync, setLastSync] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const savedTime = localStorage.getItem(LAST_SYNC_KEY);
+    if (savedTime) {
+        setLastSync(new Date(parseInt(savedTime, 10)));
+    }
+  }, []);
 
   const notificationsQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -78,6 +89,14 @@ export function NotificationBell() {
       toast({ variant: 'destructive', title: 'Not logged in' });
       return;
     }
+
+    if (lastSync && differenceInHours(new Date(), lastSync) < SYNC_COOLDOWN_HOURS) {
+        toast({
+            title: 'Insights up to date',
+            description: `You can check for new insights again in about ${SYNC_COOLDOWN_HOURS - differenceInHours(new Date(), lastSync)} hour(s).`,
+        });
+        return;
+    }
     
     try {
       const res = await fetch('/api/send-reminders', {
@@ -87,6 +106,10 @@ export function NotificationBell() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to check for notifications');
+      
+      const now = new Date();
+      setLastSync(now);
+      localStorage.setItem(LAST_SYNC_KEY, String(now.getTime()));
       
       toast({ title: 'Notification check complete.' });
 
