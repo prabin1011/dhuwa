@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -74,7 +73,7 @@ export function NotificationBell() {
     }
   }
 
-  const handleTestNotification = async () => {
+  const handleSyncNotifications = async () => {
     if (!user) {
       toast({ variant: 'destructive', title: 'Not logged in' });
       return;
@@ -89,19 +88,17 @@ export function NotificationBell() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to check for notifications');
       
-      // The API now returns a message, which we can show in a toast.
-      // This gives the user feedback on what happened.
       toast({ title: 'Inbox Synced', description: data.message });
 
     } catch (err: any) {
-      toast({ variant: 'destructive', title: 'Check Failed', description: err.message });
+      toast({ variant: 'destructive', title: 'Sync Failed', description: err.message });
     }
   }
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (open) {
-        handleTestNotification(); // Trigger check when opening
+        handleSyncNotifications(); // Trigger check when opening
         if (unreadCount > 0) {
             markAllAsRead();
         }
