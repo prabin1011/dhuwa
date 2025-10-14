@@ -1,3 +1,4 @@
+
 'use client';
 
 import { SmokeLogger } from "@/components/dashboard/smoke-logger";
@@ -94,7 +95,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
   
   if (isLoading || !user) {
     return (
-        <div className="flex flex-col h-screen w-screen bg-background p-4 md:p-8 lg:p-12 gap-6">
+        <div className="flex flex-col h-screen w-screen bg-background p-4 md:p-6 gap-6">
             <div className="w-full max-w-md mx-auto">
                 <header className="mb-6 flex justify-between items-center">
                     <div>

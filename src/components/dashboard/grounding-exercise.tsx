@@ -70,8 +70,8 @@ export function GroundingExercise() {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-[-1rem]"/>
-        <CarouselNext className="right-[-1rem]"/>
+        <CarouselPrevious className="left-0 bg-background/50 hover:bg-background" />
+        <CarouselNext className="right-0 bg-background/50 hover:bg-background" />
       </Carousel>
       <div className="py-2 flex justify-center gap-2">
         {steps.map((_, index) => (
