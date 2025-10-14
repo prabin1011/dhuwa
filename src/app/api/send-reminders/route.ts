@@ -11,6 +11,8 @@ export const dynamic = 'force-dynamic';
 const vercelEnv =
   process.env.VERCEL_ENV || (process.env.NODE_ENV === 'development' ? 'development' : 'production');
 const isProd = vercelEnv === 'production';
+const MIN_SERVER_COOLDOWN_MIN = Number(process.env.INSIGHTS_COOLDOWN_MINUTES ?? 240);
+
 
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -221,8 +223,6 @@ export async function POST(req: Request) {
     }
 
     try {
-        const MIN_SERVER_COOLDOWN_MIN = 60 * 4; // 4 hours
-
         const { db } = initializeAdminApp();
         const userRef = db.collection('users').doc(userId);
         const userDoc = await userRef.get();
@@ -238,6 +238,10 @@ export async function POST(req: Request) {
             const deltaMin = (Date.now() - new Date(lastCheckIso).getTime()) / (60 * 1000);
             if (deltaMin < MIN_SERVER_COOLDOWN_MIN) {
                 const retryAfterSec = Math.max(1, Math.floor((MIN_SERVER_COOLDOWN_MIN - deltaMin) * 60));
+                
+                // Keep profile in sync even on skip
+                await userRef.update({ 'lastNotified.lastInsightCheckAt': new Date().toISOString() });
+
                 return new NextResponse(
                     JSON.stringify({
                         ok: true,
@@ -246,6 +250,7 @@ export async function POST(req: Request) {
                             MIN_SERVER_COOLDOWN_MIN - deltaMin
                         )} min.`,
                         retryAfterSeconds: retryAfterSec,
+                        nextAllowedAt: new Date(Date.now() + retryAfterSec * 1000).toISOString(),
                     }),
                     {
                         status: 200,

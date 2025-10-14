@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { formatDistanceToNow } from 'date-fns';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, query, orderBy, limit } from 'firebase/firestore';
@@ -22,7 +22,8 @@ interface StoredNotification {
   link?: string;
 }
 
-const COOLDOWN_HOURS = 4;
+const COOLDOWN_HOURS = Number(process.env.NEXT_PUBLIC_INSIGHTS_COOLDOWN_HOURS ?? 4);
+
 
 function msToHuman(ms: number) {
   const m = Math.ceil(ms / 60000);
@@ -54,24 +55,37 @@ export function NotificationBell() {
   }, [storedNotifications]);
 
   const lastCheckKey = useMemo(() => (user ? `insights:lastCheck:${user.uid}` : null), [user?.uid]);
+  const nextAllowedKey = useMemo(() => (user ? `insights:nextAllowedAt:${user.uid}` : null), [user?.uid]);
+
 
   const canCallNow = () => {
     if (!lastCheckKey) return false;
+    
+    // If server gave us a precise gate, use it
+    const nextAllowed = nextAllowedKey ? localStorage.getItem(nextAllowedKey) : null;
+    if (nextAllowed && Date.now() < new Date(nextAllowed).getTime()) return false;
+
     const last = localStorage.getItem(lastCheckKey);
     if (!last) return true;
     const elapsed = Date.now() - Number(last);
-    return elapsed >= COOLDOWN_HOURS * 60 * 60 * 1000;
+    return elapsed >= COOLDOWN_HOURS * 3600 * 1000;
   };
 
   const remainingCooldown = () => {
-    if (!lastCheckKey) return 0;
-    const last = localStorage.getItem(lastCheckKey);
+    const nextAllowed = nextAllowedKey ? localStorage.getItem(nextAllowedKey) : null;
+    if (nextAllowed) return Math.max(0, new Date(nextAllowed).getTime() - Date.now());
+
+    const last = lastCheckKey ? localStorage.getItem(lastCheckKey) : null;
     if (!last) return 0;
-    const delta = COOLDOWN_HOURS * 60 * 60 * 1000 - (Date.now() - Number(last));
-    return Math.max(0, delta);
+    return Math.max(0, COOLDOWN_HOURS * 3600 * 1000 - (Date.now() - Number(last)));
   };
 
+
   const handleSyncNotifications = async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      toast({ title: 'Offline', description: 'Reconnect to refresh insights.' });
+      return;
+    }
     if (!user) {
       toast({ variant: 'destructive', title: 'Please sign in' });
       return;
@@ -96,11 +110,27 @@ export function NotificationBell() {
       const data = await res.json();
 
       if (res.ok && lastCheckKey) {
-        // Sync client cooldown with server decision
         localStorage.setItem(lastCheckKey, String(Date.now()));
+        if (nextAllowedKey) {
+          if (data?.nextAllowedAt) {
+            localStorage.setItem(nextAllowedKey, data.nextAllowedAt);
+          } else {
+            localStorage.removeItem(nextAllowedKey);
+          }
+        }
       }
 
       if (!res.ok) throw new Error(data?.error || 'Failed to refresh insights');
+
+      if (data?.skipped) {
+        toast({
+          title: 'Insights are up to date',
+          description: data?.retryAfterSeconds
+            ? `You can refresh again in ~${Math.ceil(data.retryAfterSeconds / 60)} min.`
+            : `Try again later.`,
+        });
+        return;
+      }
 
       if (!data.skipped) {
         toast({
