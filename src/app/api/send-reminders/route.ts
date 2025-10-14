@@ -237,13 +237,24 @@ export async function POST(req: Request) {
         if (lastCheckIso) {
             const deltaMin = (Date.now() - new Date(lastCheckIso).getTime()) / (60 * 1000);
             if (deltaMin < MIN_SERVER_COOLDOWN_MIN) {
-                return NextResponse.json({
-                ok: true,
-                skipped: true,
-                message: `Server cooldown active. Try again in ${Math.ceil(
-                    MIN_SERVER_COOLDOWN_MIN - deltaMin
-                )} min.`,
-                });
+                const retryAfterSec = Math.max(1, Math.floor((MIN_SERVER_COOLDOWN_MIN - deltaMin) * 60));
+                return new NextResponse(
+                    JSON.stringify({
+                        ok: true,
+                        skipped: true,
+                        message: `Server cooldown active. Try again in ${Math.ceil(
+                            MIN_SERVER_COOLDOWN_MIN - deltaMin
+                        )} min.`,
+                        retryAfterSeconds: retryAfterSec,
+                    }),
+                    {
+                        status: 200,
+                        headers: {
+                            'Retry-After': String(retryAfterSec),
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
             }
         }
         
@@ -256,5 +267,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: error.message ?? 'Internal Server Error' }, { status: 500 });
     }
 }
-
-    

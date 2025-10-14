@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetTrigger } from '@/components/ui/sheet';
-import { formatDistanceToNow, differenceInHours } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, writeBatch, doc, query, orderBy, limit } from 'firebase/firestore';
 import type { Timestamp } from 'firebase/firestore';
@@ -210,5 +210,3 @@ export function NotificationBell() {
     </Sheet>
   );
 }
-
-    
