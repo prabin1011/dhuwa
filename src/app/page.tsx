@@ -9,7 +9,7 @@ export default function HomePage() {
   const { user, isUserLoading } = useUser();
 
   return (
-    <div className="flex h-screen w-screen flex-col items-center justify-between bg-background p-4 text-center">
+    <div className="flex h-screen w-screen flex-col items-center justify-between bg-background p-4 text-center gap-8">
       <div />
       <div className="flex flex-col items-center">
         <WelcomeIllustration className="w-48 h-48" />
@@ -31,8 +31,9 @@ export default function HomePage() {
       <footer className="text-xs text-muted-foreground pb-4 flex gap-x-4">
         <Link href="/about" className="hover:underline">About</Link>
         <Link href="/features" className="hover:underline">Features</Link>
+        <Link href="/faq" className="hover:underline">FAQ</Link>
         <Link href="/terms" className="hover:underline">Terms</Link>
-        <Link href="/privacy" className="hover:underline">Privacy</Link>
+        <Link href="/privacy" className="hover_underline">Privacy</Link>
         <Link href="/contact" className="hover:underline">Contact</Link>
       </footer>
     </div>

@@ -137,7 +137,7 @@ export default function LoginPage() {
 
                     toast({ title: 'Account created!', description: "You're now logged in."});
                     router.replace('/dashboard');
-                } catch (e: any) {
+                } catch (e: any) => {
                     toast({ variant: 'destructive', title: 'Sign up failed', description: e?.message ?? 'Try again.' });
                 } finally {
                     setLoading(false);
@@ -169,6 +169,7 @@ export default function LoginPage() {
       <footer className="text-xs text-muted-foreground pb-4 flex gap-x-4">
         <Link href="/about" className="hover:underline">About</Link>
         <Link href="/features" className="hover:underline">Features</Link>
+        <Link href="/faq" className="hover:underline">FAQ</Link>
         <Link href="/terms" className="hover:underline">Terms</Link>
         <Link href="/privacy" className="hover:underline">Privacy</Link>
         <Link href="/contact" className="hover:underline">Contact</Link>
