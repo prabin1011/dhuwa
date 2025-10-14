@@ -79,7 +79,7 @@ export function NotificationBell() {
       toast({ variant: 'destructive', title: 'Not logged in' });
       return;
     }
-    toast({ title: 'Checking for notifications...', description: 'One moment...' });
+    toast({ title: 'Checking for new insights...', description: 'Keep an eye on your inbox!' });
     try {
       const res = await fetch('/api/send-reminders', {
         method: 'POST',
@@ -91,7 +91,7 @@ export function NotificationBell() {
       
       // The API now returns a message, which we can show in a toast.
       // This gives the user feedback on what happened.
-      toast({ title: 'Check Complete', description: data.message });
+      toast({ title: 'Inbox Synced', description: data.message });
 
     } catch (err: any) {
       toast({ variant: 'destructive', title: 'Check Failed', description: err.message });
