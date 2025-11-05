@@ -122,6 +122,11 @@
           "type": "string",
           "description": "User's preference for motivational reminders."
         },
+        "language": {
+          "type": "string",
+          "enum": ["en", "no"],
+          "description": "The user's preferred language for the app interface and AI content."
+        },
         "moments": {
           "type": "array",
           "description": "User-defined smoking moments/plans.",

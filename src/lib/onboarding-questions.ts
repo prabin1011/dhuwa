@@ -8,6 +8,7 @@ export type OnboardingData = {
     itemsPerDay?: string;
   }>;
   currency: string;
+  language: string;
   frequency: string;
   started: string;
   goal: string;
@@ -96,24 +97,32 @@ export const STEPS: Step[] = [
         {value: 'yes', label: 'Yes'},
         {value: 'no', label: 'No'},
     ]},
-    { id: 11, title: 'Summary', field: 'habits', question: 'Summary', type: 'summary'},
+    { id: 11, title: 'Language', field: 'language', question: 'Choose your language', type: 'radio', options: [
+        {value: 'en', label: 'English'},
+        {value: 'no', label: 'Norsk'},
+    ]},
+    { id: 12, title: 'Summary', field: 'habits', question: 'Summary', type: 'summary'},
 ];
 
 
 // New, streamlined flow for initial onboarding
 export const ONBOARDING_STEPS: Step[] = [
-    { id: 1, title: 'Your Habit Basics', field: 'habits', question: 'What do you currently use?', type: 'checkbox', options: [{value: 'Cigarettes', label: 'Cigarettes'}, {value: 'Weed', label: 'Weed'}] },
-    { id: 2, title: 'Your Habit Basics', field: 'frequency', question: 'How often do you use?', type: 'radio', options: [
+    { id: 1, title: 'Language', field: 'language', question: 'Choose your language', type: 'radio', options: [
+        {value: 'en', label: 'English'},
+        {value: 'no', label: 'Norsk'},
+    ]},
+    { id: 2, title: 'Your Habit Basics', field: 'habits', question: 'What do you currently use?', type: 'checkbox', options: [{value: 'Cigarettes', label: 'Cigarettes'}, {value: 'Weed', label: 'Weed'}] },
+    { id: 3, title: 'Your Habit Basics', field: 'frequency', question: 'How often do you use?', type: 'radio', options: [
         {value: 'daily', label: 'Every day'},
         {value: 'few-times-week', label: 'A few times a week'},
         {value: 'weekly', label: 'Once a week'},
         {value: 'occasionally', label: 'Occasionally'},
     ]},
-    { id: 3, title: 'The Cost & Amount', field: 'habitDetails', question: 'Tell us about your habits.', type: 'dynamic' },
-    { id: 4, title: 'Your Goal', field: 'goal', question: 'What’s your primary goal right now?', type: 'radio', options: [
+    { id: 4, title: 'The Cost & Amount', field: 'habitDetails', question: 'Tell us about your habits.', type: 'dynamic' },
+    { id: 5, title: 'Your Goal', field: 'goal', question: 'What’s your primary goal right now?', type: 'radio', options: [
         {value: 'quit', label: 'Quit completely'},
         {value: 'reduce', label: 'Cut down gradually'},
         {value: 'track', label: 'Just track and understand my habits'},
     ]},
-    { id: 5, title: 'Summary', field: 'habits', question: 'Summary', type: 'summary'},
+    { id: 6, title: 'Summary', field: 'habits', question: 'Summary', type: 'summary'},
 ]

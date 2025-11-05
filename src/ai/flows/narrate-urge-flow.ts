@@ -1,6 +1,6 @@
 'use server';
 
-import { getAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import {
   NarrateUrgeInputSchema,
   type NarrateUrgeInput,
@@ -8,21 +8,21 @@ import {
 
 const MODEL_ID = 'googleai/gemini-1.5-flash';
 
-const narrateUrgePrompt = `Create a single first-person sentence about this smoking moment.
+const narrateUrgePrompt = `Create a single first-person sentence about this smoking moment in {{language}}.
 Moods: before={{moodBefore}}, after={{moodAfter}}. Habit: {{habitType}}.
-Empathetic, non-judgmental, concise. No preamble.`;
+Tone: Empathetic, non-judgmental, concise. No preamble.`;
 
 export async function narrateUrge(
   rawInput: NarrateUrgeInput
 ): Promise<string> {
   try {
     const input = NarrateUrgeInputSchema.parse(rawInput);
-    const ai = getAI();
+    const language = input.language === 'no' ? 'Norwegian' : 'English';
 
     const { text } = await ai.generate({
       model: MODEL_ID,
       prompt: narrateUrgePrompt,
-      input,
+      input: { ...input, language },
       config: { temperature: 0.3, maxOutputTokens: 60 },
     });
 

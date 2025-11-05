@@ -57,6 +57,7 @@ const INITIAL_DATA: OnboardingData = {
     habits: [],
     habitDetails: {},
     currency: 'USD',
+    language: 'en',
     frequency: '',
     started: '',
     goal: '',

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -54,7 +53,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         defaultValues: {
             ...userProfile,
             habitDetails: userProfile.habitDetails || {},
-            currency: userProfile.currency || 'USD'
+            currency: userProfile.currency || 'USD',
+            language: userProfile.language || 'en',
         },
     });
 
@@ -64,7 +64,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             reset({
                 ...userProfile,
                 habitDetails: userProfile.habitDetails || {},
-                currency: userProfile.currency || 'USD'
+                currency: userProfile.currency || 'USD',
+                language: userProfile.language || 'en',
             });
         }
     }, [isOpen, userProfile, reset]);
@@ -185,7 +186,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     };
     
     const groupedSteps = PROFILE_STEPS.reduce((acc, step) => {
-        if (step.type === 'summary' || step.field === 'reminders') return acc;
+        if (step.type === 'summary' || step.field === 'reminders' || step.field === 'language') return acc;
         
         if (step.type === 'dynamic') {
              (getValues('habits') || []).forEach(habit => {
@@ -222,6 +223,29 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         </SheetHeader>
         <ScrollArea className="flex-1 -mx-6 px-6">
             <form id="profile-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
+                
+                 <div className="space-y-4">
+                    <h3 className="text-lg font-semibold tracking-tight">App Settings</h3>
+                     <div className="space-y-2">
+                        <Label>Language</Label>
+                        <Controller
+                            name="language"
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a language" />
+                                    </SelectTrigger>
+                                    <SelectContent position="popper">
+                                        <SelectItem value="en">English</SelectItem>
+                                        <SelectItem value="no">Norsk</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                    </div>
+                </div>
+
                 {Object.entries(groupedSteps).map(([title, steps]) => (
                     <div key={title} className="space-y-4">
                         <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
@@ -380,6 +404,3 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     </Sheet>
   );
 }
-
-
-    
