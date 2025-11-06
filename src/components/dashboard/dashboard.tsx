@@ -164,9 +164,9 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
 
                 {habitTabs.length > 2 && (
                     <Tabs value={activeHabit} onValueChange={setActiveHabit} className="w-full mb-6">
-                        <TabsList className={`grid w-full grid-cols-${habitTabs.length}`}>
+                        <TabsList className="grid w-full grid-cols-4">
                             {habitTabs.map(habit => (
-                                <TabsTrigger key={habit} value={habit} className="flex items-center gap-2">
+                                <TabsTrigger key={habit} value={habit} className="flex-grow">
                                      {habit === 'All' ? 'All' : <HabitIcon habit={habit} className="w-5 h-5" />}
                                 </TabsTrigger>
                             ))}
