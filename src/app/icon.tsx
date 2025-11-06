@@ -18,22 +18,21 @@ export default function Icon() {
           alignItems: 'center',
           justifyContent: 'center',
           color: 'hsl(140 70% 50%)',
-          borderRadius: '50%',
+          borderRadius: '8px',
         }}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ width: '65%', height: '65%' }}
+        <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            style={{ width: '65%', height: '65%' }}
         >
-          <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.274" />
-          <path d="M12 12v9" />
-          <path d="M8 17h8" />
+            <path d="M12 4c-3.5 4-3 10.5 0 16" />
+            <path d="M12 4c3.5 4 3 10.5 0 16" />
         </svg>
       </div>
     ),
