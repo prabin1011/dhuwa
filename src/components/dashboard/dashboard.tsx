@@ -31,6 +31,7 @@ import { ReplacementMoodReport } from "./replacement-mood-report";
 import { useParams } from "next/navigation";
 import type { Locale } from "@/i18n";
 import { Cigarette, Leaf, MinusCircle } from "lucide-react";
+import { Logo } from "../logo";
 
 
 interface SmokingMoment {
@@ -145,12 +146,12 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                 <header className="mb-6 flex justify-between items-start">
                     <div>
                         <div className="flex items-baseline gap-2">
-                            <Link href={`/${locale}/dashboard`}>
+                            <Link href={`/${locale}/dashboard`} className="flex items-center gap-2">
+                                <Logo className="w-7 h-7" />
                                 <h1 className="text-3xl font-bold tracking-tighter font-heading lowercase cursor-pointer">
                                     dhuwa
                                 </h1>
                              </Link>
-                            <p className="text-xs text-muted-foreground/80 italic relative top-[-2px]">by smokers for smokers</p>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
                           Welcome, {userProfile.username || user?.email || "Guest"}. Your freedom starts with awareness.
@@ -164,10 +165,10 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
 
                 {habitTabs.length > 2 && (
                     <Tabs value={activeHabit} onValueChange={setActiveHabit} className="w-full mb-6">
-                        <TabsList className="grid w-full grid-cols-4">
+                        <TabsList className="grid w-full grid-cols-4 h-12">
                             {habitTabs.map(habit => (
-                                <TabsTrigger key={habit} value={habit} className="flex-grow">
-                                     {habit === 'All' ? 'All' : <HabitIcon habit={habit} className="w-5 h-5" />}
+                                <TabsTrigger key={habit} value={habit} className="flex-grow text-xs h-full">
+                                     {habit === 'All' ? 'All' : <HabitIcon habit={habit} className="w-6 h-6" />}
                                 </TabsTrigger>
                             ))}
                         </TabsList>
