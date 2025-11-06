@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import type { Locale } from '@/lib/i18n';
+import type { Locale } from '@/i18n';
 import { unwrapParams } from '../_lib/unwrapParams';
 
 export default async function LocaleIndexPage(
