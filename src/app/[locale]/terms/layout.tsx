@@ -1,6 +1,6 @@
 
 import { ArrowLeft } from 'lucide-react';
-import { Link } from 'next-intl/navigation';
+import Link from 'next/link';
 
 export default function TermsLayout({ children }: { children: React.ReactNode }) {
   return (

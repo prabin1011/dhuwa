@@ -12,13 +12,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/firebase";
-import { Link } from 'next-intl/navigation';
+import Link from 'next/link';
 import { Button } from "../ui/button";
 import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather, MessageSquare, Shield } from "lucide-react";
 import { ProfileSheet } from '../profile/profile-sheet';
 import type { WithId } from '@/firebase';
-import { useRouter } from 'next-intl/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import type { User } from 'firebase/auth';
+import type { Locale } from '@/i18n';
 
 interface UserProfile {
     username?: string;
@@ -32,13 +33,14 @@ interface UserProfileDropdownProps {
 export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownProps) {
   const auth = useAuth();
   const router = useRouter();
+  const {locale} = useParams() as {locale: Locale};
 
   const [isProfileSheetOpen, setProfileSheetOpen] = useState(false);
 
   const handleSignOut = async () => {
     if (auth) {
       await auth.signOut();
-      router.push('/login');
+      router.push(`/${locale}/login`);
     }
   };
 
@@ -85,38 +87,38 @@ export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownPr
              </DropdownMenuItem>
           </a>
           <DropdownMenuSeparator />
-          <Link href="/about">
+          <Link href={`/${locale}/about`}>
              <DropdownMenuItem>
                 <Info className="mr-2 h-4 w-4" />
                 <span>About Us</span>
              </DropdownMenuItem>
           </Link>
-           <Link href="/features">
+           <Link href={`/${locale}/features`}>
              <DropdownMenuItem>
                 <LifeBuoy className="mr-2 h-4 w-4" />
                 <span>Features</span>
              </DropdownMenuItem>
           </Link>
-           <Link href="/contact">
+           <Link href={`/${locale}/contact`}>
              <DropdownMenuItem>
                 <MessageSquare className="mr-2 h-4 w-4" />
                 <span>Contact Us</span>
              </DropdownMenuItem>
           </Link>
           <DropdownMenuSeparator />
-          <Link href="/terms">
+          <Link href={`/${locale}/terms`}>
             <DropdownMenuItem>
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Terms & Conditions</span>
             </DropdownMenuItem>
           </Link>
-           <Link href="/privacy">
+           <Link href={`/${locale}/privacy`}>
             <DropdownMenuItem>
                 <Shield className="mr-2 h-4 w-4" />
                 <span>Privacy Policy</span>
             </DropdownMenuItem>
           </Link>
-           <Link href="/disclaimer">
+           <Link href={`/${locale}/disclaimer`}>
             <DropdownMenuItem>
                 <Shield className="mr-2 h-4 w-4" />
                 <span>Disclaimer</span>

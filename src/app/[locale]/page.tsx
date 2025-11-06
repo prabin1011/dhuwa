@@ -1,11 +1,7 @@
 
 import {redirect} from 'next/navigation';
 import {type Locale} from '@/i18n';
-
-// Helper function to resolve params whether they are a promise or not
-async function unwrapParams<T>(p: T | Promise<T>): Promise<T> {
-  return (p as any)?.then ? await (p as any) : (p as T);
-}
+import { unwrapParams } from '@/app/_lib/unwrapParams';
 
 export default async function LocaleIndexPage(props: {
   params: {locale: Locale} | Promise<{locale: Locale}>;
