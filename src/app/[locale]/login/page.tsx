@@ -97,7 +97,6 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
         <div className="w-full max-w-sm">
             <div className="text-center mb-8">
-                 <WelcomeIllustration className="mx-auto" />
                  <h1 className="text-2xl font-bold mt-4">Welcome to Dhuwa</h1>
                  <p className="text-muted-foreground">Let's begin your journey to a smoke-free life.</p>
             </div>
