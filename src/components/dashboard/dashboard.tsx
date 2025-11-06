@@ -24,7 +24,7 @@ import { SosActionBar } from "./sos-action-bar";
 import { NextRiskWindow } from "./next-risk-window";
 import { NotificationBell } from "./notification-bell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import Link from 'next-intl/link';
+import Link from 'next/link';
 import { User } from "firebase/auth";
 import { ReplacementMoodReport } from "./replacement-mood-report";
 
