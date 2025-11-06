@@ -2,32 +2,29 @@ import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import type { Locale } from '@/lib/i18n';
+import { unwrapParams } from '../_lib/unwrapParams';
 
-// Can be imported from a shared config
 const locales: Locale[] = ['en', 'nb'];
 
-export default async function LocaleLayout({
-  children,
-  params: paramsPromise,
-}: {
-  children: ReactNode;
-  params: Promise<{ locale: Locale }>;
-}) {
-  const { locale } = await paramsPromise;
-
-  // Validate that the incoming `locale` parameter is valid
+export default async function LocaleLayout(
+  props: {
+    children: ReactNode;
+    params: { locale: Locale } | Promise<{ locale: Locale }>;
+  }
+) {
+  const { locale } = await unwrapParams((props as any).params);
   if (!locales.includes(locale)) notFound();
 
-  let messages;
+  let messages: Record<string, string>;
   try {
     messages = (await import(`../messages/${locale}.json`)).default;
-  } catch (error) {
+  } catch {
     notFound();
   }
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      {children}
+      {props.children}
     </NextIntlClientProvider>
   );
 }

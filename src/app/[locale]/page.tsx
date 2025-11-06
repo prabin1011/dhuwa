@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation';
 import type { Locale } from '@/lib/i18n';
+import { unwrapParams } from '../_lib/unwrapParams';
 
-// IMPORTANT: no "use client" here, no React hooks.
 export default async function LocaleIndexPage(
-  props: { params: Promise<{ locale: Locale }> }
+  props: { params: { locale: Locale } } | { params: Promise<{ locale: Locale }> }
 ) {
-  const { locale } = await props.params;      // Next 15.3+ requires await
-  redirect(`/${locale}/dashboard`);           // server-side redirect
+  const { locale } = await unwrapParams((props as any).params);
+  redirect(`/${locale}/dashboard`);
 }
