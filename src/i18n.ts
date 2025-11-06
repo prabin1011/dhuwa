@@ -1,5 +1,6 @@
-import {getRequestConfig} from 'next-intl/server';
-import { notFound } from 'next/navigation';
+
+import {getRequestConfig, unstable_setRequestLocale} from 'next-intl/server';
+import {notFound} from 'next/navigation';
 
 export const i18n = {
   locales: ['en', 'nb'] as const,

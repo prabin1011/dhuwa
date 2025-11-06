@@ -2,8 +2,9 @@
 'use client';
 
 import {useEffect, useState} from 'react';
-import {useParams, useRouter} from 'next/navigation';
-import {Link} from 'next-intl/navigation';
+import {useParams} from 'next/navigation';
+import {useRouter} from 'next/navigation';
+import Link from 'next/link';
 import type {Locale} from '@/i18n';
 import {useUser, useAuthActions} from '@/firebase';
 import {useTranslations} from 'next-intl';
@@ -140,11 +141,11 @@ export default function LoginPage() {
             </Tabs>
              <p className="px-8 text-center text-xs text-muted-foreground mt-6">
                 By continuing, you agree to our{' '}
-                <Link href="/terms" className="underline underline-offset-4 hover:text-primary">
+                <Link href={`/${locale}/terms`} className="underline underline-offset-4 hover:text-primary">
                 Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link href="/privacy" className="underline underline-offset-4 hover:text-primary">
+                <Link href={`/${locale}/privacy`} className="underline underline-offset-4 hover:text-primary">
                 Privacy Policy
                 </Link>
                 .
