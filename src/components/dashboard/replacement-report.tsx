@@ -8,6 +8,7 @@ import { Info } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { useTranslations } from "next-intl";
 
 interface SmokingMoment {
     id: string;
@@ -33,29 +34,16 @@ interface ReplacementLog {
     activity: string;
 }
 
-const getGroupTitle = (dateStr: string) => {
+const getGroupTitle = (dateStr: string, t: (key: string) => string) => {
     const date = parseISO(dateStr);
-    if (isToday(date)) return "Today";
-    if (isYesterday(date)) return "Yesterday";
+    if (isToday(date)) return t('today');
+    if (isYesterday(date)) return t('yesterday');
     return format(date, "eeee, MMMM d");
 };
 
-const encouragementMessages = [
-    "Yes. This is how you reclaim your time. The first step is the hardest and you've taken it.",
-    "Each replacement is a vote for a new you. You're casting multiple votes today. Keep going.",
-    "This is it. You're not just 'not smoking,' you're actively living. This is what winning looks like.",
-    "Keep this up for 3 days to build confidence. Keep it up for 21 days to build a new habit. You are on your way.",
-    "Excellent choice. Freedom is built one decision at a time.",
-    "This is the path. Every time you choose a replacement, you weaken the addiction's hold on you."
-];
-
-const emptyStateMessages = [
-    "Your best weapon against an urge is a plan. What's one positive action you'll choose next time?",
-    "An opportunity awaits. The next urge isn't a threat; it's a chance to make a better choice.",
-    "No replacements logged yet. Let's change that. What will you do instead of smoking next time?"
-]
-
 export function ReplacementReport({ userProfile, selectedDate }: ReplacementReportProps) {
+    const t = useTranslations('dashboard.replacementReport');
+    
     const replacementLogs = useMemo(() => {
         const logs: ReplacementLog[] = [];
         const moments = userProfile.moments || [];
@@ -91,9 +79,15 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
     
     const logsForSelectedDate = groupedLogs[format(selectedDate, 'yyyy-MM-dd')] || [];
 
-    const description = logsForSelectedDate.length > 0 
-        ? encouragementMessages[logsForSelectedDate.length % encouragementMessages.length]
-        : emptyStateMessages[Math.floor(Math.random() * emptyStateMessages.length)];
+    const description = useMemo(() => {
+        if (logsForSelectedDate.length > 0) {
+            const index = logsForSelectedDate.length % 6;
+            return t(`description_encouragement_${index + 1}` as any);
+        } else {
+            const index = Math.floor(Math.random() * 3);
+            return t(`description_empty_${index + 1}` as any);
+        }
+    },[logsForSelectedDate.length, t]);
 
     return (
         <Card>
@@ -102,7 +96,7 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
                     <div className="flex justify-between items-start w-full gap-2 p-4 hover:no-underline [&[data-state=open]]:pb-0">
                         <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
                             <div>
-                                <CardTitle>Replacement Report</CardTitle>
+                                <CardTitle>{t('title')}</CardTitle>
                                 <CardDescription>{description}</CardDescription>
                             </div>
                         </AccordionTrigger>
@@ -129,7 +123,7 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
                                     <div className="space-y-4">
                                         <div>
                                             <h3 className="text-sm font-medium text-muted-foreground px-1 mb-2">
-                                                {getGroupTitle(format(selectedDate, 'yyyy-MM-dd'))}
+                                                {getGroupTitle(format(selectedDate, 'yyyy-MM-dd'), t)}
                                             </h3>
                                             <ul className="space-y-2">
                                                 {logsForSelectedDate.map((log, index) => (
@@ -142,11 +136,11 @@ export function ReplacementReport({ userProfile, selectedDate }: ReplacementRepo
                                     </div>
                                 ) : sortedGroupKeys.length > 0 && !logsForSelectedDate.length ? (
                                      <div className="flex h-full items-center justify-center">
-                                        <p className="text-muted-foreground text-sm text-center">No replacements logged for this day. <br/> Other logs available.</p>
+                                        <p className="text-muted-foreground text-sm text-center">{t('no_replacements_day')}</p>
                                     </div>
                                 ) : (
                                     <div className="flex h-full items-center justify-center">
-                                        <p className="text-muted-foreground text-sm">Skip a smoke to log a replacement!</p>
+                                        <p className="text-muted-foreground text-sm">{t('no_replacements_yet')}</p>
                                     </div>
                                 )}
                             </ScrollArea>

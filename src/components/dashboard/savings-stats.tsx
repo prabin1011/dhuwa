@@ -9,6 +9,7 @@ import type { Timestamp } from "firebase/firestore";
 import { Info } from "lucide-react";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { useTranslations } from "next-intl";
 
 interface Urge {
     timestamp: Timestamp;
@@ -26,24 +27,6 @@ interface SavingsStatsProps {
     userProfile: UserProfile;
     selectedDate: Date | undefined;
     activeHabit: string;
-}
-
-const expenseMessages = {
-    over_baseline: "You've crossed the line you drew for yourself. This isn't just about money; it's about a promise.",
-    near_baseline: "You're approaching your daily limit. Each one from here on out is a choice to break your promise to yourself.",
-    high: "This cost is high, not just in money, but in future moments. You are funding your own trap.",
-    moderate: "Is this fleeting relief truly worth the price? Each dollar spent is a vote for the addiction.",
-    low: "It seems small, but this is a quiet leak in your financial boat. You can still patch it.",
-    zero: "A day of perfect savings. This is what financial freedom starts to feel like. Protect it."
-}
-
-const savingsMessages = {
-    debt: "This isn't savings; it's a debt. You've borrowed from tomorrow's health for today's fleeting urge. The bill will come due.",
-    zero: "You broke even. A hard-fought battle with no ground lost. Tomorrow, we take territory.",
-    low: "A small surplus. A single step in the right direction. Now, take another.",
-    moderate: "This is a real surplus. You won the day. This feeling is what freedom tastes like. Savor it.",
-    high: "Look at this number. This isn't just money; it's reclaimed time, health, and freedom. You are buying back your life.",
-    no_baseline: "Set your daily average in your profile to see your net savings calculated against your baseline."
 }
 
 const StatDisplay = ({ label, value, money, moneyColor = 'text-primary' }: { label: string, value: number, money: string, moneyColor?: string }) => (
@@ -71,6 +54,7 @@ function parseItemsPerDay(itemsPerDay?: string | number): number {
 
 
 export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: SavingsStatsProps) {
+    const t = useTranslations('dashboard.financials');
 
     const formatMoney = useMemo(() => {
         const currency = userProfile.currency || 'USD';
@@ -150,24 +134,24 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
         const weeklyNet = calculateNet(weekStart, endOfDay(date));
         const monthlyNet = calculateNet(monthStart, endOfDay(date));
 
-        let expenseDescription = "Every dollar not spent is a dollar invested in your freedom.";
+        let expenseDescription = t('description');
         if (dailyExpense.count > 0) {
-            expenseDescription = `Is this fleeting relief truly worth the price? Each dollar spent is a vote for the addiction.`;
+            expenseDescription = t('description_negative');
         } else {
-             expenseDescription = `A day of perfect savings. This isn't just money; it's reclaimed time, health, and freedom.`;
+             expenseDescription = t('description_positive');
         }
 
-        let savingsDescription = savingsMessages.moderate;
+        let savingsDescription = t('net_moderate');
         if (Object.values(userProfile.habitDetails || {}).every(d => parseItemsPerDay(d.itemsPerDay) === 0)) {
-            savingsDescription = savingsMessages.no_baseline;
+            savingsDescription = t('net_no_baseline');
         } else if (dailyNet.netCount < 0) {
-            savingsDescription = savingsMessages.debt;
+            savingsDescription = t('net_debt');
         } else if (dailyNet.netCount === 0) {
-            savingsDescription = savingsMessages.zero;
+            savingsDescription = t('net_zero');
         } else if (dailyNet.netCount > 10) { // arbitrary threshold for high savings
-            savingsDescription = savingsMessages.high;
+            savingsDescription = t('net_high');
         } else if (dailyNet.netCount > 0) {
-            savingsDescription = savingsMessages.low;
+            savingsDescription = t('net_low');
         }
 
         return {
@@ -188,7 +172,7 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
                 savings: savingsDescription
             }
         };
-    }, [urges, userProfile, activeHabit, selectedDate, formatMoney]);
+    }, [urges, userProfile, activeHabit, selectedDate, formatMoney, t]);
 
     return (
         <Card>
@@ -197,7 +181,7 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
                     <div className="flex justify-between items-start w-full gap-2 p-4 hover:no-underline [&[data-state=open]]:pb-0">
                         <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
                             <div>
-                                <CardTitle>Financials</CardTitle>
+                                <CardTitle>{t('title')}</CardTitle>
                                 <CardDescription className="text-left mt-1">
                                     {description.expenses}
                                 </CardDescription>
@@ -222,20 +206,20 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
                     <AccordionContent>
                         <div className="space-y-8 p-4 pt-2">
                              <div>
-                                <h4 className="text-sm font-semibold mb-4 text-center">Expenses (to-date)</h4>
+                                <h4 className="text-sm font-semibold mb-4 text-center">{t('expenses')}</h4>
                                  <div className="grid grid-cols-3 divide-x divide-border">
-                                    <StatDisplay label="Daily" value={stats.expenses.daily.count} money={stats.expenses.daily.money} moneyColor="text-destructive" />
-                                    <StatDisplay label="Weekly" value={stats.expenses.weekly.count} money={stats.expenses.weekly.money} moneyColor="text-destructive"/>
-                                    <StatDisplay label="Monthly" value={stats.expenses.monthly.count} money={stats.expenses.monthly.money} moneyColor="text-destructive"/>
+                                    <StatDisplay label={t('daily')} value={stats.expenses.daily.count} money={stats.expenses.daily.money} moneyColor="text-destructive" />
+                                    <StatDisplay label={t('weekly')} value={stats.expenses.weekly.count} money={stats.expenses.weekly.money} moneyColor="text-destructive"/>
+                                    <StatDisplay label={t('monthly')} value={stats.expenses.monthly.count} money={stats.expenses.monthly.money} moneyColor="text-destructive"/>
                                 </div>
                             </div>
                              <div>
-                                <h4 className="text-sm font-semibold mb-2 text-center">Net Savings vs Baseline (to-date)</h4>
+                                <h4 className="text-sm font-semibold mb-2 text-center">{t('savings')}</h4>
                                  <p className="text-xs text-muted-foreground mb-4 px-2 text-center">{description.savings}</p>
                                 <div className="grid grid-cols-3 divide-x divide-border">
-                                    <StatDisplay label="Daily" value={stats.savings.daily.count} money={stats.savings.daily.money} moneyColor={stats.savings.daily.count < 0 ? 'text-destructive' : 'text-primary'}/>
-                                    <StatDisplay label="Weekly" value={stats.savings.weekly.count} money={stats.savings.weekly.money} moneyColor={stats.savings.weekly.count < 0 ? 'text-destructive' : 'text-primary'}/>
-                                    <StatDisplay label="Monthly" value={stats.savings.monthly.count} money={stats.savings.monthly.money} moneyColor={stats.savings.monthly.count < 0 ? 'text-destructive' : 'text-primary'}/>
+                                    <StatDisplay label={t('daily')} value={stats.savings.daily.count} money={stats.savings.daily.money} moneyColor={stats.savings.daily.count < 0 ? 'text-destructive' : 'text-primary'}/>
+                                    <StatDisplay label={t('weekly')} value={stats.savings.weekly.count} money={stats.savings.weekly.money} moneyColor={stats.savings.weekly.count < 0 ? 'text-destructive' : 'text-primary'}/>
+                                    <StatDisplay label={t('monthly')} value={stats.savings.monthly.count} money={stats.savings.monthly.money} moneyColor={stats.savings.monthly.count < 0 ? 'text-destructive' : 'text-primary'}/>
                                 </div>
                             </div>
                         </div>

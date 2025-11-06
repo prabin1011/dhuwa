@@ -16,6 +16,120 @@
     "riskWindowDescription": "Your next planned moment is {timeToNext}. You have a plan. You can do this.",
     "riskWindowMissedYesterday": "You missed a moment yesterday. Your next risk is {timeToNext}. Today is a new chance.",
     "riskWindowSmokedToday": "One moment logged. The chain is only as strong as the next link, which is {timeToNext}. You can break it here.",
-    "riskWindowNoMoments": "No upcoming risk windows today. Well done on completing your plan."
+    "riskWindowNoMoments": "No upcoming risk windows today. Well done on completing your plan.",
+    "financials": {
+      "title": "Financials",
+      "description": "Every dollar not spent is a dollar invested in your freedom.",
+      "description_positive": "A day of perfect savings. This isn't just money; it's reclaimed time, health, and freedom.",
+      "description_negative": "Is this fleeting relief truly worth the price? Each dollar spent is a vote for the addiction.",
+      "expenses": "Expenses (to-date)",
+      "savings": "Net Savings vs Baseline (to-date)",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "net_debt": "This isn't savings; it's a debt. You've borrowed from tomorrow's health for today's fleeting urge. The bill will come due.",
+      "net_zero": "You broke even. A hard-fought battle with no ground lost. Tomorrow, we take territory.",
+      "net_low": "A small surplus. A single step in the right direction. Now, take another.",
+      "net_moderate": "This is a real surplus. You won the day. This feeling is what freedom tastes like. Savor it.",
+      "net_high": "Look at this number. This isn't just money; it's reclaimed time, health, and freedom. You are buying back your life.",
+      "net_no_baseline": "Set your daily average in your profile to see your net savings calculated against your baseline."
+    },
+    "progress": {
+      "title": "Habit Progress",
+      "description_perfect": "A perfect day. You chose freedom every time. Rejoice in this victory.",
+      "description_good": "You won more than you lost today. Each skipped cigarette is a step out of the trap.",
+      "description_progress": "Progress, not perfection. You proved you don't need it. Build on this.",
+      "description_lesson": "Today was a lesson, not a failure. What did you learn from each moment?",
+      "description_default": "Your success in skipping planned smokes.",
+      "skipped_on": "{skipped}/{total} skipped on {date}",
+      "skipped_this_week": "{skipped}/{total} skipped this week",
+      "skipped_this_month": "{skipped}/{total} skipped this month",
+      "no_plan": "Plan moments to see progress"
+    },
+    "replacementReport": {
+      "title": "Replacement Report",
+      "description_encouragement_1": "Yes. This is how you reclaim your time. The first step is the hardest and you've taken it.",
+      "description_encouragement_2": "Each replacement is a vote for a new you. You're casting multiple votes today. Keep going.",
+      "description_encouragement_3": "This is it. You're not just 'not smoking,' you're actively living. This is what winning looks like.",
+      "description_encouragement_4": "Keep this up for 3 days to build confidence. Keep it up for 21 days to build a new habit. You are on your way.",
+      "description_encouragement_5": "Excellent choice. Freedom is built one decision at a time.",
+      "description_encouragement_6": "This is the path. Every time you choose a replacement, you weaken the addiction's hold on you.",
+      "description_empty_1": "Your best weapon against an urge is a plan. What's one positive action you'll choose next time?",
+      "description_empty_2": "An opportunity awaits. The next urge isn't a threat; it's a chance to make a better choice.",
+      "description_empty_3": "No replacements logged yet. Let's change that. What will you do instead of smoking next time?",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "replaced_with": "Replaced with:",
+      "no_replacements_day": "No replacements logged for this day. Other logs available.",
+      "no_replacements_yet": "Skip a smoke to log a replacement!"
+    },
+    "replacementMood": {
+      "title": "Replacement Moods",
+      "description_positive": "The dominant feeling was positive. This is the reward you give yourself.",
+      "description_calm": "You found peace without it. This proves the cigarette is not the source of calm.",
+      "description_uneasy": "Feeling uneasy is normal. It's the addiction fighting back. You are stronger.",
+      "description_default": "How you felt after choosing a better path on {date}.",
+      "description_empty": "No replacement moods logged today. Every urge is a chance to build a new feeling."
+    },
+    "moodReport": {
+      "title": "Mood Analysis",
+      "before": "Before Smoking",
+      "after": "After Smoking",
+      "no_data": "No data for this day.",
+      "no_moods": "No moods logged today. A blank slate is a victory in itself.",
+      "description_stressed": "Stress was the trigger. But smoking doesn't relieve stress, it causes it. You are breaking the cycle.",
+      "description_bored": "Boredom is a common illusion. The cigarette didn't entertain you, it just passed the time.",
+      "description_happy": "You reached for a cigarette when you were already happy. Remember that joy comes from within, not from a smoke.",
+      "description_guilty": "The main feeling afterward was guilt. The cigarette promised relief but left regret. It lied.",
+      "description_same": "You felt the same after. The habit offered no real change. Remember this emptiness.",
+      "description_default": "Your feelings before & after smoking on {date}."
+    },
+    "trendChart": {
+      "title": "30-Day Trend",
+      "description_higher_1": "A tough day, well above your average. It happens. Reflect on what was different today. Don't let one day define the journey.",
+      "description_higher_2": "A bit more than usual. A small deviation, not a disaster. What were the triggers? Let's be ready for them tomorrow.",
+      "description_lower": "A good day, well below your average. This is progress. This is strength. Build on this momentum.",
+      "description_win": "Look at this. A day of control, discipline, and success. This is proof you can do it.",
+      "description_zero_1": "Zero. This is a massive win against a daily average of {avg}. This is proof you can do it.",
+      "description_zero_2": "Zero smokes logged today. An amazing achievement! Keep this momentum going.",
+      "description_default": "Your 30-day average is {avg} smokes/day."
+    },
+    "patternChart": {
+      "title": "Daily Pattern",
+      "description_default": "Your habit pattern by hour, based on the last 30 days.",
+      "description_peak": "Your peak time is between {start} and {end}. Awareness is the first step to changing it.",
+      "description_spread": "No clear peak in your usage times. Your habit seems evenly spread throughout the day."
+    },
+    "logDialog": {
+      "title": "How are you feeling?",
+      "description": "Select the primary emotion you feel right now. This helps you identify triggers.",
+      "habit_label": "What are you logging?",
+      "cancel": "Cancel",
+      "log_smoke": "Log Smoke",
+      "moment_recorded": "Moment Recorded",
+      "moment_recorded_desc": "Your moment of awareness has been logged. One last thing...",
+      "after_mood_prompt": "How do you feel afterward?"
+    },
+    "replaceDialog": {
+      "title": "Replace this Moment",
+      "description": "Log a positive action and how it made you feel. This is a huge win.",
+      "activity_label": "What did you do instead?",
+      "custom_placeholder": "Or type your own replacement...",
+      "mood_label": "And how did that feel?",
+      "cancel": "Cancel",
+      "save": "Save Replacement"
+    },
+    "plan": {
+      "add_moment_placeholder": "e.g., Morning coffee",
+      "add_moment_label": "Label",
+      "add_moment_time_label": "Time",
+      "add_moment_button_label": "Add moment",
+      "delete_moment_button_label": "Delete this moment",
+      "log_smoke_button_label": "Log smoke for this moment",
+      "replace_button_label": "Replace this moment",
+      "no_moments": "No moments planned. Add one to get started!",
+      "info_title": "About the Daily Plan",
+      "info_description": "Create a plan for your day. For each moment, you can log that you smoked or that you chose a positive replacement activity."
+    }
   }
 }

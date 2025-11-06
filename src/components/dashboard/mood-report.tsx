@@ -10,6 +10,7 @@ import { Info } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { useTranslations } from 'next-intl';
 
 interface Urge {
     timestamp: Timestamp;
@@ -80,7 +81,7 @@ const MoodPieChart = ({ data, title }: { data: { name: string, value: number, pe
             </div>
         ) : (
             <div className="flex h-24 items-center justify-center">
-                <p className="text-muted-foreground text-xs">No data for this day.</p>
+                <p className="text-muted-foreground text-xs">{useTranslations('dashboard.moodReport')('no_data')}</p>
             </div>
         )}
     </div>
@@ -88,6 +89,8 @@ const MoodPieChart = ({ data, title }: { data: { name: string, value: number, pe
 
 
 export function MoodReport({ urges, selectedDate }: MoodReportProps) {
+    const t = useTranslations('dashboard.moodReport');
+    
     const { beforeData, afterData, description } = useMemo(() => {
         const moodsBeforeCount: Record<string, number> = {};
         const moodsAfterCount: Record<string, number> = {};
@@ -115,33 +118,33 @@ export function MoodReport({ urges, selectedDate }: MoodReportProps) {
         const bData = processData(moodsBeforeCount);
         const aData = processData(moodsAfterCount);
 
-        let dynamicDescription = `Your feelings before & after smoking on ${format(selectedDate, "MMM d")}.`;
+        let dynamicDescription = t('description_default', {date: format(selectedDate, "MMM d")});
         if (bData.length > 0) {
             const topMood = bData[0].name;
             if (topMood === 'stressed' || topMood === 'anxious') {
-                dynamicDescription = "Stress was the trigger. But smoking doesn't relieve stress, it causes it. You are breaking the cycle.";
+                dynamicDescription = t('description_stressed');
             } else if (topMood === 'bored') {
-                dynamicDescription = "Boredom is a common illusion. The cigarette didn't entertain you, it just passed the time.";
+                dynamicDescription = t('description_bored');
             } else if (topMood === 'happy') {
-                dynamicDescription = "You reached for a cigarette when you were already happy. Remember that joy comes from within, not from a smoke.";
+                dynamicDescription = t('description_happy');
             }
         }
         if (aData.length > 0) {
             const topAfterMood = aData[0].name;
              if (topAfterMood === 'guilty' && (aData[0].percentage > 50)) {
-                dynamicDescription = `The main feeling afterward was guilt. The cigarette promised relief but left regret. It lied.`;
+                dynamicDescription = t('description_guilty');
             } else if (topAfterMood === 'same') {
-                dynamicDescription = `You felt the same after. The habit offered no real change. Remember this emptiness.`
+                dynamicDescription = t('description_same');
             }
         }
         if (bData.length === 0 && aData.length === 0) {
-            dynamicDescription = "No moods logged today. A blank slate is a victory in itself."
+            dynamicDescription = t('no_moods');
         }
 
 
         return { beforeData: bData, afterData: aData, description: dynamicDescription };
 
-    }, [urges, selectedDate]);
+    }, [urges, selectedDate, t]);
 
     const hasData = beforeData.length > 0 || afterData.length > 0;
 
@@ -152,7 +155,7 @@ export function MoodReport({ urges, selectedDate }: MoodReportProps) {
                     <div className="flex justify-between items-start w-full gap-2 p-4 hover:no-underline [&[data-state=open]]:pb-0">
                         <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
                             <div>
-                                <CardTitle>Mood Analysis</CardTitle>
+                                <CardTitle>{t('title')}</CardTitle>
                                 <CardDescription>{description}</CardDescription>
                             </div>
                         </AccordionTrigger>
@@ -177,15 +180,15 @@ export function MoodReport({ urges, selectedDate }: MoodReportProps) {
                              {hasData ? (
                                 <div className="grid grid-cols-1 divide-y divide-border">
                                     <div className="pb-4">
-                                       <MoodPieChart data={beforeData} title="Before Smoking" />
+                                       <MoodPieChart data={beforeData} title={t('before')} />
                                     </div>
                                     <div className="pt-4">
-                                        <MoodPieChart data={afterData} title="After Smoking" />
+                                        <MoodPieChart data={afterData} title={t('after')} />
                                     </div>
                                 </div>
                             ) : (
                                  <div className="flex h-24 items-center justify-center">
-                                    <p className="text-muted-foreground text-sm">No moods logged for this day.</p>
+                                    <p className="text-muted-foreground text-sm">{t('no_moods')}</p>
                                 </div>
                             )}
                         </div>

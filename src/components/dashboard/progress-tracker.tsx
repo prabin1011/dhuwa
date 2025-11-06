@@ -8,6 +8,7 @@ import { Info } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { useTranslations } from "next-intl";
 
 interface SmokingMoment {
     id: string;
@@ -26,17 +27,18 @@ interface ProgressTrackerProps {
 }
 
 export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerProps) {
+    const t = useTranslations('dashboard.progress');
     const moments = userProfile.moments || [];
     
     const { progressData, description } = useMemo(() => {
         if (!moments || moments.length === 0) {
             return {
                 progressData: {
-                    daily: { percentage: 0, label: "Plan moments to see progress" },
-                    weekly: { percentage: 0, label: "Plan moments to see progress" },
-                    monthly: { percentage: 0, label: "Plan moments to see progress" }
+                    daily: { percentage: 0, label: t('no_plan') },
+                    weekly: { percentage: 0, label: t('no_plan') },
+                    monthly: { percentage: 0, label: t('no_plan') }
                 },
-                description: "Plan your smoking moments to start tracking your progress."
+                description: t('no_plan')
             };
         }
 
@@ -69,16 +71,16 @@ export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerPr
         }, 0);
         const monthlyPercentage = monthlyMomentsTracked > 0 ? (monthlyMomentsSkipped / monthlyMomentsTracked) * 100 : 0;
 
-        let dynamicDescription = "Your success in skipping planned smokes.";
+        let dynamicDescription = t('description_default');
         if (dailyTotalTracked > 0) {
             if (dailyPercentage === 100) {
-                dynamicDescription = "A perfect day. You chose freedom every time. Rejoice in this victory.";
+                dynamicDescription = t('description_perfect');
             } else if (dailyPercentage >= 50) {
-                dynamicDescription = "You won more than you lost today. Each skipped cigarette is a step out of the trap.";
+                dynamicDescription = t('description_good');
             } else if (dailyPercentage > 0) {
-                dynamicDescription = "Progress, not perfection. You proved you don't need it. Build on this.";
+                dynamicDescription = t('description_progress');
             } else {
-                dynamicDescription = "Today was a lesson, not a failure. What did you learn from each moment?";
+                dynamicDescription = t('description_lesson');
             }
         }
 
@@ -87,21 +89,21 @@ export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerPr
             progressData: {
                 daily: {
                     percentage: dailyPercentage,
-                    label: `${dailySkipped}/${dailyTotalTracked} skipped on ${format(selectedDate, 'MMM d')}`
+                    label: t('skipped_on', { skipped: dailySkipped, total: dailyTotalTracked, date: format(selectedDate, 'MMM d') })
                 },
                 weekly: {
                     percentage: weeklyPercentage,
-                    label: `${weeklyMomentsSkipped}/${weeklyMomentsTracked} skipped this week`
+                    label: t('skipped_this_week', { skipped: weeklyMomentsSkipped, total: weeklyMomentsTracked })
                 },
                 monthly: {
                     percentage: monthlyPercentage,
-                    label: `${monthlyMomentsSkipped}/${monthlyMomentsTracked} skipped this month`
+                    label: t('skipped_this_month', { skipped: monthlyMomentsSkipped, total: monthlyMomentsTracked })
                 }
             },
             description: dynamicDescription
         };
 
-    }, [moments, selectedDate]);
+    }, [moments, selectedDate, t]);
 
     return (
         <Card>
@@ -110,7 +112,7 @@ export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerPr
                     <div className="flex justify-between items-start w-full gap-2 p-4 hover:no-underline [&[data-state=open]]:pb-0">
                         <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
                             <div>
-                                <CardTitle>Habit Progress</CardTitle>
+                                <CardTitle>{t('title')}</CardTitle>
                                 <CardDescription>{description}</CardDescription>
                             </div>
                         </AccordionTrigger>
@@ -134,21 +136,21 @@ export function ProgressTracker({ userProfile, selectedDate }: ProgressTrackerPr
                         <div className="p-4 pt-2 space-y-4">
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="font-medium">Daily</span>
+                                    <span className="font-medium">{useTranslations('dashboard.financials')('daily')}</span>
                                     <span className="text-muted-foreground">{progressData.daily.label}</span>
                                 </div>
                                 <Progress value={progressData.daily.percentage} />
                             </div>
                              <div className="space-y-2">
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="font-medium">Weekly</span>
+                                    <span className="font-medium">{useTranslations('dashboard.financials')('weekly')}</span>
                                     <span className="text-muted-foreground">{progressData.weekly.label}</span>
                                 </div>
                                 <Progress value={progressData.weekly.percentage} />
                             </div>
                              <div className="space-y-2">
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="font-medium">Monthly</span>
+                                    <span className="font-medium">{useTranslations('dashboard.financials')('monthly')}</span>
                                     <span className="text-muted-foreground">{progressData.monthly.label}</span>
                                 </div>
                                 <Progress value={progressData.monthly.percentage} />

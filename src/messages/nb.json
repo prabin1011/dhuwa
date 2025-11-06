@@ -16,6 +16,120 @@
     "riskWindowDescription": "Ditt neste planlagte øyeblikk er {timeToNext}. Du har en plan. Du kan klare dette.",
     "riskWindowMissedYesterday": "Du gikk glipp av et øyeblikk i går. Din neste risiko er {timeToNext}. I dag er en ny sjanse.",
     "riskWindowSmokedToday": "Ett øyeblikk logget. Kjettingen er bare så sterk som neste ledd, som er {timeToNext}. Du kan bryte den her.",
-    "riskWindowNoMoments": "Ingen kommende risikovinduer i dag. Godt jobbet med å fullføre planen din."
+    "riskWindowNoMoments": "Ingen kommende risikovinduer i dag. Godt jobbet med å fullføre planen din.",
+    "financials": {
+      "title": "Økonomi",
+      "description": "Hver krone du ikke bruker, er en krone investert i din frihet.",
+      "description_positive": "En dag med perfekt sparing. Dette er ikke bare penger; det er gjenvunnet tid, helse og frihet.",
+      "description_negative": "Er denne flyktige lettelsen virkelig verdt prisen? Hver krone brukt er en stemme for avhengigheten.",
+      "expenses": "Utgifter (til dags dato)",
+      "savings": "Netto sparing vs. baseline (til dags dato)",
+      "daily": "Daglig",
+      "weekly": "Ukentlig",
+      "monthly": "Månedlig",
+      "net_debt": "Dette er ikke sparing; det er en gjeld. Du har lånt fra morgendagens helse for dagens flyktige trang. Regningen vil forfalle.",
+      "net_zero": "Du gikk i null. En hard kamp uten å tape terreng. I morgen erobrer vi nytt land.",
+      "net_low": "Et lite overskudd. Et enkelt skritt i riktig retning. Ta nå et til.",
+      "net_moderate": "Dette er et reelt overskudd. Du vant dagen. Denne følelsen er smaken av frihet. Nyt den.",
+      "net_high": "Se på dette tallet. Dette er ikke bare penger; det er gjenvunnet tid, helse og frihet. Du kjøper livet ditt tilbake.",
+      "net_no_baseline": "Angi ditt daglige gjennomsnitt i profilen din for å se netto sparing beregnet mot din baseline."
+    },
+    "progress": {
+      "title": "Vane-progresjon",
+      "description_perfect": "En perfekt dag. Du valgte frihet hver gang. Gled deg over denne seieren.",
+      "description_good": "Du vant mer enn du tapte i dag. Hver sigarett du hoppet over er et skritt ut av fellen.",
+      "description_progress": "Fremgang, ikke perfeksjon. Du beviste at du ikke trenger det. Bygg videre på dette.",
+      "description_lesson": "I dag var en lekse, ikke en fiasko. Hva lærte du av hvert øyeblikk?",
+      "description_default": "Din suksess med å hoppe over planlagte røykeøyeblikk.",
+      "skipped_on": "{skipped}/{total} hoppet over {date}",
+      "skipped_this_week": "{skipped}/{total} hoppet over denne uken",
+      "skipped_this_month": "{skipped}/{total} hoppet over denne måneden",
+      "no_plan": "Planlegg øyeblikk for å se fremgang"
+    },
+    "replacementReport": {
+      "title": "Erstatningsrapport",
+      "description_encouragement_1": "Ja. Slik gjenvinner du tiden din. Det første skrittet er det vanskeligste, og du har tatt det.",
+      "description_encouragement_2": "Hver erstatning er en stemme for en ny deg. Du avgir flere stemmer i dag. Fortsett slik.",
+      "description_encouragement_3": "Dette er det. Du 'røyker ikke bare ikke', du lever aktivt. Slik ser seier ut.",
+      "description_encouragement_4": "Hold dette gående i 3 dager for å bygge selvtillit. Hold det gående i 21 dager for å bygge en ny vane. Du er på vei.",
+      "description_encouragement_5": "Utmerket valg. Frihet bygges én beslutning av gangen.",
+      "description_encouragement_6": "Dette er veien. Hver gang du velger en erstatning, svekker du avhengighetens grep om deg.",
+      "description_empty_1": "Ditt beste våpen mot en trang er en plan. Hva er én positiv handling du vil velge neste gang?",
+      "description_empty_2": "En mulighet venter. Neste trang er ikke en trussel; det er en sjanse til å ta et bedre valg.",
+      "description_empty_3": "Ingen erstatninger logget ennå. La oss endre det. Hva vil du gjøre i stedet for å røyke neste gang?",
+      "today": "I dag",
+      "yesterday": "I går",
+      "replaced_with": "Erstattet med:",
+      "no_replacements_day": "Ingen erstatninger logget for denne dagen. Andre logger er tilgjengelige.",
+      "no_replacements_yet": "Hopp over en røyk for å logge en erstatning!"
+    },
+    "replacementMood": {
+      "title": "Erstatningsfølelser",
+      "description_positive": "Den dominerende følelsen var positiv. Dette er belønningen du gir deg selv.",
+      "description_calm": "Du fant ro uten den. Dette beviser at sigaretten ikke er kilden til ro.",
+      "description_uneasy": "Å føle seg urolig er normalt. Det er avhengigheten som kjemper imot. Du er sterkere.",
+      "description_default": "Hvordan du følte deg etter å ha valgt en bedre vei den {date}.",
+      "description_empty": "Ingen erstatningsfølelser logget i dag. Hver trang er en sjanse til å bygge en ny følelse."
+    },
+    "moodReport": {
+      "title": "Følelsesanalyse",
+      "before": "Før røyking",
+      "after": "Etter røyking",
+      "no_data": "Ingen data for denne dagen.",
+      "no_moods": "Ingen følelser logget i dag. Et blankt ark er en seier i seg selv.",
+      "description_stressed": "Stress var utløseren. Men røyking lindrer ikke stress, den skaper det. Du bryter syklusen.",
+      "description_bored": "Kjedsomhet er en vanlig illusjon. Sigaretten underholdt deg ikke, den bare fikk tiden til å gå.",
+      "description_happy": "Du tok en sigarett da du allerede var glad. Husk at glede kommer innenfra, ikke fra en røyk.",
+      "description_guilty": "Hovedfølelsen etterpå var skyld. Sigaretten lovet lindring, men etterlot anger. Den løy.",
+      "description_same": "Du følte deg lik etterpå. Vanen ga ingen reell endring. Husk denne tomheten.",
+      "description_default": "Dine følelser før og etter røyking den {date}."
+    },
+    "trendChart": {
+      "title": "30-dagers trend",
+      "description_higher_1": "En tøff dag, godt over gjennomsnittet. Det skjer. Reflekter over hva som var annerledes i dag. Ikke la én dag definere reisen.",
+      "description_higher_2": "Litt mer enn vanlig. Et lite avvik, ikke en katastrofe. Hva var utløserne? La oss være klare for dem i morgen.",
+      "description_lower": "En god dag, godt under gjennomsnittet. Dette er fremgang. Dette er styrke. Bygg videre på dette momentumet.",
+      "description_win": "Se på dette. En dag med kontroll, disiplin og suksess. Dette er beviset på at du kan klare det.",
+      "description_zero_1": "Null. Dette er en massiv seier mot et daglig gjennomsnitt på {avg}. Dette er beviset på at du kan klare det.",
+      "description_zero_2": "Null røyk logget i dag. En utrolig prestasjon! Hold dette momentumet gående.",
+      "description_default": "Ditt 30-dagers gjennomsnitt er {avg} røyk/dag."
+    },
+    "patternChart": {
+      "title": "Daglig mønster",
+      "description_default": "Ditt vanemønster per time, basert på de siste 30 dagene.",
+      "description_peak": "Din topptid er mellom {start} og {end}. Bevissthet er det første skrittet for å endre det.",
+      "description_spread": "Ingen klar topp i brukstidene dine. Vanen din virker jevnt fordelt utover dagen."
+    },
+    "logDialog": {
+      "title": "Hvordan føler du deg?",
+      "description": "Velg den primære følelsen du har akkurat nå. Dette hjelper deg med å identifisere utløsere.",
+      "habit_label": "Hva logger du?",
+      "cancel": "Avbryt",
+      "log_smoke": "Loggfør røyk",
+      "moment_recorded": "Øyeblikk registrert",
+      "moment_recorded_desc": "Ditt bevissthetsøyeblikk er logget. En siste ting...",
+      "after_mood_prompt": "Hvordan føler du deg etterpå?"
+    },
+    "replaceDialog": {
+      "title": "Erstatt dette øyeblikket",
+      "description": "Loggfør en positiv handling og hvordan den fikk deg til å føle deg. Dette er en stor seier.",
+      "activity_label": "Hva gjorde du i stedet?",
+      "custom_placeholder": "Eller skriv din egen erstatning...",
+      "mood_label": "Og hvordan føltes det?",
+      "cancel": "Avbryt",
+      "save": "Lagre erstatning"
+    },
+    "plan": {
+      "add_moment_placeholder": "f.eks. Morgenkaffe",
+      "add_moment_label": "Etikett",
+      "add_moment_time_label": "Tid",
+      "add_moment_button_label": "Legg til øyeblikk",
+      "delete_moment_button_label": "Slett dette øyeblikket",
+      "log_smoke_button_label": "Loggfør røyk for dette øyeblikket",
+      "replace_button_label": "Erstatt dette øyeblikket",
+      "no_moments": "Ingen øyeblikk planlagt. Legg til ett for å starte!",
+      "info_title": "Om Dagsplanen",
+      "info_description": "Lag en plan for dagen din. For hvert øyeblikk kan du logge at du røykte eller at du valgte en positiv erstatningsaktivitet."
+    }
   }
 }

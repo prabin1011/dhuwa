@@ -10,6 +10,7 @@ import { Info } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { useTranslations } from 'next-intl';
 
 interface Urge {
     timestamp: Timestamp;
@@ -29,6 +30,8 @@ const formatHour = (hour: number) => {
 };
 
 export function HourlyChart({ urges, habits }: HourlyChartProps) {
+    const t = useTranslations('dashboard.patternChart');
+
     const { hourlyData, description } = useMemo(() => {
         const thirtyDaysAgo = subDays(new Date(), 30);
         const recentUrges = urges.filter(u => u.timestamp && isAfter(u.timestamp.toDate(), thirtyDaysAgo));
@@ -45,7 +48,7 @@ export function HourlyChart({ urges, habits }: HourlyChartProps) {
             }
         });
         
-        let dynamicDescription = "Your habit pattern by hour, based on the last 30 days.";
+        let dynamicDescription = t('description_default');
         if (recentUrges.length > 10) { // Only calculate peak if there's enough data
             let maxCount = 0;
             let peakStartHour = -1;
@@ -66,15 +69,15 @@ export function HourlyChart({ urges, habits }: HourlyChartProps) {
 
             if (peakStartHour !== -1 && maxCount > recentUrges.length * 0.2) { // Ensure the peak is significant
                 const endHour = (peakStartHour + 2) % 24;
-                dynamicDescription = `Your peak time is between ${formatHour(peakStartHour)} and ${formatHour(endHour)}. Awareness is the first step to changing it.`;
+                dynamicDescription = t('description_peak', { start: formatHour(peakStartHour), end: formatHour(endHour) });
             } else {
-                dynamicDescription = "No clear peak in your usage times. Your habit seems evenly spread throughout the day.";
+                dynamicDescription = t('description_spread');
             }
         }
 
 
         return { hourlyData: data, description: dynamicDescription };
-    }, [urges, habits]);
+    }, [urges, habits, t]);
 
      const habitColors: Record<string, string> = {
         'Cigarettes': 'hsl(var(--primary))',
@@ -88,7 +91,7 @@ export function HourlyChart({ urges, habits }: HourlyChartProps) {
                     <div className="flex justify-between items-start w-full gap-2 p-4 hover:no-underline [&[data-state=open]]:pb-0">
                          <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
                             <div>
-                                <CardTitle>Daily Pattern</CardTitle>
+                                <CardTitle>{t('title')}</CardTitle>
                                 <CardDescription>{description}</CardDescription>
                             </div>
                         </AccordionTrigger>

@@ -10,6 +10,7 @@ import { Info } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { useTranslations } from 'next-intl';
 
 interface Urge {
     timestamp: Timestamp;
@@ -23,23 +24,9 @@ interface DailyHabitChartProps {
     habits: string[];
 }
 
-const descriptions = {
-    higher: [
-        "A tough day, well above your average. It happens. Reflect on what was different today. Don't let one day define the journey.",
-        "A bit more than usual. A small deviation, not a disaster. What were the triggers? Let's be ready for them tomorrow."
-    ],
-    lower: [
-        "A good day, well below your average. This is progress. This is strength. Build on this momentum.",
-        "Look at this. A day of control, discipline, and success. This is proof you can do it."
-    ],
-    zero: [
-        "Zero. This is a massive win against a daily average of {avg}. This is proof you can do it.",
-        "Zero smokes logged today. An amazing achievement! Keep this momentum going."
-    ],
-    default: "Your 30-day average is {avg} smokes/day."
-}
-
 export function DailyHabitChart({ urges, selectedDate, habits }: DailyHabitChartProps) {
+    const t = useTranslations('dashboard.trendChart');
+
     const { dailyData, description } = useMemo(() => {
         const data = [];
         const today = new Date();
@@ -70,23 +57,23 @@ export function DailyHabitChart({ urges, selectedDate, habits }: DailyHabitChart
         const selectedDayData = data.find(d => d.date === format(selectedDate || new Date(), 'MMM d'));
         const selectedDayCount = selectedDayData ? habits.reduce((sum, habit) => sum + (selectedDayData[habit] || 0), 0) : 0;
 
-        let dynamicDescription = descriptions.default.replace('{avg}', avgSmokes.toFixed(1));
+        let dynamicDescription = t('description_default', { avg: avgSmokes.toFixed(1) });
         if (selectedDate) {
             if (selectedDayCount > avgSmokes * 1.5 && avgSmokes > 0) {
-                dynamicDescription = descriptions.higher[0];
+                dynamicDescription = t('description_higher_1');
             } else if (selectedDayCount > avgSmokes * 1.1 && avgSmokes > 0) {
-                dynamicDescription = descriptions.higher[1];
+                dynamicDescription = t('description_higher_2');
             } else if (selectedDayCount === 0 && avgSmokes > 0) {
-                 dynamicDescription = descriptions.zero[0].replace('{avg}', avgSmokes.toFixed(1));
+                 dynamicDescription = t('description_zero_1', { avg: avgSmokes.toFixed(1) });
             } else if (selectedDayCount < avgSmokes * 0.8 && selectedDayCount > 0) {
-                dynamicDescription = descriptions.lower[0];
+                dynamicDescription = t('description_lower');
             } else if (selectedDayCount === 0) {
-                dynamicDescription = descriptions.zero[1];
+                dynamicDescription = t('description_zero_2');
             }
         }
         
         return { dailyData: data, description: dynamicDescription };
-    }, [urges, selectedDate, habits]);
+    }, [urges, selectedDate, habits, t]);
 
     const habitColors: Record<string, string> = {
         'Cigarettes': 'hsl(var(--primary))',
@@ -100,7 +87,7 @@ export function DailyHabitChart({ urges, selectedDate, habits }: DailyHabitChart
                     <div className="flex justify-between items-start w-full gap-2 p-4 hover:no-underline [&[data-state=open]]:pb-0">
                         <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
                             <div>
-                                <CardTitle>30-Day Trend</CardTitle>
+                                <CardTitle>{t('title')}</CardTitle>
                                 <CardDescription>{description}</CardDescription>
                             </div>
                         </AccordionTrigger>

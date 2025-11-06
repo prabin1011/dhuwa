@@ -3,11 +3,12 @@
 import { useMemo } from 'react';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
-import { format, isSameDay } from 'date-fns';
+import { format } from 'date-fns';
 import { Info } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { useTranslations } from 'next-intl';
 
 interface SmokingMoment {
     id: string;
@@ -39,6 +40,8 @@ const COLORS: Record<string, string> = {
 const getMoodColor = (mood: string) => COLORS[mood] || COLORS.default;
 
 export function ReplacementMoodReport({ userProfile, selectedDate }: ReplacementMoodReportProps) {
+    const t = useTranslations('dashboard.replacementMood');
+
     const { moodData, description } = useMemo(() => {
         const moodCount: Record<string, number> = {};
         let totalReplacements = 0;
@@ -60,23 +63,23 @@ export function ReplacementMoodReport({ userProfile, selectedDate }: Replacement
             .map(item => ({ ...item, percentage: (item.value / total) * 100 }))
             .sort((a,b) => b.value - a.value) : [];
 
-        let dynamicDescription = `How you felt after choosing a better path on ${format(selectedDate, "MMM d")}.`;
+        let dynamicDescription = t('description_default', { date: format(selectedDate, "MMM d") });
         if (processedData.length > 0) {
             const topMood = processedData[0].name;
             if (topMood === 'proud' || topMood === 'hopeful') {
-                dynamicDescription = "The dominant feeling was positive. This is the reward you give yourself.";
+                dynamicDescription = t('description_positive');
             } else if (topMood === 'calm') {
-                dynamicDescription = "You found peace without it. This proves the cigarette is not the source of calm.";
+                dynamicDescription = t('description_calm');
             } else if (topMood === 'uneasy') {
-                dynamicDescription = "Feeling uneasy is normal. It's the addiction fighting back. You are stronger.";
+                dynamicDescription = t('description_uneasy');
             }
         } else {
-            dynamicDescription = "No replacement moods logged today. Every urge is a chance to build a new feeling."
+            dynamicDescription = t('description_empty');
         }
 
         return { moodData: processedData, description: dynamicDescription };
 
-    }, [userProfile.moments, selectedDate]);
+    }, [userProfile.moments, selectedDate, t]);
 
     return (
         <Card>
@@ -85,7 +88,7 @@ export function ReplacementMoodReport({ userProfile, selectedDate }: Replacement
                     <div className="flex justify-between items-start w-full gap-2 p-4 hover:no-underline [&[data-state=open]]:pb-0">
                         <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
                             <div>
-                                <CardTitle>Replacement Moods</CardTitle>
+                                <CardTitle>{t('title')}</CardTitle>
                                 <CardDescription>{description}</CardDescription>
                             </div>
                         </AccordionTrigger>
@@ -140,7 +143,7 @@ export function ReplacementMoodReport({ userProfile, selectedDate }: Replacement
                                 </div>
                             ) : (
                                 <div className="flex h-24 items-center justify-center">
-                                    <p className="text-muted-foreground text-sm">No replacement moods logged for this day.</p>
+                                    <p className="text-muted-foreground text-sm">{t('description_empty')}</p>
                                 </div>
                             )}
                         </div>
