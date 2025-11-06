@@ -1,5 +1,6 @@
+
 import type { Metadata } from 'next';
-import { CheckCircle, Zap, BookOpen, Bell } from 'lucide-react';
+import { CheckCircle, Zap, BookOpen, Bell, Feather } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const metadata: Metadata = {
@@ -29,9 +30,9 @@ const features = [
         icon: CheckCircle
     },
     {
-        title: "Personalized Encouragement",
-        description: "Every insight and summary adapts to your progress and choices. The AI-powered reflections feel unique and personal, so you feel truly seen on your journey.",
-        icon: CheckCircle
+        title: "Write Reflections (via Prakakura)",
+        description: "For deeper thoughts, Dhuwa is linked with Prakakura, a private journaling space. Write freely about your journey, your struggles, and your wins without judgment.",
+        icon: Feather
     },
     {
         title: "Anonymous or Synced Accounts",

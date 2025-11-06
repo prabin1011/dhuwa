@@ -39,6 +39,9 @@ export default function LandingPage({ params: { locale } }: { params: { locale: 
             <p className="max-w-[700px] text-lg text-muted-foreground">
               {t('subtitle')}
             </p>
+             <p className="max-w-[700px] text-base text-muted-foreground/80 italic">
+                Prefer to write? You can journal your thoughts privately through <a href="https://prakakura.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">Prakakura</a>.
+            </p>
           </div>
           <div className="mx-auto flex gap-4">
             <Button asChild size="lg">

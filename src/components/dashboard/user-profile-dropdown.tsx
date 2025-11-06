@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/firebase";
 import Link from 'next/link';
 import { Button } from "../ui/button";
-import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather, MessageSquare, Shield } from "lucide-react";
+import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather, MessageSquare, Shield, HelpCircle } from "lucide-react";
 import { ProfileSheet } from '../profile/profile-sheet';
 import type { WithId } from '@/firebase';
 import { useRouter, useParams } from 'next/navigation';
@@ -73,14 +73,13 @@ export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownPr
             <UserIcon className="mr-2 h-4 w-4" />
             <span>Profile</span>
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-           <a href="https://prakakura.com/journals" target="_blank" rel="noopener noreferrer">
+           <a href="https://prakakura.com/journals" target="_blank" rel="noopener noreferrer" className="cursor-pointer">
              <DropdownMenuItem>
                 <Book className="mr-2 h-4 w-4" />
                 <span>Write Journals</span>
              </DropdownMenuItem>
           </a>
-          <a href="https://prakakura.com" target="_blank" rel="noopener noreferrer">
+          <a href="https://prakakura.com" target="_blank" rel="noopener noreferrer" className="cursor-pointer">
              <DropdownMenuItem>
                 <Feather className="mr-2 h-4 w-4" />
                 <span>Write into the Quiet</span>
@@ -97,6 +96,12 @@ export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownPr
              <DropdownMenuItem>
                 <LifeBuoy className="mr-2 h-4 w-4" />
                 <span>Features</span>
+             </DropdownMenuItem>
+          </Link>
+           <Link href={`/${locale}/faq`}>
+             <DropdownMenuItem>
+                <HelpCircle className="mr-2 h-4 w-4" />
+                <span>FAQ</span>
              </DropdownMenuItem>
           </Link>
            <Link href={`/${locale}/contact`}>
