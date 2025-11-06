@@ -25,9 +25,11 @@ import { SosActionBar } from "./sos-action-bar";
 import { NextRiskWindow } from "./next-risk-window";
 import { NotificationBell } from "./notification-bell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { Link } from 'next-intl/navigation';
+import Link from 'next/link';
 import { User } from "firebase/auth";
 import { ReplacementMoodReport } from "./replacement-mood-report";
+import { useParams } from "next/navigation";
+import type { Locale } from "@/i18n";
 
 
 interface SmokingMoment {
@@ -61,6 +63,7 @@ interface DashboardProps {
 export function Dashboard({ user, userProfile }: DashboardProps) {
   const { firestore } = useFirebase();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const {locale} = useParams() as {locale: Locale};
   
   const availableHabits = userProfile.habits || ['Cigarettes'];
   const [activeHabit, setActiveHabit] = useState<string>('All');
@@ -132,7 +135,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                 <header className="mb-6 flex justify-between items-start">
                     <div>
                         <div className="flex items-baseline gap-2">
-                            <Link href="/dashboard">
+                            <Link href={`/${locale}/dashboard`}>
                                 <h1 className="text-3xl font-bold tracking-tighter font-heading lowercase cursor-pointer">
                                     dhuwa
                                 </h1>
