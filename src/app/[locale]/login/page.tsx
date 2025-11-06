@@ -15,7 +15,7 @@ import { WelcomeIllustration } from '@/components/illustrations/welcome';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
-  const t = useTranslations();
+  const t = useTranslations('auth');
   const router = useRouter();
   const {locale} = useParams() as {locale: Locale};
   const {user, isUserLoading} = useUser();
@@ -103,8 +103,8 @@ export default function LoginPage() {
             
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="signin">{t('auth.signIn')}</TabsTrigger>
-                    <TabsTrigger value="signup">{t('auth.signUp')}</TabsTrigger>
+                    <TabsTrigger value="signin">{t('signIn')}</TabsTrigger>
+                    <TabsTrigger value="signup">{t('signUp')}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="signin">
                     <form onSubmit={(e) => handleAuthAction(e, 'signin')} className="space-y-4">
@@ -116,7 +116,7 @@ export default function LoginPage() {
                             <Label htmlFor="password-signin">Password</Label>
                             <Input id="password-signin" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                         </div>
-                        <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Signing In..." : t('auth.signIn')}</Button>
+                        <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Signing In..." : t('signIn')}</Button>
                         <Button variant="link" type="button" className="w-full text-xs" onClick={handlePasswordReset}>Forgot Password?</Button>
                     </form>
                 </TabsContent>
@@ -134,7 +134,7 @@ export default function LoginPage() {
                             <Label htmlFor="password-signup">Password</Label>
                             <Input id="password-signup" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} />
                         </div>
-                        <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Creating Account..." : t('auth.signUp')}</Button>
+                        <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Creating Account..." : t('signUp')}</Button>
                     </form>
                 </TabsContent>
             </Tabs>
