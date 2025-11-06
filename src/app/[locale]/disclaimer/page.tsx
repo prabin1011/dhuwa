@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Disclaimer | Dhuwa App',
+  title: 'Disclaimer | Dhuwa Quit Smoking App',
+  description: 'Dhuwa is an educational tool, not medical advice. Consult a healthcare professional for decisions about quitting smoking or your health.',
 };
 
 export default function DisclaimerPage() {

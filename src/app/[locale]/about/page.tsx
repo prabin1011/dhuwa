@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'About Dhuwa – Mission, Vision & Philosophy of Smoke-Free Living',
-  description: 'Learn about Dhuwa’s mission, vision, and philosophy inspired by Allen Carr’s Easy Way. Discover how we help you quit smoking mindfully, without willpower.',
+  description: 'Learn about Dhuwa’s mission to help you quit smoking mindfully. Inspired by Allen Carr’s Easy Way, we focus on clarity over willpower using our habit tracker and smoke planner.',
 };
 
 export default function AboutPage() {

@@ -2,7 +2,6 @@
 'use client';
 
 import {useParams, useRouter} from 'next/navigation';
-import {useRouter as useIntlRouter} from 'next-intl/navigation';
 import type {Locale} from '@/i18n';
 import {useUser, useFirestore, useMemoFirebase} from '@/firebase';
 import {doc} from 'firebase/firestore';
@@ -11,6 +10,7 @@ import {Onboarding} from '@/components/onboarding/onboarding';
 import {Dashboard as DashboardUI} from '@/components/dashboard/dashboard';
 import { WelcomeIllustration } from '@/components/illustrations/welcome';
 import { useEffect } from 'react';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   const router = useRouter();

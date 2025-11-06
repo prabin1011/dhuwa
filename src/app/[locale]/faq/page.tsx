@@ -7,9 +7,9 @@ import {
 } from '@/components/ui/accordion';
 
 export const metadata: Metadata = {
-  title: 'FAQ – Dhuwa App | Frequently Asked Questions',
+  title: 'FAQ – Dhuwa Quit Smoking App | Frequently Asked Questions',
   description:
-    'Find answers to common questions about Dhuwa, including its philosophy, cost, data privacy, and whether it serves as medical advice.',
+    'Find answers about the Dhuwa habit tracker. Learn about our philosophy, costs, data privacy, and using the smoke planner and replacement tools to quit.',
 };
 
 const faqs = [
