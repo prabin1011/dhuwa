@@ -99,7 +99,7 @@ export const STEPS: Step[] = [
     ]},
     { id: 11, title: 'Language', field: 'language', question: 'Choose your language', type: 'radio', options: [
         {value: 'en', label: 'English'},
-        {value: 'no', label: 'Norsk'},
+        {value: 'nb', label: 'Norsk'},
     ]},
     { id: 12, title: 'Summary', field: 'habits', question: 'Summary', type: 'summary'},
 ];
@@ -109,7 +109,7 @@ export const STEPS: Step[] = [
 export const ONBOARDING_STEPS: Step[] = [
     { id: 1, title: 'Language', field: 'language', question: 'Choose your language', type: 'radio', options: [
         {value: 'en', label: 'English'},
-        {value: 'no', label: 'Norsk'},
+        {value: 'nb', label: 'Norsk'},
     ]},
     { id: 2, title: 'Your Habit Basics', field: 'habits', question: 'What do you currently use?', type: 'checkbox', options: [{value: 'Cigarettes', label: 'Cigarettes'}, {value: 'Weed', label: 'Weed'}] },
     { id: 3, title: 'Your Habit Basics', field: 'frequency', question: 'How often do you use?', type: 'radio', options: [

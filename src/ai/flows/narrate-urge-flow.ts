@@ -17,7 +17,7 @@ export async function narrateUrge(
 ): Promise<string> {
   try {
     const input = NarrateUrgeInputSchema.parse(rawInput);
-    const language = input.language === 'no' ? 'Norwegian' : 'English';
+    const language = input.language === 'nb' ? 'Norwegian' : 'English';
 
     const { text } = await ai.generate({
       model: MODEL_ID,

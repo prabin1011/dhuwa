@@ -238,7 +238,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                                     </SelectTrigger>
                                     <SelectContent position="popper">
                                         <SelectItem value="en">English</SelectItem>
-                                        <SelectItem value="no">Norsk</SelectItem>
+                                        <SelectItem value="nb">Norsk</SelectItem>
                                     </SelectContent>
                                 </Select>
                             )}

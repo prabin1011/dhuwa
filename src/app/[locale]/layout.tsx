@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 
 // Can be imported from a shared config
-const locales = ['en', 'no'];
+const locales = ['en', 'nb'];
 
 export default async function LocaleLayout({
   children,
