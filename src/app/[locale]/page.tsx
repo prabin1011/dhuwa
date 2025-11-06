@@ -1,29 +1,13 @@
-'use client';
+import { redirect } from 'next/navigation';
+import { i18n, type Locale } from '@/lib/i18n';
 
-import { useUser } from '@/firebase';
-import { useRouter, useParams } from 'next/navigation';
-import { useEffect } from 'react';
-import type { Locale } from '@/lib/i18n';
-
-export default function LocaleRootPage() {
-  const { user, isUserLoading } = useUser();
-  const router = useRouter();
-  const params = useParams();
-  const locale = params.locale as Locale;
-
-  useEffect(() => {
-    if (!isUserLoading && locale) {
-      if (user) {
-        router.replace(`/${locale}/dashboard`);
-      } else {
-        router.replace(`/${locale}/login`);
-      }
-    }
-  }, [user, isUserLoading, router, locale]);
-
-  return (
-    <div className="flex h-screen w-screen items-center justify-center">
-      <p>Loading...</p>
-    </div>
-  );
+// This page acts as the root for each language.
+// It immediately redirects the user to their dashboard for that language.
+// The auth guard is handled within the dashboard page itself.
+export default function LocaleRootPage({
+  params: { locale },
+}: {
+  params: { locale: Locale };
+}) {
+  redirect(`/${locale}/dashboard`);
 }
