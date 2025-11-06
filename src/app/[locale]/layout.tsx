@@ -9,12 +9,11 @@ import { Toaster } from '@/components/ui/toaster';
 
 export default async function LocaleLayout({
   children,
-  params
+  params: { locale }
 }: {
   children: ReactNode;
   params: {locale: Locale};
 }) {
-  const locale = params.locale;
 
   if (!i18n.locales.includes(locale)) notFound();
 
