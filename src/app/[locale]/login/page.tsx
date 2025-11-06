@@ -2,8 +2,8 @@
 'use client';
 
 import {useEffect, useState} from 'react';
-import {useParams} from 'next/navigation';
-import {useRouter, Link} from 'next-intl/navigation';
+import {useParams, useRouter} from 'next/navigation';
+import {Link} from 'next-intl/navigation';
 import type {Locale} from '@/i18n';
 import {useUser, useAuthActions} from '@/firebase';
 import {useTranslations} from 'next-intl';
@@ -31,7 +31,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isUserLoading && user) {
-        router.replace(`/dashboard`);
+        router.replace(`/${locale}/dashboard`);
     }
   }, [user, isUserLoading, router, locale]);
 
