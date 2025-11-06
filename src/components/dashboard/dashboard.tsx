@@ -30,6 +30,7 @@ import { User } from "firebase/auth";
 import { ReplacementMoodReport } from "./replacement-mood-report";
 import { useParams } from "next/navigation";
 import type { Locale } from "@/i18n";
+import { Cigarette, Leaf, MinusCircle } from "lucide-react";
 
 
 interface SmokingMoment {
@@ -58,6 +59,15 @@ interface DashboardProps {
   user: User;
   userProfile: WithId<UserProfile>;
 }
+
+const HabitIcon = ({ habit, className }: { habit: string, className?: string }) => {
+    switch (habit) {
+        case 'Cigarettes': return <Cigarette className={className} />;
+        case 'Weed': return <Leaf className={className} />;
+        case 'Snus': return <MinusCircle className={className} />;
+        default: return null;
+    }
+};
 
 
 export function Dashboard({ user, userProfile }: DashboardProps) {
@@ -156,7 +166,9 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                     <Tabs value={activeHabit} onValueChange={setActiveHabit} className="w-full mb-6">
                         <TabsList className={`grid w-full grid-cols-${habitTabs.length}`}>
                             {habitTabs.map(habit => (
-                                <TabsTrigger key={habit} value={habit}>{habit}</TabsTrigger>
+                                <TabsTrigger key={habit} value={habit} className="flex items-center gap-2">
+                                     {habit === 'All' ? 'All' : <HabitIcon habit={habit} className="w-5 h-5" />}
+                                </TabsTrigger>
                             ))}
                         </TabsList>
                     </Tabs>
