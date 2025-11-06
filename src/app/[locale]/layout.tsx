@@ -1,8 +1,8 @@
 import type {ReactNode} from 'react';
 import {NextIntlClientProvider} from 'next-intl';
-import {getMessages} from 'next-intl/server';
-import {notFound} from 'next/navigation';
+import {getMessages, unstable_setRequestLocale} from 'next-intl/server';
 import {i18n, type Locale} from '@/i18n';
+import { notFound } from 'next/navigation';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -11,12 +11,14 @@ export default async function LocaleLayout({
   params
 }: {
   children: ReactNode;
-  params: {locale: Locale} | Promise<{locale: Locale}>;
+  params: {locale: Locale};
 }) {
-  const p = await Promise.resolve(params);
-  const locale = p.locale;
+  const locale = params.locale;
 
   if (!i18n.locales.includes(locale)) notFound();
+
+  // Enable server-side rendering for this locale
+  unstable_setRequestLocale(locale);
 
   const messages = await getMessages();
 
