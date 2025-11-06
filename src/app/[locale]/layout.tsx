@@ -1,8 +1,6 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
-import { Toaster } from '@/components/ui/toaster';
-import { FirebaseClientProvider } from '@/firebase';
 import type { Locale } from '@/lib/i18n';
 
 // Can be imported from a shared config
@@ -29,8 +27,7 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <FirebaseClientProvider>{children}</FirebaseClientProvider>
-      <Toaster />
+      {children}
     </NextIntlClientProvider>
   );
 }
