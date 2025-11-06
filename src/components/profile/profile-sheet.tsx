@@ -16,12 +16,13 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Checkbox } from "../ui/checkbox";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from 'next-intl/client';
 import { deleteUser } from "firebase/auth";
 import { useNotifications } from '@/hooks/use-notifications';
 import { Separator } from '../ui/separator';
 import { Switch } from '../ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import type { Locale } from '@/lib/i18n';
 
 const CURRENCIES = ["USD", "EUR", "GBP", "INR", "JPY", "CAD", "AUD", "CNY", "CHF", "NZD", "BRL", "HKD", "SGD", "SEK", "KRW", "NOK", "MXN", "RUB", "ZAR", "TRY", "NPR"];
 
@@ -41,6 +42,7 @@ interface ProfileSheetProps {
 export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheetProps) {
     const { firestore, user } = useFirebase();
     const router = useRouter();
+    const pathname = usePathname();
     const { toast } = useToast();
     const { requestPermissionAndToken, permissionStatus: initialPermissionStatus } = useNotifications();
     const [permissionStatus, setPermissionStatus] = useState(initialPermissionStatus);
@@ -80,8 +82,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             const finalHabitDetails: OnboardingData['habitDetails'] = {};
             for (const habit in data.habitDetails) {
                 finalHabitDetails[habit] = {
-                    packCost: Number(data.habitDetails[habit].packCost) || 0,
-                    itemsPerPack: Number(data.habitDetails[habit].itemsPerPack) || 0,
+                    packCost: String(data.habitDetails[habit].packCost) || '0',
+                    itemsPerPack: String(data.habitDetails[habit].itemsPerPack) || '0',
                     itemsPerDay: data.habitDetails[habit].itemsPerDay
                 }
             }
@@ -90,7 +92,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                 ...data,
                 habitDetails: finalHabitDetails,
             };
-            await updateDoc(profileRef, dataToSave);
+            await updateDoc(profileRef, dataToSave as any);
             toast({
                 title: "Profile Updated",
                 description: "Your changes have been saved successfully.",
@@ -112,6 +114,14 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             await requestPermissionAndToken();
             setPermissionStatus(Notification.permission); // Re-check permission status after request
         }
+    }
+
+    const handleLanguageChange = (locale: Locale) => {
+        setValue('language', locale, { shouldDirty: true });
+        // Set a cookie to remember the choice for future visits.
+        // next-intl middleware will use this to redirect from `/` to the correct locale.
+        document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=31536000; SameSite=Lax`;
+        router.replace(pathname, { locale });
     }
     
     const isPermissionDenied = permissionStatus === 'denied';
@@ -186,7 +196,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     };
     
     const groupedSteps = PROFILE_STEPS.reduce((acc, step) => {
-        if (step.type === 'summary' || step.field === 'reminders' || step.field === 'language') return acc;
+        if (step.type === 'summary' || step.field === 'reminders' || step.field === 'language' || step.field === 'currency') return acc;
         
         if (step.type === 'dynamic') {
              (getValues('habits') || []).forEach(habit => {
@@ -232,7 +242,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                             name="language"
                             control={control}
                             render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select onValueChange={(v) => handleLanguageChange(v as Locale)} value={field.value}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a language" />
                                     </SelectTrigger>

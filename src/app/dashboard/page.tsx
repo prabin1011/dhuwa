@@ -1,24 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useDoc } from '@/firebase/provider';
 import { Dashboard } from '@/components/dashboard/dashboard';
 import { Onboarding } from '@/components/onboarding/onboarding';
+import type { Locale } from '@/lib/i18n';
 
 export default function DashboardPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as Locale;
   const firestore = useFirestore();
 
   // If unauthenticated, go to login. No spinner forever.
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.replace('/login');
+      router.replace(`/${locale}/login`);
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, locale]);
 
   // Hooks must be called unconditionally at the top level.
   const ref = useMemoFirebase(() => {
