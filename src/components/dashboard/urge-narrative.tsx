@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from "react";
@@ -6,11 +5,12 @@ import type { WithId } from "@/firebase";
 import type { Timestamp } from "firebase/firestore";
 import { format } from "date-fns";
 import { Skeleton } from "../ui/skeleton";
-import { getNarrative } from "@/lib/narrative-vault";
 import { useFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { Cigarette, Leaf } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLocale } from "next-intl";
+import { narrateUrge } from "@/ai/flows/narrate-urge-flow";
 
 interface Urge {
     timestamp: Timestamp;
@@ -28,14 +28,13 @@ interface UrgeNarrativeProps {
 
 export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
     const { firestore, user } = useFirebase();
+    const locale = useLocale();
     const [narrative, setNarrative] = useState<string | null>(urge.narrative || null);
-    const [shortMessage, setShortMessage] = useState<string | null>(urge.shortMessage || null);
-    const [isLoading, setIsLoading] = useState(!urge.narrative || !urge.shortMessage);
+    const [isLoading, setIsLoading] = useState(!urge.narrative);
 
     useEffect(() => {
-        if (urge.narrative && urge.shortMessage) {
+        if (urge.narrative) {
             setNarrative(urge.narrative);
-            setShortMessage(urge.shortMessage);
             setIsLoading(false);
             return;
         }
@@ -44,24 +43,26 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
             if (!user || !firestore) return;
             setIsLoading(true);
             try {
-                const { long, short } = getNarrative(urge.moodBefore, urge.moodAfter);
-                setNarrative(long);
-                setShortMessage(short);
+                const generatedNarrative = await narrateUrge({
+                    timestamp: urge.timestamp.toDate().toISOString(),
+                    moodBefore: urge.moodBefore,
+                    moodAfter: urge.moodAfter,
+                    habitType: urge.type,
+                    language: locale
+                });
+
+                setNarrative(generatedNarrative);
                 
                 const urgeRef = doc(firestore, `users/${user.uid}/urges/${urge.id}`);
-                await updateDoc(urgeRef, { narrative: long, shortMessage: short });
+                await updateDoc(urgeRef, { narrative: generatedNarrative });
 
             } catch (error) {
                 console.error("Failed to generate urge narrative:", error);
-                const fallback = {
-                    long: `I felt ${urge.moodBefore || 'a feeling'} and then ${urge.moodAfter || 'another'}. It is what it is.`,
-                    short: "One moment at a time."
-                }
-                setNarrative(fallback.long);
-                setShortMessage(fallback.short);
+                const fallback = `I felt ${urge.moodBefore || 'a feeling'}. It is what it is.`;
+                setNarrative(fallback);
                 if (user && firestore) {
                     const urgeRef = doc(firestore, `users/${user.uid}/urges/${urge.id}`);
-                    await updateDoc(urgeRef, { narrative: fallback.long, shortMessage: fallback.short });
+                    await updateDoc(urgeRef, { narrative: fallback });
                 }
             } finally {
                 setIsLoading(false);
@@ -69,7 +70,7 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
         };
 
         generateAndSaveNarrative();
-    }, [urge, user, firestore]);
+    }, [urge, user, firestore, locale]);
 
 
     if (isLoading) {
@@ -93,8 +94,8 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
                  {format(urge.timestamp.toDate(), 'h:mm a')}
                  {countLabel}
               </time>
-              <p className="text-left text-foreground/90 font-medium text-xs">
-                 {shortMessage}
+              <p className="text-left text-foreground/90 font-medium text-xs flex-1">
+                 {urge.moodBefore}
               </p>
             </div>
             <div className="px-1 pt-2">

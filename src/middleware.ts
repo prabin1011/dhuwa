@@ -3,14 +3,11 @@ import { i18n } from '@/lib/i18n';
 
 export default createMiddleware({
   ...i18n,
-  // A list of all locales that are supported
   locales: i18n.locales,
-
-  // Used when no locale matches
   defaultLocale: i18n.defaultLocale,
+  localePrefix: 'as-needed'
 });
 
 export const config = {
-  // Match only internationalized pathnames
-  matcher: ['/', '/(no|en)/:path*'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']
 };

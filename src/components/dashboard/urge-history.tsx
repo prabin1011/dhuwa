@@ -104,7 +104,7 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
         if (!habitType) return 0;
         const details = userProfile.habitDetails?.[habitType];
         if (!details || !details.packCost || !details.itemsPerPack) return 0;
-        return details.packCost / details.itemsPerPack;
+        return Number(details.packCost) / Number(details.itemsPerPack);
     }
 
     return (

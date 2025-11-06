@@ -1,6 +1,6 @@
 'use server';
 
-import { getAI } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import {
   DailyInsightInputSchema,
   type DailyInsightInput,
@@ -33,8 +33,6 @@ export async function getDailyInsight(
         moments: parsed.userProfile.moments ?? [],
       },
     };
-
-    const ai = getAI();
 
     const { text } = await ai.generate({
       model: 'googleai/gemini-1.5-flash',
