@@ -1,13 +1,10 @@
 import { redirect } from 'next/navigation';
-import { i18n, type Locale } from '@/lib/i18n';
+import type { Locale } from '@/lib/i18n';
 
-// This page acts as the root for each language.
-// It immediately redirects the user to their dashboard for that language.
-// The auth guard is handled within the dashboard page itself.
-export default function LocaleRootPage({
-  params,
-}: {
-  params: { locale: Locale };
-}) {
-  redirect(`/${params.locale}/dashboard`);
+// IMPORTANT: no "use client" here, no React hooks.
+export default async function LocaleIndexPage(
+  props: { params: Promise<{ locale: Locale }> }
+) {
+  const { locale } = await props.params;      // Next 15.3+ requires await
+  redirect(`/${locale}/dashboard`);           // server-side redirect
 }
