@@ -1,11 +1,17 @@
 import type { ReactNode } from 'react';
 import './globals.css';
+import { Toaster } from '@/components/ui/toaster';
+import { FirebaseClientProvider } from '@/firebase';
 
-// This is now the root layout and must contain <html> and <body>
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        <FirebaseClientProvider>
+          {children}
+        </FirebaseClientProvider>
+        <Toaster />
+      </body>
     </html>
   );
 }
