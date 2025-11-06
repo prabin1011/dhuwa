@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import './globals.css';
 
 // This is now the root layout and must contain <html> and <body>
