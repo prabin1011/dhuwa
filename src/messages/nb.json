@@ -1,8 +1,21 @@
+
 {
   "hello": "Hei",
   "auth": {
     "signIn": "Logg inn",
     "signUp": "Opprett konto"
+  },
+  "landing": {
+    "signIn": "Logg Inn",
+    "getStarted": "Start Gratis",
+    "title": "Finn Frihet Fra Røyking, Med Bevissthet.",
+    "subtitle": "Dhuwa er en stille, reflekterende følgesvenn på din reise mot røykeslutt. Ingen dømming, ingen viljestyrkekamper – bare klarhet.",
+    "missionTitle": "Vår Misjon",
+    "missionText1": "Å veilede folk til frihet fra røyking – forsiktig, bevisst og uten frykt.",
+    "missionText2": "Vi måler ikke suksess i antall unngåtte sigaretter. Vi måler det i oppnådd klarhet, gjenopprettet balanse og gleden ved livets enkle gleder.",
+    "visionTitle": "Vår Visjon",
+    "visionText1": "En verden der røyking ikke er en kamp å motstå, men rett og slett irrelevant.",
+    "visionText2": "Vi ser for oss millioner av mennesker som våkner hver dag uten vekten av nikotin, og oppdager energi, tilstedeværelse og balanse i livene sine."
   },
   "dashboard": {
     "nextRiskWindow": "Neste risikovindu",

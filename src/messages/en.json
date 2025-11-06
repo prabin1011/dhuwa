@@ -1,8 +1,21 @@
+
 {
   "hello": "Hello",
   "auth": {
     "signIn": "Sign in",
     "signUp": "Create account"
+  },
+  "landing": {
+    "signIn": "Sign In",
+    "getStarted": "Get Started Free",
+    "title": "Find Freedom From Smoking, Mindfully.",
+    "subtitle": "Dhuwa is a quiet, reflective companion for your quit journey. No judgment, no willpower battles—just clarity.",
+    "missionTitle": "Our Mission",
+    "missionText1": "To guide people into freedom from smoking — gently, mindfully, and without fear.",
+    "missionText2": "We don’t measure success in numbers of cigarettes avoided. We measure it in clarity gained, balance restored, and the return of life’s simple joys.",
+    "visionTitle": "Our Vision",
+    "visionText1": "A world where smoking is not a struggle to resist, but simply irrelevant.",
+    "visionText2": "We envision millions of people waking up each day without the weight of nicotine, discovering energy, presence, and balance in their lives."
   },
   "dashboard": {
     "nextRiskWindow": "Next Risk Window",

@@ -24,7 +24,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-       <body suppressHydrationWarning>
+       <body suppressHydrationWarning className="min-h-screen bg-background font-sans antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <FirebaseClientProvider>
             {children}
