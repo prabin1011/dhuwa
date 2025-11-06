@@ -84,38 +84,38 @@ export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownPr
              </DropdownMenuItem>
           </a>
           <DropdownMenuSeparator />
-          <Link href="/about" passHref>
+          <Link href="/about">
              <DropdownMenuItem>
                 <Info className="mr-2 h-4 w-4" />
                 <span>About Us</span>
              </DropdownMenuItem>
           </Link>
-           <Link href="/features" passHref>
+           <Link href="/features">
              <DropdownMenuItem>
                 <LifeBuoy className="mr-2 h-4 w-4" />
                 <span>Features</span>
              </DropdownMenuItem>
           </Link>
-           <Link href="/contact" passHref>
+           <Link href="/contact">
              <DropdownMenuItem>
                 <MessageSquare className="mr-2 h-4 w-4" />
                 <span>Contact Us</span>
              </DropdownMenuItem>
           </Link>
           <DropdownMenuSeparator />
-          <Link href="/terms" passHref>
+          <Link href="/terms">
             <DropdownMenuItem>
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Terms & Conditions</span>
             </DropdownMenuItem>
           </Link>
-           <Link href="/privacy" passHref>
+           <Link href="/privacy">
             <DropdownMenuItem>
                 <Shield className="mr-2 h-4 w-4" />
                 <span>Privacy Policy</span>
             </DropdownMenuItem>
           </Link>
-           <Link href="/disclaimer" passHref>
+           <Link href="/disclaimer">
             <DropdownMenuItem>
                 <Shield className="mr-2 h-4 w-4" />
                 <span>Disclaimer</span>

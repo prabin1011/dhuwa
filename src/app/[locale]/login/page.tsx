@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import Link from 'next-intl/link';
 import { useUser, useFirebase } from '@/firebase';
 import { useAuthActions } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
@@ -13,10 +12,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { WelcomeIllustration } from '@/components/illustrations/welcome';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useParams } from 'next/navigation';
+import type { Locale } from '@/lib/i18n';
 
 export default function LoginPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as Locale;
   const { signInWithEmail, signUpWithEmail, sendPasswordReset } = useAuthActions();
   const { toast } = useToast();
   const { firestore } = useFirebase();
@@ -25,8 +28,8 @@ export default function LoginPage() {
   const [tab, setTab] = useState<'signin' | 'signup'>('signin');
 
   useEffect(() => {
-    if (!isUserLoading && user) router.replace('/dashboard');
-  }, [user, isUserLoading, router]);
+    if (!isUserLoading && user) router.replace(`/${locale}/dashboard`);
+  }, [user, isUserLoading, router, locale]);
 
   if (isUserLoading) return <div className="h-screen w-screen grid place-items-center">Loading…</div>;
   if (user) return null;
@@ -59,7 +62,7 @@ export default function LoginPage() {
                     String(fd.get('email') || '').trim(),
                     String(fd.get('password') || '')
                     );
-                    router.replace('/dashboard');
+                    router.replace(`/${locale}/dashboard`);
                 } catch (e: any) {
                     toast({ variant: 'destructive', title: 'Login failed', description: e?.message ?? 'Check your credentials.' });
                 } finally {
@@ -137,7 +140,7 @@ export default function LoginPage() {
                     }
 
                     toast({ title: 'Account created!', description: "You're now logged in."});
-                    router.replace('/dashboard');
+                    router.replace(`/${locale}/dashboard`);
                 } catch (e: any) {
                     toast({ variant: 'destructive', title: 'Sign up failed', description: e?.message ?? 'Try again.' });
                 } finally {
@@ -168,12 +171,12 @@ export default function LoginPage() {
       </div>
 
       <footer className="text-xs text-muted-foreground pb-4 flex gap-x-4">
-        <Link href="/about" className="hover:underline">About</Link>
-        <Link href="/features" className="hover:underline">Features</Link>
-        <Link href="/faq" className="hover:underline">FAQ</Link>
-        <Link href="/terms" className="hover:underline">Terms</Link>
-        <Link href="/privacy" className="hover:underline">Privacy</Link>
-        <Link href="/contact" className="hover:underline">Contact</Link>
+        <Link href="/about">About</Link>
+        <Link href="/features">Features</Link>
+        <Link href="/faq">FAQ</Link>
+        <Link href="/terms">Terms</Link>
+        <Link href="/privacy">Privacy</Link>
+        <Link href="/contact">Contact</Link>
       </footer>
     </div>
   );

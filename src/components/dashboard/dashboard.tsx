@@ -24,7 +24,7 @@ import { SosActionBar } from "./sos-action-bar";
 import { NextRiskWindow } from "./next-risk-window";
 import { NotificationBell } from "./notification-bell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import Link from 'next/link';
+import Link from 'next-intl/link';
 import { User } from "firebase/auth";
 import { ReplacementMoodReport } from "./replacement-mood-report";
 
@@ -131,7 +131,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                 <header className="mb-6 flex justify-between items-start">
                     <div>
                         <div className="flex items-baseline gap-2">
-                            <Link href="/" passHref>
+                            <Link href="/dashboard" passHref>
                                 <h1 className="text-3xl font-bold tracking-tighter font-heading lowercase cursor-pointer">
                                     dhuwa
                                 </h1>
