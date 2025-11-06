@@ -1,5 +1,7 @@
 {
   "hello": "Hello",
-  "auth.signIn": "Sign in",
-  "auth.signUp": "Create account"
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Create account"
+  }
 }
