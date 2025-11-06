@@ -1,6 +1,6 @@
 
 import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from 'next-intl/navigation';
 
 export default function FeatureLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -3,7 +3,7 @@
 
 import {useEffect, useState} from 'react';
 import {useParams} from 'next/navigation';
-import {useRouter} from 'next-intl/navigation';
+import {useRouter, Link} from 'next-intl/navigation';
 import type {Locale} from '@/i18n';
 import {useUser, useAuthActions} from '@/firebase';
 import {useTranslations} from 'next-intl';
@@ -13,7 +13,6 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WelcomeIllustration } from '@/components/illustrations/welcome';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next-intl/link';
 
 export default function LoginPage() {
   const t = useTranslations();

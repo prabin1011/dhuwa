@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/firebase";
-import Link from 'next/link';
+import { Link } from 'next-intl/navigation';
 import { Button } from "../ui/button";
 import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather, MessageSquare, Shield } from "lucide-react";
 import { ProfileSheet } from '../profile/profile-sheet';
