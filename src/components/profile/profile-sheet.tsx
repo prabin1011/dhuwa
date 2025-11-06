@@ -17,13 +17,13 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Checkbox } from "../ui/checkbox";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
-import { useRouter, usePathname } from 'next-intl/navigation';
+import { useRouter, usePathname, useParams } from 'next/navigation';
 import { deleteUser } from "firebase/auth";
 import { useNotifications } from '@/hooks/use-notifications';
 import { Separator } from '../ui/separator';
 import { Switch } from '../ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import type { Locale } from '@/lib/i18n';
+import type { Locale } from '@/i18n';
 
 const CURRENCIES = ["USD", "EUR", "GBP", "INR", "JPY", "CAD", "AUD", "CNY", "CHF", "NZD", "BRL", "HKD", "SGD", "SEK", "KRW", "NOK", "MXN", "RUB", "ZAR", "TRY", "NPR"];
 
@@ -44,6 +44,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const { firestore, user } = useFirebase();
     const router = useRouter();
     const pathname = usePathname();
+    const params = useParams();
+    const locale = params.locale as Locale;
     const { toast } = useToast();
     const { requestPermissionAndToken, permissionStatus: initialPermissionStatus } = useNotifications();
     const [permissionStatus, setPermissionStatus] = useState(initialPermissionStatus);
@@ -117,12 +119,13 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         }
     }
 
-    const handleLanguageChange = (locale: Locale) => {
-        setValue('language', locale, { shouldDirty: true });
-        // Set a cookie to remember the choice for future visits.
-        // next-intl middleware will use this to redirect from `/` to the correct locale.
-        document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=31536000; SameSite=Lax`;
-        router.replace(pathname, { locale });
+    const handleLanguageChange = (newLocale: Locale) => {
+        setValue('language', newLocale, { shouldDirty: true });
+        document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
+        // We replace the current route with one for the new locale.
+        // The pathname is locale-agnostic, so we need to construct the new path.
+        const newPath = pathname.startsWith(`/${locale}`) ? pathname.substring(`/${locale}`.length) : pathname;
+        router.replace(`/${newLocale}${newPath}`);
     }
     
     const isPermissionDenied = permissionStatus === 'denied';
@@ -154,7 +157,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             await deleteUser(user);
             
             toast({ title: "Account Deleted", description: "Your account and all data have been permanently deleted." });
-            router.push('/login');
+            router.push(`/${locale}/login`);
             onOpenChange(false);
 
         } catch (error: any) {
