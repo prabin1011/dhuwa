@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { Skeleton } from "../ui/skeleton";
 import { useFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
-import { Cigarette, Leaf } from "lucide-react";
+import { Cigarette, Leaf, MinusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocale } from "next-intl";
 import { narrateUrge } from "@/ai/flows/narrate-urge-flow";
@@ -83,13 +83,17 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
     }
 
     const countLabel = urge.count && urge.count > 1 ? ` (x${urge.count})` : '';
-    const HabitIcon = urge.type === 'Weed' ? Leaf : Cigarette;
-    const iconColor = urge.type === 'Weed' ? 'text-purple-400' : 'text-primary';
+    
+    const HabitIcon = () => {
+      if (urge.type === 'Weed') return <Leaf className="w-3.5 h-3.5 text-purple-400" />;
+      if (urge.type === 'Snus') return <MinusCircle className="w-3.5 h-3.5 text-gray-400" />;
+      return <Cigarette className="w-3.5 h-3.5 text-primary" />;
+    };
 
     return (
         <div className="w-full px-1 py-2">
             <div className="flex items-center gap-3">
-              <HabitIcon className={cn("w-3.5 h-3.5", iconColor)} />
+              <HabitIcon />
               <time className="text-muted-foreground font-mono text-xs">
                  {format(urge.timestamp.toDate(), 'h:mm a')}
                  {countLabel}

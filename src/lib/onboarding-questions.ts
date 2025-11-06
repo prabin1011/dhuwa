@@ -45,7 +45,7 @@ export type Step = {
 
 // Constants for the full profile editing
 export const STEPS: Step[] = [
-    { id: 1, title: 'The Habit', field: 'habits', question: 'What do you currently use?', type: 'checkbox', options: [{value: 'Cigarettes', label: 'Cigarettes'}, {value: 'Weed', label: 'Weed'}] },
+    { id: 1, title: 'The Habit', field: 'habits', question: 'What do you currently use?', type: 'checkbox', options: [{value: 'Cigarettes', label: 'Cigarettes'}, {value: 'Weed', label: 'Weed'}, {value: 'Snus', label: 'Snus'}] },
     { id: 2, title: 'The Habit', field: 'frequency', question: 'How often do you use?', type: 'radio', options: [
         {value: 'daily', label: 'Every day'},
         {value: 'few-times-week', label: 'A few times a week'},
@@ -111,7 +111,7 @@ export const ONBOARDING_STEPS: Step[] = [
         {value: 'en', label: 'English'},
         {value: 'nb', label: 'Norsk'},
     ]},
-    { id: 2, title: 'Your Habit Basics', field: 'habits', question: 'What do you currently use?', type: 'checkbox', options: [{value: 'Cigarettes', label: 'Cigarettes'}, {value: 'Weed', label: 'Weed'}] },
+    { id: 2, title: 'Your Habit Basics', field: 'habits', question: 'What do you currently use?', type: 'checkbox', options: [{value: 'Cigarettes', label: 'Cigarettes'}, {value: 'Weed', label: 'Weed'}, {value: 'Snus', label: 'Snus'}] },
     { id: 3, title: 'Your Habit Basics', field: 'frequency', question: 'How often do you use?', type: 'radio', options: [
         {value: 'daily', label: 'Every day'},
         {value: 'few-times-week', label: 'A few times a week'},

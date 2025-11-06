@@ -5,7 +5,7 @@ import { useFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Check, Cigarette, Leaf } from 'lucide-react';
+import { ArrowLeft, Check, Cigarette, Leaf, MinusCircle } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '../ui/checkbox';
@@ -273,6 +273,7 @@ export function Onboarding() {
                                  <Checkbox id={`habit-${habit.value}`} checked={(formData.habits || []).includes(habit.value)} onCheckedChange={() => handleHabitChange(habit.value)} className="sr-only" />
                                  {habit.value === 'Cigarettes' && <Cigarette className="w-8 h-8" />}
                                  {habit.value === 'Weed' && <Leaf className="w-8 h-8" />}
+                                 {habit.value === 'Snus' && <MinusCircle className="w-8 h-8" />}
                                  <span className="font-medium text-sm">{habit.label}</span>
                             </Label>
                        ))}

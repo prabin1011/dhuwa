@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { collection, serverTimestamp, addDoc } from "firebase/firestore";
-import { Cigarette, Leaf, Minus, Plus } from "lucide-react";
+import { Cigarette, Leaf, Minus, Plus, MinusCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -95,8 +95,6 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
         setQuantity(1);
     }
   };
-
-  const Icon = selectedHabit === 'Weed' ? Leaf : Cigarette;
   
   const resetForms = () => {
     setSelectedMood(null);
@@ -104,6 +102,12 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
     setIsMoodDialogOpen(false);
     setIsAfterMoodDialogOpen(false);
     setLastUrgeId(null);
+  }
+
+  const HabitIcon = ({ habit }: { habit: string }) => {
+    if (habit === 'Weed') return <Leaf className="w-4 h-4" />;
+    if (habit === 'Snus') return <MinusCircle className="w-4 h-4" />;
+    return <Cigarette className="w-4 h-4" />;
   }
 
   return (
@@ -117,15 +121,15 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>How are you feeling?</AlertDialogTitle>
+                    <AlertDialogTitle>{t('logDialog.title')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Select the primary emotion you feel right now. This helps you identify triggers.
+                        {t('logDialog.description')}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="py-4 space-y-6">
                     {habits.length > 1 && (
                         <div className="space-y-2">
-                             <Label>What are you logging?</Label>
+                             <Label>{t('logDialog.habit_label')}</Label>
                              <Select value={selectedHabit} onValueChange={setSelectedHabit}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select habit" />
@@ -134,7 +138,7 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
                                     {habits.map(habit => (
                                         <SelectItem key={habit} value={habit}>
                                             <div className="flex items-center gap-2">
-                                                {habit === 'Weed' ? <Leaf className="w-4 h-4" /> : <Cigarette className="w-4 h-4" />}
+                                                <HabitIcon habit={habit} />
                                                 {habit}
                                             </div>
                                         </SelectItem>
@@ -165,9 +169,9 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
                     </div>
                 </div>
                 <AlertDialogFooter>
-                    <AlertDialogCancel onClick={resetForms}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel onClick={resetForms}>{t('logDialog.cancel')}</AlertDialogCancel>
                     <AlertDialogAction onClick={handleLogSmoke} disabled={!selectedMood}>
-                        Log Smoke
+                        {t('logDialog.log_smoke')}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
@@ -177,9 +181,9 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
          <AlertDialog open={isAfterMoodDialogOpen} onOpenChange={setIsAfterMoodDialogOpen}>
             <AlertDialogContent>
                  <AlertDialogHeader>
-                    <AlertDialogTitle>Moment Recorded</AlertDialogTitle>
+                    <AlertDialogTitle>{t('logDialog.moment_recorded')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                       Your moment of awareness has been logged. One last thing...
+                       {t('logDialog.moment_recorded_desc')}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 {lastUrgeId && <MoodAfterDialogAction urgeId={lastUrgeId} onMoodSelect={resetForms} />}

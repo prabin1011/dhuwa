@@ -78,6 +78,7 @@ export function DailyHabitChart({ urges, selectedDate, habits }: DailyHabitChart
     const habitColors: Record<string, string> = {
         'Cigarettes': 'hsl(var(--primary))',
         'Weed': 'hsl(var(--chart-6))',
+        'Snus': 'hsl(var(--chart-3))'
     };
 
     return (
