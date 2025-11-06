@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format, parse, isAfter, isToday, formatDistanceToNowStrict, subDays } from "date-fns";
 import type { User } from 'firebase/auth';
 import { SmokingPlan } from "./smoking-plan"; // Assuming smoking plan handles its own state now
+import { useTranslations } from "next-intl";
 
 interface SmokingMoment {
     id: string;
@@ -37,6 +38,7 @@ interface NextRiskWindowProps {
 }
 
 export function NextRiskWindow({ user, userProfile, urges, onReplace }: NextRiskWindowProps) {
+    const t = useTranslations('dashboard');
     const { firestore } = useFirebase();
     const { toast } = useToast();
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -58,21 +60,25 @@ export function NextRiskWindow({ user, userProfile, urges, onReplace }: NextRisk
         const next = momentsWithDate.find(m => isAfter(m.date, currentTime) && m.completed?.[todayStr] === undefined);
         const timeToNext = next ? formatDistanceToNowStrict(next.date, { addSuffix: true }) : null;
 
-        let description = `Your next planned moment is ${timeToNext}. You have a plan. You can do this.`;
-        const yesterdayStr = format(subDays(new Date(), 1), 'yyyy-MM-dd');
-        const missedYesterday = moments.some(m => m.completed?.[yesterdayStr] === undefined && !isAfter(parse(m.time, 'HH:mm', new Date()), new Date()));
-        const smokedToday = urges.some(u => u.timestamp && isToday(u.timestamp.toDate()));
-
+        let descriptionKey = 'riskWindowDescription';
         if (!next) {
-            description = "No upcoming risk windows today. Well done on completing your plan.";
-        } else if (missedYesterday) {
-            description = `You missed a moment yesterday. Your next risk is ${timeToNext}. Today is a new chance.`;
-        } else if (smokedToday) {
-            description = `One moment logged. The chain is only as strong as the next link, which is ${timeToNext}. You can break it here.`;
+            descriptionKey = 'riskWindowNoMoments';
+        } else {
+            const yesterdayStr = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+            const missedYesterday = moments.some(m => m.completed?.[yesterdayStr] === undefined && !isAfter(parse(m.time, 'HH:mm', new Date()), new Date()));
+            const smokedToday = urges.some(u => u.timestamp && isToday(u.timestamp.toDate()));
+            
+            if (missedYesterday) {
+                descriptionKey = 'riskWindowMissedYesterday';
+            } else if (smokedToday) {
+                descriptionKey = 'riskWindowSmokedToday';
+            }
         }
+        
+        const description = t(descriptionKey, { timeToNext });
 
         return { nextMoment: next, dynamicDescription: description, timeToNext };
-    }, [userProfile.moments, urges, currentTime]);
+    }, [userProfile.moments, urges, currentTime, t]);
     
     if (!nextMoment || !isToday(new Date())) {
         return null; // Don't show the card if there's no upcoming moment today
@@ -83,7 +89,7 @@ export function NextRiskWindow({ user, userProfile, urges, onReplace }: NextRisk
             <CardHeader>
                 <div className="flex items-center gap-3">
                     <Zap className="w-5 h-5 text-primary" />
-                    <CardTitle>Next Risk Window</CardTitle>
+                    <CardTitle>{t('nextRiskWindow')}</CardTitle>
                 </div>
                 <CardDescription className="pt-2">{dynamicDescription}</CardDescription>
             </CardHeader>
@@ -96,7 +102,7 @@ export function NextRiskWindow({ user, userProfile, urges, onReplace }: NextRisk
                         </div>
                          <Button variant="outline" size="sm" onClick={() => onReplace(nextMoment)}>
                             <Replace className="mr-2 h-4 w-4" />
-                            Replace
+                            {t('replace')}
                         </Button>
                      </div>
                 </div>

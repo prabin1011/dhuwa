@@ -19,6 +19,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
 import { MoodAfterDialogAction } from "./mood-after-toast-action";
 import { getNarrative } from "@/lib/narrative-vault";
+import { useTranslations } from "next-intl";
 
 
 const MOOD_OPTIONS = [
@@ -37,6 +38,7 @@ interface SmokeLoggerProps {
 }
 
 export function SmokeLogger({ habits }: SmokeLoggerProps) {
+  const t = useTranslations('dashboard');
   const { firestore, user } = useFirebase();
   const { toast } = useToast();
   const [selectedHabit, setSelectedHabit] = useState(habits[0]);
@@ -110,7 +112,7 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
             <AlertDialogTrigger asChild>
                 <Button size="lg" className="w-full">
                     <Cigarette className="w-5 h-5 mr-2" />
-                    Tap to Log a Moment
+                    {t('tapToLog')}
                 </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>

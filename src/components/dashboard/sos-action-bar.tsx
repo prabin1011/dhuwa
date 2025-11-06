@@ -15,8 +15,10 @@ import { BreathingExercise } from "./breathing-exercise";
 import { useState } from "react";
 import { UrgeSurfingTimer } from "./urge-surfing-timer";
 import { GroundingExercise } from "./grounding-exercise";
+import { useTranslations } from "next-intl";
 
 export function SosActionBar() {
+    const t = useTranslations('dashboard');
     const [isBreathingOpen, setIsBreathingOpen] = useState(false);
     const [isUrgeSurfingOpen, setIsUrgeSurfingOpen] = useState(false);
     const [isGroundingOpen, setIsGroundingOpen] = useState(false);
@@ -27,7 +29,7 @@ export function SosActionBar() {
                 <DialogTrigger asChild>
                     <Button variant="outline" className="h-12">
                         <Waves className="w-5 h-5 mr-2" />
-                        Breathe
+                        {t('breathe')}
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
@@ -45,7 +47,7 @@ export function SosActionBar() {
                 <DialogTrigger asChild>
                     <Button variant="outline" className="h-12">
                         <Hand className="w-5 h-5 mr-2" />
-                        Ground
+                        {t('ground')}
                     </Button>
                 </DialogTrigger>
                  <DialogContent className="sm:max-w-md flex flex-col justify-center">
@@ -63,7 +65,7 @@ export function SosActionBar() {
                 <DialogTrigger asChild>
                     <Button variant="outline" className="h-12">
                          <Zap className="w-5 h-5 mr-2" />
-                        Urge Surf
+                        {t('urgeSurf')}
                     </Button>
                 </DialogTrigger>
                 <DialogContent data-full-bleed="true" className="w-[calc(100vw-2rem)] sm:w-full max-w-lg h-[80vh] max-h-[600px] p-0">

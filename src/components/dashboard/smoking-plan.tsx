@@ -24,6 +24,7 @@ import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { MoodAfterDialogAction } from "./mood-after-toast-action";
 import { getNarrative } from "@/lib/narrative-vault";
+import { useTranslations } from "next-intl";
 
 const PREMADE_REPLACEMENTS = [
     "Drink a glass of water",
@@ -77,6 +78,7 @@ interface SmokingPlanProps {
 }
 
 export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment, setReplacementMoment }: SmokingPlanProps) {
+    const t = useTranslations('dashboard');
     const { firestore } = useFirebase();
     const { toast } = useToast();
 
@@ -284,9 +286,9 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
                         <div className="flex justify-between items-start w-full gap-2">
                         <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
                                 <div>
-                                    <CardTitle>{isToday(selectedDate) ? "Today's" : format(selectedDate, 'MMMM d')} Plan</CardTitle>
+                                    <CardTitle>{isToday(selectedDate) ? t('todaysPlan') : format(selectedDate, 'MMMM d')}</CardTitle>
                                     <CardDescription className="text-left mt-1">
-                                        Your scheduled moments for the day.
+                                        {t('scheduledMoments')}
                                     </CardDescription>
                                 </div>
                         </AccordionTrigger>

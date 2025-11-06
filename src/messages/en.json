@@ -3,5 +3,19 @@
   "auth": {
     "signIn": "Sign in",
     "signUp": "Create account"
+  },
+  "dashboard": {
+    "nextRiskWindow": "Next Risk Window",
+    "replace": "Replace",
+    "todaysPlan": "Today's Plan",
+    "scheduledMoments": "Your scheduled moments for the day.",
+    "tapToLog": "Tap to Log a Moment",
+    "breathe": "Breathe",
+    "ground": "Ground",
+    "urgeSurf": "Urge Surf",
+    "riskWindowDescription": "Your next planned moment is {timeToNext}. You have a plan. You can do this.",
+    "riskWindowMissedYesterday": "You missed a moment yesterday. Your next risk is {timeToNext}. Today is a new chance.",
+    "riskWindowSmokedToday": "One moment logged. The chain is only as strong as the next link, which is {timeToNext}. You can break it here.",
+    "riskWindowNoMoments": "No upcoming risk windows today. Well done on completing your plan."
   }
 }

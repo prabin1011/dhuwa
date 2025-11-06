@@ -3,5 +3,19 @@
   "auth": {
     "signIn": "Logg inn",
     "signUp": "Opprett konto"
+  },
+  "dashboard": {
+    "nextRiskWindow": "Neste risikovindu",
+    "replace": "Erstatt",
+    "todaysPlan": "Dagens plan",
+    "scheduledMoments": "Dine planlagte øyeblikk for dagen.",
+    "tapToLog": "Trykk for å logge et øyeblikk",
+    "breathe": "Pust",
+    "ground": "Jord deg",
+    "urgeSurf": "Ri på bølgen",
+    "riskWindowDescription": "Ditt neste planlagte øyeblikk er {timeToNext}. Du har en plan. Du kan klare dette.",
+    "riskWindowMissedYesterday": "Du gikk glipp av et øyeblikk i går. Din neste risiko er {timeToNext}. I dag er en ny sjanse.",
+    "riskWindowSmokedToday": "Ett øyeblikk logget. Kjettingen er bare så sterk som neste ledd, som er {timeToNext}. Du kan bryte den her.",
+    "riskWindowNoMoments": "Ingen kommende risikovinduer i dag. Godt jobbet med å fullføre planen din."
   }
 }
