@@ -1,3 +1,4 @@
+
 import type {ReactNode} from 'react';
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, unstable_setRequestLocale} from 'next-intl/server';
@@ -23,11 +24,15 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      <FirebaseClientProvider>
-        {children}
-      </FirebaseClientProvider>
-      <Toaster />
-    </NextIntlClientProvider>
+    <html lang={locale} suppressHydrationWarning>
+       <body suppressHydrationWarning>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <FirebaseClientProvider>
+            {children}
+          </FirebaseClientProvider>
+          <Toaster />
+        </NextIntlClientProvider>
+      </body>
+    </html>
   );
 }

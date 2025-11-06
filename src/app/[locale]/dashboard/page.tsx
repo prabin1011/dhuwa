@@ -1,8 +1,8 @@
 
 'use client';
 
-import {useParams} from 'next/navigation';
-import {useRouter} from 'next-intl/navigation';
+import {useParams, useRouter} from 'next/navigation';
+import {useRouter as useIntlRouter} from 'next-intl/navigation';
 import type {Locale} from '@/i18n';
 import {useUser, useFirestore, useMemoFirebase} from '@/firebase';
 import {doc} from 'firebase/firestore';
