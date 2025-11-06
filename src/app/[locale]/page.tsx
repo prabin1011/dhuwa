@@ -1,22 +1,25 @@
 'use client';
 
 import { useUser } from '@/firebase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useEffect } from 'react';
+import type { Locale } from '@/lib/i18n';
 
 export default function LocaleRootPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as Locale;
 
   useEffect(() => {
-    if (!isUserLoading) {
+    if (!isUserLoading && locale) {
       if (user) {
-        router.replace('/dashboard');
+        router.replace(`/${locale}/dashboard`);
       } else {
-        router.replace('/login');
+        router.replace(`/${locale}/login`);
       }
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, locale]);
 
   return (
     <div className="flex h-screen w-screen items-center justify-center">
