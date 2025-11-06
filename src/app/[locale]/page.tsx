@@ -5,9 +5,9 @@ import { i18n, type Locale } from '@/lib/i18n';
 // It immediately redirects the user to their dashboard for that language.
 // The auth guard is handled within the dashboard page itself.
 export default function LocaleRootPage({
-  params: { locale },
+  params,
 }: {
   params: { locale: Locale };
 }) {
-  redirect(`/${locale}/dashboard`);
+  redirect(`/${params.locale}/dashboard`);
 }
