@@ -1,7 +1,9 @@
+
 'use client';
 
 import {useEffect, useState} from 'react';
-import {useParams, useRouter} from 'next/navigation';
+import {useParams} from 'next/navigation';
+import {useRouter} from 'next-intl/navigation';
 import type {Locale} from '@/i18n';
 import {useUser, useAuthActions} from '@/firebase';
 import {useTranslations} from 'next-intl';
@@ -11,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WelcomeIllustration } from '@/components/illustrations/welcome';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
+import Link from 'next-intl/link';
 
 export default function LoginPage() {
   const t = useTranslations();
@@ -30,7 +32,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isUserLoading && user) {
-        router.replace(`/${locale}/dashboard`);
+        router.replace(`/dashboard`);
     }
   }, [user, isUserLoading, router, locale]);
 

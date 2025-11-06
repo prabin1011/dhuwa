@@ -17,7 +17,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Checkbox } from "../ui/checkbox";
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
-import { useRouter, usePathname } from 'next-intl/client';
+import { useRouter, usePathname } from 'next-intl/navigation';
 import { deleteUser } from "firebase/auth";
 import { useNotifications } from '@/hooks/use-notifications';
 import { Separator } from '../ui/separator';

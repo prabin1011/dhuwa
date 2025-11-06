@@ -1,6 +1,8 @@
+
 'use client';
 
-import {useParams, useRouter} from 'next/navigation';
+import {useParams} from 'next/navigation';
+import {useRouter} from 'next-intl/navigation';
 import type {Locale} from '@/i18n';
 import {useUser, useFirestore, useMemoFirebase} from '@/firebase';
 import {doc} from 'firebase/firestore';
@@ -17,7 +19,7 @@ export default function DashboardPage() {
 
   // Redirect to login only after auth is known
   if (!isUserLoading && !user) {
-    router.replace(`/${locale}/login`);
+    router.replace(`/login`);
     return null;
   }
 

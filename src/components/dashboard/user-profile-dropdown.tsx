@@ -17,7 +17,7 @@ import { Button } from "../ui/button";
 import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather, MessageSquare, Shield } from "lucide-react";
 import { ProfileSheet } from '../profile/profile-sheet';
 import type { WithId } from '@/firebase';
-import { useRouter } from 'next-intl/client';
+import { useRouter } from 'next-intl/navigation';
 import type { User } from 'firebase/auth';
 
 interface UserProfile {
