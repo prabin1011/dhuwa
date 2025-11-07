@@ -20,11 +20,9 @@
  */
 rules_version = '2';
 service cloud.firestore {
-  // Helper functions MUST be inside the service scope
+  // helpers must be inside the service
   function signedIn() { return request.auth != null; }
   function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
-
-  // Ensures only the current user is adding/removing their own ID
   function validLikeToggle(oldIds, newIds, me) {
     return
       (newIds.size() == oldIds.size() + 1 && newIds.hasAll(oldIds) && newIds.hasAny([me])) ||
@@ -33,22 +31,26 @@ service cloud.firestore {
 
   match /databases/{database}/documents {
 
-    // Private user trees
-    match /users/{userId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/{sub=**} {
-      allow read, write: if isOwner(userId);
+    // ==== your existing users tree (kept) ====
+    match /users/{uid} {
+      allow read, write: if isOwner(uid);
+
+      match /urges/{doc} {
+        allow read, write: if isOwner(uid);
+      }
+      match /notifications/{doc} {
+        allow read, write: if isOwner(uid);
+      }
     }
 
-    // Community READS for signed-in users (covers posts + comments)
+    // ==== community feed ====
+    // read entire tree (posts + comments) if signed in
     match /community_posts/{document=**} {
       allow read: if signedIn();
     }
 
-    // Community post writes
+    // posts
     match /community_posts/{postId} {
-      // anyone signed in can create their own post
       allow create: if signedIn()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.keys().hasAll([
@@ -56,17 +58,16 @@ service cloud.firestore {
           'createdAt','likeIds','likesCount','commentsCount'
         ]);
 
-      // only the owner can delete
       allow delete: if signedIn() && resource.data.userId == request.auth.uid;
 
-      // safe like/unlike + counters
+      // like/unlike + counter must stay in sync
       allow update: if signedIn()
         && request.resource.data.diff(resource.data).changedKeys().hasOnly(['likeIds','likesCount','commentsCount'])
         && validLikeToggle(resource.data.likeIds, request.resource.data.likeIds, request.auth.uid)
         && request.resource.data.likesCount == request.resource.data.likeIds.size();
     }
 
-    // Comments: create/delete your own
+    // comments
     match /community_posts/{postId}/comments/{commentId} {
       allow create: if signedIn()
         && request.resource.data.userId == request.auth.uid

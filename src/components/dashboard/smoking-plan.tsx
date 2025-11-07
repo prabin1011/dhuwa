@@ -263,9 +263,16 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
         batch.update(profileRef, { moments: updatedMoments });
         
         try {
+            // Private save is the most important part.
             await batch.commit();
+        } catch (e) {
+            console.error("Error saving replacement:", e);
+            toast({ variant: 'destructive', title: "Save Failed", description: "Could not save your replacement. Please try again." });
+            return; // Exit if private save fails
+        }
 
-            // 2. Create public community post (after private save)
+        // After the private save succeeds, try to share publicly.
+        try {
             if (userProfile?.shareToCommunity === 'yes') {
               await createCommunityPost(firestore, {
                 userId: user.uid,
@@ -274,19 +281,25 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
                 activity: replacementValue,
                 momentLabel: replacementMoment.label ?? 'Unplanned'
               });
-              toast({ title: "Shared to Community!", description: `Your win has been posted.` });
+              toast({ title: "Replacement Logged!", description: "Shared to Community 🎉" });
             } else {
                toast({ title: "Replacement Logged!", description: `Great choice!` });
             }
-
-            setCustomReplacement("");
-            setSelectedReplacement("");
-            setReplacementMood(null);
-            setReplacementMoment(null);
         } catch (e) {
-            console.error("Error saving replacement and posting to community:", e);
-            toast({ variant: 'destructive', title: "Save Failed", description: "Could not save your replacement. Please try again." });
+            // This is non-fatal. The core replacement was already saved.
+            console.error("Community post failed:", e);
+            toast({ 
+                title: "Replacement Logged!", 
+                description: "Your win was saved privately, but the public share failed.", 
+                variant: "default" 
+            });
         }
+
+        // Reset form state regardless of community post success
+        setCustomReplacement("");
+        setSelectedReplacement("");
+        setReplacementMood(null);
+        setReplacementMoment(null);
     };
 
     const resetLogSmokeForms = () => {
