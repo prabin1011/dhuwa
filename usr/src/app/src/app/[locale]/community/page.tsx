@@ -87,8 +87,6 @@ export default function CommunityPage() {
     const handleAddComment = async (postId: string) => {
         if (!user || !firestore) return;
         
-        console.log('Attempting to comment. My UID:', user.uid, 'Post ID:', postId);
-
         const text = (textByPost[postId] || '').trim();
         if (!text) return;
         
@@ -138,8 +136,7 @@ export default function CommunityPage() {
                 
                  {!isLoading && posts?.map(post => {
                     const hasLiked = user && post.likeIds?.includes(user.uid);
-                    const isMyPost = user && post.userId === user.uid;
-                    const { comments, hasCommented } = useComments(firestore, post.id, user?.uid);
+                    const { comments } = useComments(firestore, post.id, user?.uid);
 
                     return (
                         <Card key={post.id} className="bg-card">
@@ -169,26 +166,21 @@ export default function CommunityPage() {
                                     </div>
                                 )}
                                 
-                                {!isMyPost && !hasCommented && (
-                                    <div className="flex gap-2">
-                                    <Textarea
-                                        value={textByPost[post.id] || ''}
-                                        onChange={(e) => setTextByPost(prev => ({ ...prev, [post.id]: e.target.value }))}
-                                        placeholder="Add a quick cheer…"
-                                        className="h-9"
-                                    />
-                                    <Button
-                                        size="sm"
-                                        onClick={() => handleAddComment(post.id)}
-                                        disabled={!((textByPost[post.id] || '').trim())}
-                                    >
-                                        Send
-                                    </Button>
-                                    </div>
-                                 )}
-                                 {!isMyPost && hasCommented && (
-                                    <p className="text-xs text-muted-foreground pt-2">You’ve already commented on this win.</p>
-                                 )}
+                                <div className="flex gap-2">
+                                <Textarea
+                                    value={textByPost[post.id] || ''}
+                                    onChange={(e) => setTextByPost(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                    placeholder="Add a quick cheer…"
+                                    className="h-9"
+                                />
+                                <Button
+                                    size="sm"
+                                    onClick={() => handleAddComment(post.id)}
+                                    disabled={!((textByPost[post.id] || '').trim())}
+                                >
+                                    Send
+                                </Button>
+                                </div>
                             </CardContent>
                             <CardFooter className="gap-2 border-t pt-2">
                                 <Button 
