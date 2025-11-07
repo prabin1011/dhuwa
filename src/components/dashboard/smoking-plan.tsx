@@ -6,7 +6,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { useFirebase } from "@/firebase";
-import { doc, updateDoc, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, updateDoc, collection, addDoc, serverTimestamp, writeBatch } from "firebase/firestore";
 import type { WithId } from "@/firebase";
 import { Check, Cigarette, Info, Plus, Replace, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -65,6 +65,7 @@ interface SmokingMoment {
 }
 
 interface UserProfile {
+    username?: string;
     moments?: SmokingMoment[];
     breakDuration?: string;
 }
@@ -235,6 +236,10 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
             return;
         }
 
+        const batch = writeBatch(firestore);
+
+        // 1. Update user's private moment tracker
+        const profileRef = doc(firestore, 'users', user.uid);
         const updatedMoments = userProfile.moments?.map(m => {
             if (m.id === replacementMoment.id) {
                 return {
@@ -251,16 +256,30 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
             }
             return m;
         }) || [];
+        batch.update(profileRef, { moments: updatedMoments });
+
+        // 2. Create public community post
+        const communityPostRef = doc(collection(firestore, 'community_posts'));
+        batch.set(communityPostRef, {
+            userId: user.uid,
+            username: userProfile.username || 'Anonymous',
+            activity: replacementValue,
+            originalMomentLabel: replacementMoment.label,
+            timestamp: serverTimestamp(),
+            likes: 0,
+            likeIds: []
+        });
         
         try {
-            await updateMoments(updatedMoments);
-            toast({ title: "Replacement Logged!", description: `Great choice!` });
+            await batch.commit();
+            toast({ title: "Shared to Community!", description: `Your win has been posted.` });
             setCustomReplacement("");
             setSelectedReplacement("");
             setReplacementMood(null);
             setReplacementMoment(null);
         } catch (e) {
-            // Error handled in updateMoments
+            console.error("Error saving replacement and posting to community:", e);
+            toast({ variant: 'destructive', title: "Save Failed", description: "Could not save your replacement. Please try again." });
         }
     };
 

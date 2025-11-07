@@ -270,6 +270,44 @@
         }
       },
       "required": ["title", "body", "timestamp", "read"]
+    },
+    "CommunityPost": {
+      "title": "CommunityPost",
+      "type": "object",
+      "description": "A public post made by a user when they log a replacement activity.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who created the post."
+        },
+        "username": {
+          "type": "string",
+          "description": "The display name of the user at the time of posting."
+        },
+        "activity": {
+          "type": "string",
+          "description": "The replacement activity that was performed."
+        },
+        "originalMomentLabel": {
+          "type": "string",
+          "description": "The label of the smoking moment that was replaced (e.g., 'Morning coffee')."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the post was created."
+        },
+        "likes": {
+          "type": "number",
+          "description": "The total number of likes."
+        },
+        "likeIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "An array of user IDs who have liked this post."
+        }
+      },
+      "required": ["userId", "username", "activity", "originalMomentLabel", "timestamp"]
     }
   },
   "auth": {
@@ -295,6 +333,12 @@
             "$ref": "#/entities/Notification"
         },
         "description": "A collection of notifications sent to the user."
+    },
+    "'/community_posts/{postId}'": {
+      "schema": {
+        "$ref": "#/entities/CommunityPost"
+      },
+      "description": "A collection of all public replacement activity posts from all users."
     }
   }
 }

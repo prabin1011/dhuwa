@@ -1,0 +1,138 @@
+
+'use client';
+
+import { useCollection, useMemoFirebase, useUser } from "@/firebase";
+import { collection, query, orderBy, limit, doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { useFirebase } from "@/firebase";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Heart, MessageSquare } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import type { Timestamp } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import type { Locale } from '@/i18n';
+import { ArrowLeft } from 'lucide-react';
+import { cn } from "@/lib/utils";
+
+
+interface CommunityPost {
+    id: string;
+    userId: string;
+    username: string;
+    activity: string;
+    originalMomentLabel: string;
+    timestamp: Timestamp;
+    likes: number;
+    likeIds: string[];
+}
+
+const PostSkeleton = () => (
+    <Card>
+        <CardHeader className="flex-row gap-4 items-center">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="flex flex-col gap-1">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-32" />
+            </div>
+        </CardHeader>
+        <CardContent>
+            <Skeleton className="h-5 w-3/4" />
+        </CardContent>
+        <CardFooter className="gap-4">
+            <Skeleton className="h-8 w-16" />
+            <Skeleton className="h-8 w-16" />
+        </CardFooter>
+    </Card>
+);
+
+
+export default function CommunityPage() {
+    const { firestore } = useFirebase();
+    const { user } = useUser();
+    const { locale } = useParams() as { locale: Locale };
+
+    const postsQuery = useMemoFirebase(() => {
+        return query(collection(firestore, 'community_posts'), orderBy('timestamp', 'desc'), limit(50));
+    }, [firestore]);
+
+    const { data: posts, isLoading } = useCollection<CommunityPost>(postsQuery);
+
+    const handleLike = async (post: CommunityPost) => {
+        if (!user || !firestore) return;
+        const postRef = doc(firestore, 'community_posts', post.id);
+
+        const hasLiked = post.likeIds?.includes(user.uid);
+        
+        try {
+            await updateDoc(postRef, {
+                likeIds: hasLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+                likes: hasLiked ? post.likes - 1 : post.likes + 1,
+            });
+        } catch (error) {
+            console.error("Error liking post:", error);
+        }
+    };
+    
+    return (
+        <div className="min-h-screen bg-background text-foreground">
+            <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
+                <div className="mx-auto max-w-md px-4 sm:px-6 md:px-8 h-16 flex items-center gap-4">
+                    <Link href={`/${locale}/dashboard`} className="p-2 rounded-full hover:bg-secondary">
+                        <ArrowLeft className="w-5 h-5" />
+                    </Link>
+                    <div className="flex flex-col">
+                        <h1 className="text-xl font-bold">Community Wins</h1>
+                        <p className="text-sm text-muted-foreground">A live feed of victories from the community.</p>
+                    </div>
+                </div>
+            </header>
+
+            <main className="mx-auto max-w-md p-4 space-y-4">
+                 {isLoading && Array.from({ length: 5 }).map((_, i) => <PostSkeleton key={i} />)}
+                
+                 {!isLoading && posts?.map(post => {
+                    const hasLiked = user && post.likeIds?.includes(user.uid);
+                    return (
+                        <Card key={post.id} className="bg-card">
+                            <CardHeader className="flex-row gap-3 items-center pb-3">
+                                <Avatar className="h-9 w-9">
+                                    <AvatarFallback>{post.username?.charAt(0).toUpperCase() || 'A'}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="text-sm font-semibold">{post.username}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Replaced "{post.originalMomentLabel}" • {formatDistanceToNow(post.timestamp?.toDate(), { addSuffix: true })}
+                                    </p>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="pb-4">
+                                <p className="font-medium text-base">I chose to: <span className="font-semibold text-primary">{post.activity}</span></p>
+                            </CardContent>
+                            <CardFooter className="gap-2 border-t pt-2">
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => handleLike(post)}
+                                    className={cn("flex items-center gap-2", hasLiked && "text-red-500 hover:text-red-600")}
+                                >
+                                    <Heart className={cn("w-4 h-4", hasLiked && "fill-current")} />
+                                    <span>{post.likes || 0}</span>
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    );
+                })}
+                {!isLoading && posts?.length === 0 && (
+                     <div className="text-center py-12">
+                        <h3 className="text-lg font-semibold">The movement is just beginning.</h3>
+                        <p className="text-muted-foreground mt-2">Log your first replacement activity to be the first one to post here!</p>
+                    </div>
+                )}
+            </main>
+        </div>
+    );
+}
+
