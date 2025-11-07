@@ -86,6 +86,9 @@ export default function CommunityPage() {
 
     const handleAddComment = async (postId: string) => {
         if (!user || !firestore) return;
+        
+        console.log('Attempting to comment. My UID:', user.uid, 'Post ID:', postId);
+
         const text = (textByPost[postId] || '').trim();
         if (!text) return;
         
@@ -182,7 +185,7 @@ export default function CommunityPage() {
                                         Send
                                     </Button>
                                     </div>
-                                )}
+                                 )}
                                  {!isMyPost && hasCommented && (
                                     <p className="text-xs text-muted-foreground pt-2">You’ve already commented on this win.</p>
                                  )}
