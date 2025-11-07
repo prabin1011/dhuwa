@@ -7,7 +7,7 @@ import { useFirebase } from "@/firebase";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageSquare } from "lucide-react";
+import { Heart } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,7 +43,6 @@ const PostSkeleton = () => (
         </CardContent>
         <CardFooter className="gap-4">
             <Skeleton className="h-8 w-16" />
-            <Skeleton className="h-8 w-16" />
         </CardFooter>
     </Card>
 );
@@ -55,8 +54,9 @@ export default function CommunityPage() {
     const { locale } = useParams() as { locale: Locale };
 
     const postsQuery = useMemoFirebase(() => {
+        if (!user) return null;
         return query(collection(firestore, 'community_posts'), orderBy('timestamp', 'desc'), limit(50));
-    }, [firestore]);
+    }, [firestore, user]);
 
     const { data: posts, isLoading } = useCollection<CommunityPost>(postsQuery);
 
@@ -69,12 +69,26 @@ export default function CommunityPage() {
         try {
             await updateDoc(postRef, {
                 likeIds: hasLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
-                likes: hasLiked ? post.likes - 1 : post.likes + 1,
+                likes: hasLiked ? (post.likes || 1) - 1 : (post.likes || 0) + 1,
             });
         } catch (error) {
             console.error("Error liking post:", error);
         }
     };
+    
+    if (!user) {
+        return (
+             <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+                <div className="text-center p-4">
+                    <h1 className="text-xl font-bold">Community Wins</h1>
+                    <p className="text-muted-foreground mt-2">You must be logged in to view the community feed.</p>
+                    <Button asChild className="mt-4">
+                        <Link href={`/${locale}/login`}>Log In</Link>
+                    </Button>
+                </div>
+            </div>
+        )
+    }
     
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -104,7 +118,7 @@ export default function CommunityPage() {
                                 <div>
                                     <p className="text-sm font-semibold">{post.username}</p>
                                     <p className="text-xs text-muted-foreground">
-                                        Replaced "{post.originalMomentLabel}" • {formatDistanceToNow(post.timestamp?.toDate(), { addSuffix: true })}
+                                        Replaced "{post.originalMomentLabel}" • {post.timestamp ? formatDistanceToNow(post.timestamp.toDate(), { addSuffix: true }) : ''}
                                     </p>
                                 </div>
                             </CardHeader>
@@ -135,4 +149,3 @@ export default function CommunityPage() {
         </div>
     );
 }
-
