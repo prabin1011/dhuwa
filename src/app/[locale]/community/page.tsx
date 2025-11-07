@@ -23,9 +23,9 @@ interface CommunityPost {
     userId: string;
     username: string;
     activity: string;
-    originalMomentLabel: string;
-    timestamp: Timestamp;
-    likes: number;
+    momentLabel: string;
+    createdAt: Timestamp;
+    likesCount: number;
     likeIds: string[];
 }
 
@@ -55,7 +55,7 @@ export default function CommunityPage() {
 
     const postsQuery = useMemoFirebase(() => {
         if (!user) return null;
-        return query(collection(firestore, 'community_posts'), orderBy('timestamp', 'desc'), limit(50));
+        return query(collection(firestore, 'community_posts'), orderBy('createdAt', 'desc'), limit(50));
     }, [firestore, user]);
 
     const { data: posts, isLoading } = useCollection<CommunityPost>(postsQuery);
@@ -69,7 +69,7 @@ export default function CommunityPage() {
         try {
             await updateDoc(postRef, {
                 likeIds: hasLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
-                likes: hasLiked ? (post.likes || 1) - 1 : (post.likes || 0) + 1,
+                likesCount: hasLiked ? (post.likesCount || 1) - 1 : (post.likesCount || 0) + 1,
             });
         } catch (error) {
             console.error("Error liking post:", error);
@@ -118,7 +118,7 @@ export default function CommunityPage() {
                                 <div>
                                     <p className="text-sm font-semibold">{post.username}</p>
                                     <p className="text-xs text-muted-foreground">
-                                        Replaced "{post.originalMomentLabel}" • {post.timestamp ? formatDistanceToNow(post.timestamp.toDate(), { addSuffix: true }) : ''}
+                                        Replaced "{post.momentLabel}" • {post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : ''}
                                     </p>
                                 </div>
                             </CardHeader>
@@ -133,7 +133,7 @@ export default function CommunityPage() {
                                     className={cn("flex items-center gap-2", hasLiked && "text-red-500 hover:text-red-600")}
                                 >
                                     <Heart className={cn("w-4 h-4", hasLiked && "fill-current")} />
-                                    <span>{post.likes || 0}</span>
+                                    <span>{post.likesCount || 0}</span>
                                 </Button>
                             </CardFooter>
                         </Card>
