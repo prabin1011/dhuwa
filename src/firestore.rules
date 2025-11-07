@@ -62,7 +62,7 @@ service cloud.firestore {
 
       // like/unlike + counter must stay in sync
       allow update: if signedIn()
-        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['likeIds','likesCount','commentsCount'])
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['likeIds','likesCount'])
         && validLikeToggle(resource.data.likeIds, request.resource.data.likeIds, request.auth.uid)
         && request.resource.data.likesCount == request.resource.data.likeIds.size();
     }
@@ -71,7 +71,11 @@ service cloud.firestore {
     match /community_posts/{postId}/comments/{commentId} {
       allow create: if signedIn()
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.keys().hasAll(['userId','username','text','parentId','createdAt']);
+        && request.resource.data.keys().hasAll(['userId','username','text','parentId','createdAt'])
+        && (request.resource.data.parentId == null || request.resource.data.parentId is string)
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 280;
       allow delete: if signedIn() && resource.data.userId == request.auth.uid;
     }
   }

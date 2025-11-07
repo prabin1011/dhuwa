@@ -18,40 +18,21 @@ export async function createCommunityPost(
   });
 }
 
-export async function toggleLike(firestore: Firestore, postId: string) {
-  const me = getAuth().currentUser;
-  if (!me) return;
-  const ref = doc(firestore, 'community_posts', postId);
-  
-  // This logic performs an atomic increment/decrement on a separate field
-  // It first tries to add the user's ID. If this fails (because it's already there), it removes it.
-  try {
-    await updateDoc(ref, {
-        likeIds: arrayUnion(me.uid),
-        likesCount: increment(1)
-    });
-  } catch (e) {
-     // This likely means the update failed because the ID was already in the array,
-     // so now we try to remove it. Firestore doesn't have a built-in "toggle" so this is a common pattern.
-     // However, a simple add/remove without a transaction can lead to race conditions.
-     // A better approach is to handle this logic inside a transaction or cloud function.
-     // For this MVP, we will try a remove operation, but it might not be perfectly in sync.
-     // A simpler approach for the client is to just try one or the other based on current state.
-  }
-}
-
-
 export async function addComment(
   firestore: Firestore,
   postId: string,
   { userId, username, text, parentId = null }:
-  { userId: string; username: string; text: string; parentId?: string|null }
+  { userId: string; username: string; text: string; parentId?: string | null }
 ) {
   const commentsRef = collection(firestore, 'community_posts', postId, 'comments');
   await addDoc(commentsRef, {
-    userId, username, text: text.slice(0, 280), parentId: parentId ?? null,
+    userId,
+    username,
+    text: text.slice(0, 280),
+    parentId,                   // always present (can be null)
     createdAt: serverTimestamp()
   });
-  const postRef = doc(firestore, 'community_posts', postId);
-  await updateDoc(postRef, { commentsCount: increment(1) });
+  await updateDoc(doc(firestore, 'community_posts', postId), {
+    commentsCount: increment(1)
+  });
 }
