@@ -22,74 +22,59 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * @description Grants access to a user's profile only to the authenticated user with the matching UID.
-     * @path /users/{userId}
-     * @allow (read, write) if request.auth != null && request.auth.uid == userId - Allows a logged-in user to read and write their own profile.
-     * @deny (read, write) if request.auth == null - Denies access to users who are not logged in.
-     * @deny (read, write) if request.auth.uid != userId - Denies access to another user's profile.
-     * @principle Enforces document ownership for all read and write operations.
-     */
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    // Users tree as you already have
     match /users/{userId} {
-      allow read, write: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+      allow read, write: if isOwner(userId);
     }
-
-    /**
-     * @description Grants access to a user's urges subcollection only to the authenticated user with the matching UID.
-     * @path /users/{userId}/urges/{urgeId}
-     * @allow (read, write) if request.auth != null && request.auth.uid == userId - Allows a logged-in user to manage their own urge entries.
-     * @deny (read, write) if request.auth == null - Denies access to users who are not logged in.
-     * @deny (read, write) if request.auth.uid != userId - Denies access to another user's urge entries.
-     * @principle Restricts access to a user's own data tree.
-     */
     match /users/{userId}/urges/{urgeId} {
-      allow read, write: if isSignedIn() && isOwner(userId);
+      allow read, write: if isOwner(userId);
+    }
+    match /users/{userId}/notifications/{id} {
+      allow read, write: if isOwner(userId);
     }
 
-      /**
-       * @description Grants access to a user's notifications subcollection only to the authenticated user with the matching UID.
-       * @path /users/{userId}/notifications/{notificationId}
-       * @allow (read, write) if request.auth != null && request.auth.uid == userId - Allows a logged-in user to manage their own notifications.
-       * @deny (read, write) if request.auth == null - Denies access to users who are not logged in.
-       * @deny (read, write) if request.auth.uid != userId - Denies access to another user's notifications.
-       * @principle Restricts access to a user's own data tree.
-       */
-    match /users/{userId}/notifications/{notificationId} {
-      allow read, write: if isSignedIn() && isOwner(userId);
-    }
-
-    /**
-     * @description Rules for the global community feed.
-     * @path /community_posts/{postId}
-     * @principle Allows any authenticated user to read all posts and create new ones.
-     *            Users can only delete their own posts.
-     *            Users can only update the 'likes' and 'likeIds' fields.
-     */
+    // Community posts
     match /community_posts/{postId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() 
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likeIds'])
-                    && isLikingOrUnliking(request.resource.data.likeIds, resource.data.likeIds, request.auth.uid)
-                    && request.resource.data.likes == request.resource.data.likeIds.size();
+      allow read: if signedIn();
+
+      // Create your own post
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasAll([
+            'userId','username','habit','activity','momentLabel',
+            'createdAt','likeIds','likesCount','commentsCount'
+          ]);
+
+      // Delete your own post
+      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
+
+      // Only allow toggling likes safely
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['likeIds','likesCount','commentsCount'])
+        && validLikeToggle(resource.data.likeIds, request.resource.data.likeIds, request.auth.uid)
+        && request.resource.data.likesCount == request.resource.data.likeIds.size();
+    }
+
+    match /community_posts/{postId}/comments/{commentId} {
+      allow read: if signedIn();
+
+      // Create your own comment
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasAll(['userId','username','text','parentId','createdAt']);
+
+      // Delete your own comment
+      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
     }
   }
+}
 
-  // Helper functions
-  function isSignedIn() {
-    return request.auth != null;
-  }
-
-  function isOwner(userId) {
-    return request.auth.uid == userId;
-  }
-
-  // Ensures a user is only adding/removing their own ID from the likeIds array.
-  function isLikingOrUnliking(newLikeIds, oldLikeIds, authId) {
-    let liking = newLikeIds.size() == oldLikeIds.size() + 1 && newLikeIds.hasAll(oldLikeIds) && newLikeIds.hasAny([authId]);
-    let unliking = newLikeIds.size() == oldLikeIds.size() - 1 && oldLikeIds.hasAll(newLikeIds) && oldLikeIds.hasAny([authId]);
-    return liking || unliking;
-  }
+function validLikeToggle(oldIds, newIds, me) {
+  // add my id OR remove my id — nothing else
+  return
+    (newIds.size() == oldIds.size() + 1 && newIds.hasAll(oldIds) && newIds.hasAny([me])) ||
+    (newIds.size() == oldIds.size() - 1 && oldIds.hasAll(newIds) && oldIds.hasAny([me]));
 }

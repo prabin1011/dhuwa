@@ -29,6 +29,7 @@ export type OnboardingData = {
   checkInTime: string;
   preferredTone: string;
   reminders: string;
+  shareToCommunity: 'yes' | 'no';
 };
 
 export type Step = {

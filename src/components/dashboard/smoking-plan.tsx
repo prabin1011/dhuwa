@@ -25,6 +25,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { MoodAfterDialogAction } from "./mood-after-toast-action";
 import { getNarrative } from "@/lib/narrative-vault";
 import { useTranslations } from "next-intl";
+import { createCommunityPost } from "@/lib/community";
 
 const PREMADE_REPLACEMENTS = [
     "Drink a glass of water",
@@ -62,12 +63,14 @@ interface SmokingMoment {
     completed: Record<string, boolean>;
     replacementActivity?: Record<string, { activity: string; mood?: string; }>;
     type?: string;
+    habit?: string;
 }
 
 interface UserProfile {
     username?: string;
     moments?: SmokingMoment[];
     breakDuration?: string;
+    shareToCommunity?: 'yes' | 'no';
 }
 
 interface SmokingPlanProps {
@@ -76,9 +79,10 @@ interface SmokingPlanProps {
     selectedDate: Date;
     replacementMoment: SmokingMoment | null;
     setReplacementMoment: (moment: SmokingMoment | null) => void;
+    activeHabit: string;
 }
 
-export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment, setReplacementMoment }: SmokingPlanProps) {
+export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment, setReplacementMoment, activeHabit }: SmokingPlanProps) {
     const t = useTranslations('dashboard');
     const { firestore } = useFirebase();
     const { toast } = useToast();
@@ -257,22 +261,24 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
             return m;
         }) || [];
         batch.update(profileRef, { moments: updatedMoments });
-
-        // 2. Create public community post
-        const communityPostRef = doc(collection(firestore, 'community_posts'));
-        batch.set(communityPostRef, {
-            userId: user.uid,
-            username: userProfile.username || 'Anonymous',
-            activity: replacementValue,
-            originalMomentLabel: replacementMoment.label,
-            timestamp: serverTimestamp(),
-            likes: 0,
-            likeIds: []
-        });
         
         try {
             await batch.commit();
-            toast({ title: "Shared to Community!", description: `Your win has been posted.` });
+
+            // 2. Create public community post (after private save)
+            if (userProfile?.shareToCommunity === 'yes') {
+              await createCommunityPost(firestore, {
+                userId: user.uid,
+                username: userProfile.username ?? 'Someone',
+                habit: replacementMoment.habit || 'Cigarettes',
+                activity: replacementValue,
+                momentLabel: replacementMoment.label ?? 'Unplanned'
+              });
+              toast({ title: "Shared to Community!", description: `Your win has been posted.` });
+            } else {
+               toast({ title: "Replacement Logged!", description: `Great choice!` });
+            }
+
             setCustomReplacement("");
             setSelectedReplacement("");
             setReplacementMood(null);

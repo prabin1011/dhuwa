@@ -24,6 +24,7 @@ import { Separator } from '../ui/separator';
 import { Switch } from '../ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import type { Locale } from '@/i18n';
+import { MyCommunityPosts } from '../community/my-community-posts';
 
 const CURRENCIES = ["USD", "EUR", "GBP", "INR", "JPY", "CAD", "AUD", "CNY", "CHF", "NZD", "BRL", "HKD", "SGD", "SEK", "KRW", "NOK", "MXN", "RUB", "ZAR", "TRY", "NPR"];
 
@@ -32,6 +33,7 @@ interface UserProfile extends Partial<OnboardingData> {
     username?: string;
     fcmTokens?: string[];
     currency?: string;
+    shareToCommunity?: 'yes' | 'no';
 }
 
 interface ProfileSheetProps {
@@ -60,6 +62,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             habitDetails: userProfile.habitDetails || {},
             currency: userProfile.currency || 'USD',
             language: userProfile.language || 'en',
+            shareToCommunity: userProfile.shareToCommunity || 'no',
         },
     });
 
@@ -71,6 +74,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                 habitDetails: userProfile.habitDetails || {},
                 currency: userProfile.currency || 'USD',
                 language: userProfile.language || 'en',
+                shareToCommunity: userProfile.shareToCommunity || 'no',
             });
         }
     }, [isOpen, userProfile, reset]);
@@ -341,7 +345,25 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                 </div>
 
                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold tracking-tight">Notifications</h3>
+                    <h3 className="text-lg font-semibold tracking-tight">Community & Notifications</h3>
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <Label className="text-base">Share Wins to Community</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Automatically post your replacement activities to the community feed.
+                            </p>
+                        </div>
+                         <Controller
+                            name="shareToCommunity"
+                            control={control}
+                            render={({ field }) => (
+                                <Switch
+                                    checked={field.value === 'yes'}
+                                    onCheckedChange={(checked) => field.onChange(checked ? 'yes' : 'no')}
+                                />
+                            )}
+                         />
+                    </div>
                     <div className="flex items-center justify-between rounded-lg border p-4">
                         <div className="space-y-0.5">
                             <Label className="text-base">Enable Reminders</Label>
@@ -365,7 +387,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                          />
                     </div>
                 </div>
-
+                <MyCommunityPosts />
             </form>
         </ScrollArea>
         <SheetFooter className="mt-auto pt-4 border-t flex-col sm:flex-col sm:items-stretch gap-2">

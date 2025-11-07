@@ -32,6 +32,7 @@ import { useParams } from "next/navigation";
 import type { Locale } from "@/i18n";
 import { Cigarette, Leaf, MinusCircle } from "lucide-react";
 import { Logo } from "../logo";
+import { CommunityTeaser } from "../community/community-teaser";
 
 
 interface SmokingMoment {
@@ -40,6 +41,7 @@ interface SmokingMoment {
     label: string;
     completed: Record<string, boolean>;
     replacementActivity?: Record<string, { activity: string; mood?: string; }>;
+    habit?: string;
 }
 interface UserProfile {
     habits?: string[];
@@ -54,6 +56,7 @@ interface UserProfile {
     username?: string;
     breakDuration?: string;
     reminders?: string;
+    shareToCommunity?: 'yes' | 'no';
 }
 
 interface DashboardProps {
@@ -182,6 +185,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                       selectedDate={selectedDate}
                       onSelectDate={setSelectedDate}
                     />
+                    <CommunityTeaser />
                     <NextRiskWindow 
                         user={user} 
                         userProfile={userProfile} 
@@ -194,6 +198,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                         selectedDate={selectedDate || new Date()} 
                         replacementMoment={replacementMoment}
                         setReplacementMoment={setReplacementMoment}
+                        activeHabit={activeHabit}
                     />
                     <SavingsStats urges={filteredUrges} userProfile={userProfile} selectedDate={selectedDate} activeHabit={activeHabit} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />

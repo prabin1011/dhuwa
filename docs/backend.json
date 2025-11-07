@@ -122,6 +122,16 @@
           "type": "string",
           "description": "User's preference for motivational reminders."
         },
+        "language": {
+          "type": "string",
+          "enum": ["en", "no"],
+          "description": "The user's preferred language for the app interface and AI content."
+        },
+        "shareToCommunity": {
+            "type": "string",
+            "enum": ["yes", "no"],
+            "description": "Whether the user has opted-in to sharing their replacement activities to the public community feed."
+        },
         "moments": {
           "type": "array",
           "description": "User-defined smoking moments/plans.",
@@ -186,6 +196,23 @@
         "count"
       ]
     },
+    "ReplacementActivity": {
+      "title": "ReplacementActivity",
+      "type": "object",
+      "description": "An activity chosen to replace a smoking moment, and the mood associated.",
+      "properties": {
+        "activity": {
+          "type": "string",
+          "description": "A short description of the replacement activity."
+        },
+        "mood": {
+          "type": "string",
+          "description": "The user's mood after the replacement activity.",
+           "enum": ["proud", "hopeful", "calm", "uneasy", "distracted", "neutral"]
+        }
+      },
+      "required": ["activity", "mood"]
+    },
     "SmokingMoment": {
       "title": "SmokingMoment",
       "type": "object",
@@ -212,9 +239,9 @@
         },
         "replacementActivity": {
           "type": "object",
-          "description": "A map of dates (YYYY-MM-DD) to a string describing the replacement activity.",
+          "description": "A map of dates (YYYY-MM-DD) to an object describing the replacement activity and mood.",
           "additionalProperties": {
-            "type": "string"
+            "$ref": "#/entities/ReplacementActivity"
           }
         }
       },
@@ -248,6 +275,36 @@
         }
       },
       "required": ["title", "body", "timestamp", "read"]
+    },
+    "CommunityPost": {
+      "title": "CommunityPost",
+      "type": "object",
+      "description": "A public post made by a user when they log a replacement activity.",
+      "properties": {
+        "userId": { "type": "string", "description": "The ID of the user who created the post." },
+        "username": { "type": "string", "description": "The display name of the user at the time of posting." },
+        "habit": { "type": "string", "description": "The habit being replaced (e.g., 'Cigarettes')." },
+        "activity": { "type": "string", "description": "The replacement activity that was performed." },
+        "momentLabel": { "type": "string", "description": "The label of the smoking moment that was replaced." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the post was created." },
+        "likeIds": { "type": "array", "items": { "type": "string" }, "description": "Array of user IDs who liked this post." },
+        "likesCount": { "type": "number", "description": "The total number of likes." },
+        "commentsCount": { "type": "number", "description": "The total number of comments." }
+      },
+      "required": ["userId", "username", "activity", "momentLabel", "createdAt", "likesCount", "commentsCount"]
+    },
+    "Comment": {
+        "title": "Comment",
+        "type": "object",
+        "description": "A comment on a community post.",
+        "properties": {
+            "userId": { "type": "string", "description": "The ID of the user who made the comment." },
+            "username": { "type": "string", "description": "The display name of the commenter." },
+            "text": { "type": "string", "description": "The content of the comment." },
+            "parentId": { "type": ["string", "null"], "description": "The ID of the parent comment, if this is a reply." },
+            "createdAt": { "type": "string", "format": "date-time", "description": "When the comment was created." }
+        },
+        "required": ["userId", "username", "text", "createdAt"]
     }
   },
   "auth": {
@@ -273,8 +330,18 @@
             "$ref": "#/entities/Notification"
         },
         "description": "A collection of notifications sent to the user."
+    },
+    "'/community_posts/{postId}'": {
+      "schema": {
+        "$ref": "#/entities/CommunityPost"
+      },
+      "description": "A collection of all public replacement activity posts from all users."
+    },
+    "'/community_posts/{postId}/comments/{commentId}'": {
+      "schema": {
+        "$ref": "#/entities/Comment"
+      },
+      "description": "Subcollection of comments for a specific community post."
     }
   }
 }
-
-    
