@@ -1,0 +1,39 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { collection, doc, onSnapshot, orderBy, query, limit, type Firestore } from 'firebase/firestore';
+
+export type Comment = {
+  id: string;
+  userId: string;
+  username: string;
+  text: string;
+  parentId: string | null;
+  createdAt?: any;
+};
+
+export function useComments(firestore: Firestore, postId: string, myUid?: string) {
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [hasCommented, setHasCommented] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!firestore || !postId) return;
+    const q = query(
+      collection(firestore, 'community_posts', postId, 'comments'),
+      orderBy('createdAt', 'asc'),
+      limit(10) // show last 10; adjust as you like
+    );
+    const unsub = onSnapshot(q, snap => {
+      setComments(snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })));
+    });
+    return unsub;
+  }, [firestore, postId]);
+
+  useEffect(() => {
+    if (!firestore || !postId || !myUid) return;
+    const markerRef = doc(firestore, 'community_posts', postId, 'commenters', myUid);
+    const unsub = onSnapshot(markerRef, d => setHasCommented(d.exists()));
+    return unsub;
+  }, [firestore, postId, myUid]);
+
+  return { comments, hasCommented };
+}
