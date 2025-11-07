@@ -1,5 +1,5 @@
 import {
-  addDoc, collection, doc, serverTimestamp, writeBatch, increment, Firestore, arrayRemove, arrayUnion,
+  addDoc, collection, doc, serverTimestamp, writeBatch, increment, Firestore,
 } from 'firebase/firestore';
 
 export async function createCommunityPost(

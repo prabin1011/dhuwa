@@ -1,24 +1,5 @@
-/**
- * @fileoverview Firestore Security Rules for Dhuwa App
- *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for private data, while
- * enabling a secure, read-only public community feed.
- *
- * Key Security Decisions:
- * - User data is strictly private (/users/{userId}).
- * - The community feed (/community_posts) is readable by any authenticated user.
- * - Writes to the community feed are tightly controlled:
- *   - Users can only create posts for themselves.
- *   - Likes are atomic (you can only add/remove your own UID).
- *   - Comment counts can only be incremented.
- */
 rules_version = '2';
 service cloud.firestore {
-
-  // =================================
-  //           HELPERS
-  // =================================
   function signedIn() { return request.auth != null; }
   function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
 
@@ -29,10 +10,6 @@ service cloud.firestore {
       (newIds.size() == oldIds.size() - 1 && oldIds.hasAll(newIds) && oldIds.hasAny([me]));
   }
 
-
-  // =================================
-  //           RULES
-  // =================================
   match /databases/{database}/documents {
 
     // ===== Private user tree =====
@@ -75,7 +52,7 @@ service cloud.firestore {
         )
       );
     }
-    
+
     // ----- Commenters marker: one comment per user per post -----
     // We require creating /community_posts/{postId}/commenters/{uid} exactly once
     // and only by the same uid (used in a batch with the comment).
