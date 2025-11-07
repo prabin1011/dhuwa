@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useCollection, useMemoFirebase, useUser } from "@/firebase";
@@ -7,15 +6,18 @@ import { useFirebase } from "@/firebase";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Heart, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import type { Locale } from '@/i18n';
-import { ArrowLeft } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { addComment } from "@/lib/community";
+import { useToast } from "@/hooks/use-toast";
 
 
 interface CommunityPost {
@@ -26,6 +28,7 @@ interface CommunityPost {
     momentLabel: string;
     createdAt: Timestamp;
     likesCount: number;
+    commentsCount: number;
     likeIds: string[];
 }
 
@@ -43,6 +46,7 @@ const PostSkeleton = () => (
         </CardContent>
         <CardFooter className="gap-4">
             <Skeleton className="h-8 w-16" />
+            <Skeleton className="h-8 w-16" />
         </CardFooter>
     </Card>
 );
@@ -51,7 +55,9 @@ const PostSkeleton = () => (
 export default function CommunityPage() {
     const { firestore } = useFirebase();
     const { user } = useUser();
+    const { toast } = useToast();
     const { locale } = useParams() as { locale: Locale };
+    const [textByPost, setTextByPost] = useState<Record<string, string>>({});
 
     const postsQuery = useMemoFirebase(() => {
         if (!user) return null;
@@ -73,6 +79,25 @@ export default function CommunityPage() {
             });
         } catch (error) {
             console.error("Error liking post:", error);
+            toast({ variant: 'destructive', title: 'Like failed', description: 'Could not update like.' });
+        }
+    };
+
+    const handleAddComment = async (postId: string) => {
+        if (!user || !firestore) return;
+        const text = (textByPost[postId] || '').trim();
+        if (!text) return;
+        
+        try {
+            await addComment(firestore, postId, {
+              userId: user.uid,
+              username: user.displayName || 'User',
+              text
+            });
+            setTextByPost(prev => ({ ...prev, [postId]: '' }));
+            toast({ title: 'Comment posted!' });
+        } catch(e: any) {
+             toast({ variant: 'destructive', title: 'Comment failed', description: e.message || 'Could not post your comment.' });
         }
     };
     
@@ -122,8 +147,23 @@ export default function CommunityPage() {
                                     </p>
                                 </div>
                             </CardHeader>
-                            <CardContent className="pb-4">
+                            <CardContent className="pb-4 space-y-3">
                                 <p className="font-medium text-base">I chose to: <span className="font-semibold text-primary">{post.activity}</span></p>
+                                 <div className="flex gap-2">
+                                  <Textarea
+                                    value={textByPost[post.id] || ''}
+                                    onChange={(e) => setTextByPost(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                    placeholder="Add a quick cheer…"
+                                    className="h-9"
+                                  />
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleAddComment(post.id)}
+                                    disabled={!((textByPost[post.id] || '').trim())}
+                                  >
+                                    Send
+                                  </Button>
+                                </div>
                             </CardContent>
                             <CardFooter className="gap-2 border-t pt-2">
                                 <Button 
@@ -135,6 +175,7 @@ export default function CommunityPage() {
                                     <Heart className={cn("w-4 h-4", hasLiked && "fill-current")} />
                                     <span>{post.likesCount || 0}</span>
                                 </Button>
+                                <span className="text-xs text-muted-foreground ml-2">💬 {post.commentsCount || 0}</span>
                             </CardFooter>
                         </Card>
                     );

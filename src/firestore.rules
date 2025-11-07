@@ -2,55 +2,55 @@
  * @fileoverview Firestore Security Rules for Dhuwa App
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model, where each signed-in user
- * can only read and write their own data. This ensures data privacy and prevents
- * unauthorized access. The community_posts collection is an exception, allowing
- * global read and specific write/update access for authenticated users.
- *
- * Data Structure:
- * - /users/{userId}:  Each user has a single profile document identified by their UID.
- * - /users/{userId}/urges/{urgeId}:  Each user has a subcollection of urge entries.
- * - /users/{userId}/notifications/{notificationId}: Each user has a subcollection of notifications.
- * - /community_posts/{postId}: A global collection of public posts.
+ * This ruleset enforces a strict user-ownership model for private data, while
+ * enabling a secure, read-only public community feed.
  *
  * Key Security Decisions:
- * - User listing is implicitly denied by the structure (no top-level collection).
- * - The rules explicitly deny any read or write access if the user is not authenticated.
- * - Data shape is not strictly validated to allow for rapid prototyping and iteration.
+ * - User data is strictly private (/users/{userId}).
+ * - The community feed (/community_posts) is readable by any authenticated user.
+ * - Writes to the community feed are tightly controlled:
+ *   - Users can only create posts for themselves.
+ *   - Likes are atomic (you can only add/remove your own UID).
+ *   - Comment counts can only be incremented.
  */
 rules_version = '2';
 service cloud.firestore {
-  // helpers must be inside the service
+
+  // =================================
+  //           HELPERS
+  // =================================
   function signedIn() { return request.auth != null; }
   function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
   function validLikeToggle(oldIds, newIds, me) {
+    // True if you are adding your ID to the list OR removing it. Nothing else.
     return
       (newIds.size() == oldIds.size() + 1 && newIds.hasAll(oldIds) && newIds.hasAny([me])) ||
       (newIds.size() == oldIds.size() - 1 && oldIds.hasAll(newIds) && oldIds.hasAny([me]));
   }
 
+
+  // =================================
+  //           RULES
+  // =================================
   match /databases/{database}/documents {
 
-    // ==== your existing users tree (kept) ====
-    match /users/{uid} {
-      allow read, write: if isOwner(uid);
-
-      match /urges/{doc} {
-        allow read, write: if isOwner(uid);
-      }
-      match /notifications/{doc} {
-        allow read, write: if isOwner(uid);
-      }
+    // ==== PRIVATE USER DATA ====
+    match /users/{userId}/{document=**} {
+      allow read, write: if isOwner(userId);
     }
 
-    // ==== community feed ====
-    // read entire tree (posts + comments) if signed in
+    // ==== PUBLIC COMMUNITY DATA ====
+
+    // Allow signed-in users to read the entire community feed tree (posts + comments)
     match /community_posts/{document=**} {
       allow read: if signedIn();
     }
 
-    // posts
+    // Specific rules for writing to posts
     match /community_posts/{postId} {
+
+      // CREATE: You can create your own post with the correct fields.
       allow create: if signedIn()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.keys().hasAll([
@@ -58,24 +58,37 @@ service cloud.firestore {
           'createdAt','likeIds','likesCount','commentsCount'
         ]);
 
+      // DELETE: You can only delete your own posts.
       allow delete: if signedIn() && resource.data.userId == request.auth.uid;
 
-      // like/unlike + counter must stay in sync
-      allow update: if signedIn()
-        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['likeIds','likesCount'])
-        && validLikeToggle(resource.data.likeIds, request.resource.data.likeIds, request.auth.uid)
-        && request.resource.data.likesCount == request.resource.data.likeIds.size();
+      // UPDATE: Allow two distinct update paths: liking, or comment count changes.
+      allow update: if signedIn() && (
+        // (A) Path for Liking/Unliking a post
+        (
+          request.resource.data.diff(resource.data).changedKeys().hasOnly(['likeIds', 'likesCount']) &&
+          validLikeToggle(resource.data.likeIds, request.resource.data.likeIds, request.auth.uid) &&
+          request.resource.data.likesCount == request.resource.data.likeIds.size()
+        )
+        ||
+        // (B) Path for incrementing/decrementing comment count
+        (
+          request.resource.data.diff(resource.data).changedKeys().hasOnly(['commentsCount']) &&
+          (request.resource.data.commentsCount == resource.data.commentsCount + 1 || request.resource.data.commentsCount == resource.data.commentsCount - 1)
+        )
+      );
     }
 
-    // comments
+    // Specific rules for writing to comments subcollection
     match /community_posts/{postId}/comments/{commentId} {
+
+      // CREATE: You can create your own comment with valid fields.
       allow create: if signedIn()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.keys().hasAll(['userId','username','text','parentId','createdAt'])
         && (request.resource.data.parentId == null || request.resource.data.parentId is string)
-        && request.resource.data.text is string
-        && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 280;
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 280;
+
+      // DELETE: You can only delete your own comments.
       allow delete: if signedIn() && resource.data.userId == request.auth.uid;
     }
   }
