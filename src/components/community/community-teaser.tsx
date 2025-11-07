@@ -89,7 +89,6 @@ export function CommunityTeaser() {
       <div className="space-y-3">
         {posts.map(p => {
           const iLike = user ? p.likeIds?.includes(user.uid) : false;
-          const isMyPost = user && p.userId === user.uid;
           return (
             <div key={p.id} className="rounded-lg border p-3 bg-background/50">
               <div className="text-sm">
@@ -108,18 +107,16 @@ export function CommunityTeaser() {
                   <span className="ml-2">{p.likesCount || 0}</span>
                 </Button>
 
-                {!isMyPost && (
-                    <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => { e.stopPropagation(); setOpenCommentFor(openCommentFor === p.id ? null : p.id); }}
-                    >
-                    💬 {p.commentsCount || 0}
-                    </Button>
-                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => { e.stopPropagation(); setOpenCommentFor(openCommentFor === p.id ? null : p.id); }}
+                >
+                  💬 {p.commentsCount || 0}
+                </Button>
               </div>
 
-              {openCommentFor === p.id && !isMyPost && (
+              {openCommentFor === p.id && (
                 <div className="mt-2 flex gap-2" onClick={(e) => e.stopPropagation()}>
                   <Textarea
                     value={textByPost[p.id] || ''}

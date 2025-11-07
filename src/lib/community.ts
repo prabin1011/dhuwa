@@ -1,5 +1,5 @@
 import {
-  addDoc, collection, doc, serverTimestamp, writeBatch, increment, Firestore,
+  addDoc, collection, doc, serverTimestamp, updateDoc, increment, Firestore,
 } from 'firebase/firestore';
 
 export async function createCommunityPost(
@@ -24,27 +24,20 @@ export async function addComment(
   { userId, username, text, parentId = null }:
   { userId: string; username: string; text: string; parentId?: string | null }
 ) {
-  const batch = writeBatch(firestore);
-
   const commentsCol = collection(firestore, 'community_posts', postId, 'comments');
-  const commentRef = doc(commentsCol); // pre-generate id
 
-  // 1) comment doc
-  batch.set(commentRef, {
+  // 1. Add the comment document
+  await addDoc(commentsCol, {
     userId,
     username,
     text: text.slice(0, 280),
-    parentId,                 // can be null
+    parentId,
     createdAt: serverTimestamp()
   });
 
-  // 2) commenters marker (enforces one comment per user per post)
-  const markerRef = doc(firestore, 'community_posts', postId, 'commenters', userId);
-  batch.set(markerRef, { createdAt: serverTimestamp() });
-
-  // 3) increment commentsCount on the post
+  // 2. Increment the commentsCount on the parent post
   const postRef = doc(firestore, 'community_posts', postId);
-  batch.update(postRef, { commentsCount: increment(1) });
-
-  await batch.commit();
+  await updateDoc(postRef, {
+    commentsCount: increment(1)
+  });
 }

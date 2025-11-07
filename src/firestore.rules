@@ -53,33 +53,17 @@ service cloud.firestore {
       );
     }
 
-    // ----- Commenters marker: one comment per user per post -----
-    // We require creating /community_posts/{postId}/commenters/{uid} exactly once
-    // and only by the same uid (used in a batch with the comment).
-    match /community_posts/{postId}/commenters/{uid} {
-      allow create: if signedIn() && request.auth.uid == uid && !exists(/databases/$(database)/documents/community_posts/$(postId)/commenters/$(uid));
-      allow read: if signedIn();
-      allow delete: if false; // we don't need to delete markers
-      allow update: if false;
-    }
-
     // ----- Comments -----
     match /community_posts/{postId}/comments/{commentId} {
       allow create: if signedIn()
         && request.resource.data.userId == request.auth.uid
-        // Not allowed to comment on your own post
-        && get(/databases/$(database)/documents/community_posts/$(postId)).data.userId != request.auth.uid
-        // Field validation
         && request.resource.data.keys().hasAll(['userId','username','text','parentId','createdAt'])
         && (request.resource.data.parentId == null || request.resource.data.parentId is string)
         && request.resource.data.text is string
         && request.resource.data.text.size() > 0
         && request.resource.data.text.size() <= 280;
 
-      // Allow the author to delete their own comment (will batch a -1 on commentsCount)
       allow delete: if signedIn() && resource.data.userId == request.auth.uid;
-
-      // We do not allow updates to comment bodies.
       allow update: if false;
     }
   }

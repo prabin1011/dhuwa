@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { addComment } from "@/lib/community";
 import { useToast } from "@/hooks/use-toast";
+import { useComments } from '@/hooks/useComments';
 
 
 interface CommunityPost {
@@ -85,6 +86,7 @@ export default function CommunityPage() {
 
     const handleAddComment = async (postId: string) => {
         if (!user || !firestore) return;
+        
         const text = (textByPost[postId] || '').trim();
         if (!text) return;
         
@@ -134,7 +136,8 @@ export default function CommunityPage() {
                 
                  {!isLoading && posts?.map(post => {
                     const hasLiked = user && post.likeIds?.includes(user.uid);
-                    const isMyPost = user && post.userId === user.uid;
+                    const { comments } = useComments(firestore, post.id, user?.uid);
+
                     return (
                         <Card key={post.id} className="bg-card">
                             <CardHeader className="flex-row gap-3 items-center pb-3">
@@ -150,23 +153,34 @@ export default function CommunityPage() {
                             </CardHeader>
                             <CardContent className="pb-4 space-y-3">
                                 <p className="font-medium text-base">I chose to: <span className="font-semibold text-primary">{post.activity}</span></p>
-                                 {!isMyPost && (
-                                    <div className="flex gap-2">
-                                    <Textarea
-                                        value={textByPost[post.id] || ''}
-                                        onChange={(e) => setTextByPost(prev => ({ ...prev, [post.id]: e.target.value }))}
-                                        placeholder="Add a quick cheer…"
-                                        className="h-9"
-                                    />
-                                    <Button
-                                        size="sm"
-                                        onClick={() => handleAddComment(post.id)}
-                                        disabled={!((textByPost[post.id] || '').trim())}
-                                    >
-                                        Send
-                                    </Button>
+
+                                {!!comments.length && (
+                                    <div className="space-y-2 border-t pt-3">
+                                      {comments.map(c => (
+                                        <div key={c.id} className="text-sm rounded-md bg-muted/50 p-2">
+                                          <span className="font-medium">{c.username || 'User'}</span>
+                                          <span className="mx-1 text-muted-foreground">•</span>
+                                          <span>{c.text}</span>
+                                        </div>
+                                      ))}
                                     </div>
-                                 )}
+                                )}
+                                
+                                <div className="flex gap-2">
+                                <Textarea
+                                    value={textByPost[post.id] || ''}
+                                    onChange={(e) => setTextByPost(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                    placeholder="Add a quick cheer…"
+                                    className="h-9"
+                                />
+                                <Button
+                                    size="sm"
+                                    onClick={() => handleAddComment(post.id)}
+                                    disabled={!((textByPost[post.id] || '').trim())}
+                                >
+                                    Send
+                                </Button>
+                                </div>
                             </CardContent>
                             <CardFooter className="gap-2 border-t pt-2">
                                 <Button 
