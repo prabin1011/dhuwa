@@ -29,12 +29,12 @@ export function CommunityTeaser() {
   const [text, setText] = useState('');
 
   useEffect(() => {
-    if (!firestore) return;
+    if (!firestore || !user) return;
     const q = query(collection(firestore, 'community_posts'), orderBy('createdAt', 'desc'), limit(5));
     return onSnapshot(q, snap => {
       setPosts(snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })));
     });
-  }, [firestore]);
+  }, [firestore, user]);
   
   const handleLike = async (post: Post) => {
     if (!user) {

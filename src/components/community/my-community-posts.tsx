@@ -20,10 +20,10 @@ export function MyCommunityPosts() {
   if (!user || !posts.length) return null;
 
   return (
-    <div className="rounded-xl border p-4 space-y-2 mt-4">
+    <div className="rounded-xl border bg-secondary/30 p-4 space-y-2 mt-4">
       <h3 className="font-semibold text-lg">My Community Posts</h3>
       {posts.map(p => (
-        <div key={p.id} className="text-sm text-muted-foreground p-2 bg-secondary/30 rounded-md">
+        <div key={p.id} className="text-sm text-muted-foreground p-2 bg-background/50 rounded-md">
           Replaced <em>{p.habit}</em> with <em>{p.activity}</em> — ❤️ {p.likesCount || 0} · 💬 {p.commentsCount || 0}
         </div>
       ))}
