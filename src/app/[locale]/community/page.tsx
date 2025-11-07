@@ -134,6 +134,7 @@ export default function CommunityPage() {
                 
                  {!isLoading && posts?.map(post => {
                     const hasLiked = user && post.likeIds?.includes(user.uid);
+                    const isMyPost = user && post.userId === user.uid;
                     return (
                         <Card key={post.id} className="bg-card">
                             <CardHeader className="flex-row gap-3 items-center pb-3">
@@ -149,21 +150,23 @@ export default function CommunityPage() {
                             </CardHeader>
                             <CardContent className="pb-4 space-y-3">
                                 <p className="font-medium text-base">I chose to: <span className="font-semibold text-primary">{post.activity}</span></p>
-                                 <div className="flex gap-2">
-                                  <Textarea
-                                    value={textByPost[post.id] || ''}
-                                    onChange={(e) => setTextByPost(prev => ({ ...prev, [post.id]: e.target.value }))}
-                                    placeholder="Add a quick cheer…"
-                                    className="h-9"
-                                  />
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleAddComment(post.id)}
-                                    disabled={!((textByPost[post.id] || '').trim())}
-                                  >
-                                    Send
-                                  </Button>
-                                </div>
+                                 {!isMyPost && (
+                                    <div className="flex gap-2">
+                                    <Textarea
+                                        value={textByPost[post.id] || ''}
+                                        onChange={(e) => setTextByPost(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                        placeholder="Add a quick cheer…"
+                                        className="h-9"
+                                    />
+                                    <Button
+                                        size="sm"
+                                        onClick={() => handleAddComment(post.id)}
+                                        disabled={!((textByPost[post.id] || '').trim())}
+                                    >
+                                        Send
+                                    </Button>
+                                    </div>
+                                 )}
                             </CardContent>
                             <CardFooter className="gap-2 border-t pt-2">
                                 <Button 

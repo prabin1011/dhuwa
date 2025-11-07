@@ -22,8 +22,8 @@ service cloud.firestore {
   function signedIn() { return request.auth != null; }
   function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
 
+  // True if you're adding/removing your own UID from likeIds.
   function validLikeToggle(oldIds, newIds, me) {
-    // True if you are adding your ID to the list OR removing it. Nothing else.
     return
       (newIds.size() == oldIds.size() + 1 && newIds.hasAll(oldIds) && newIds.hasAny([me])) ||
       (newIds.size() == oldIds.size() - 1 && oldIds.hasAll(newIds) && oldIds.hasAny([me]));
@@ -35,22 +35,18 @@ service cloud.firestore {
   // =================================
   match /databases/{database}/documents {
 
-    // ==== PRIVATE USER DATA ====
-    match /users/{userId}/{document=**} {
+    // ===== Private user tree =====
+    match /users/{userId}/{doc=**} {
       allow read, write: if isOwner(userId);
     }
 
-    // ==== PUBLIC COMMUNITY DATA ====
-
-    // Allow signed-in users to read the entire community feed tree (posts + comments)
+    // ===== Community: readable to signed-in users =====
     match /community_posts/{document=**} {
       allow read: if signedIn();
     }
 
-    // Specific rules for writing to posts
+    // ----- Posts -----
     match /community_posts/{postId} {
-
-      // CREATE: You can create your own post with the correct fields.
       allow create: if signedIn()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.keys().hasAll([
@@ -58,38 +54,56 @@ service cloud.firestore {
           'createdAt','likeIds','likesCount','commentsCount'
         ]);
 
-      // DELETE: You can only delete your own posts.
       allow delete: if signedIn() && resource.data.userId == request.auth.uid;
 
-      // UPDATE: Allow two distinct update paths: liking, or comment count changes.
+      // Split the update paths:
       allow update: if signedIn() && (
-        // (A) Path for Liking/Unliking a post
+        // (A) Like/unlike
         (
-          request.resource.data.diff(resource.data).changedKeys().hasOnly(['likeIds', 'likesCount']) &&
+          request.resource.data.diff(resource.data).changedKeys().hasOnly(['likeIds','likesCount']) &&
           validLikeToggle(resource.data.likeIds, request.resource.data.likeIds, request.auth.uid) &&
           request.resource.data.likesCount == request.resource.data.likeIds.size()
         )
         ||
-        // (B) Path for incrementing/decrementing comment count
+        // (B) Only increment/decrement commentsCount (batched with comment create/delete)
         (
           request.resource.data.diff(resource.data).changedKeys().hasOnly(['commentsCount']) &&
-          (request.resource.data.commentsCount == resource.data.commentsCount + 1 || request.resource.data.commentsCount == resource.data.commentsCount - 1)
+          (
+            request.resource.data.commentsCount == resource.data.commentsCount + 1 ||
+            request.resource.data.commentsCount == resource.data.commentsCount - 1
+          )
         )
       );
     }
+    
+    // ----- Commenters marker: one comment per user per post -----
+    // We require creating /community_posts/{postId}/commenters/{uid} exactly once
+    // and only by the same uid (used in a batch with the comment).
+    match /community_posts/{postId}/commenters/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid && !exists(/databases/$(database)/documents/community_posts/$(postId)/commenters/$(uid));
+      allow read: if signedIn();
+      allow delete: if false; // we don't need to delete markers
+      allow update: if false;
+    }
 
-    // Specific rules for writing to comments subcollection
+    // ----- Comments -----
     match /community_posts/{postId}/comments/{commentId} {
-
-      // CREATE: You can create your own comment with valid fields.
       allow create: if signedIn()
         && request.resource.data.userId == request.auth.uid
+        // Not allowed to comment on your own post
+        && get(/databases/$(database)/documents/community_posts/$(postId)).data.userId != request.auth.uid
+        // Field validation
         && request.resource.data.keys().hasAll(['userId','username','text','parentId','createdAt'])
         && (request.resource.data.parentId == null || request.resource.data.parentId is string)
-        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 280;
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 280;
 
-      // DELETE: You can only delete your own comments.
+      // Allow the author to delete their own comment (will batch a -1 on commentsCount)
       allow delete: if signedIn() && resource.data.userId == request.auth.uid;
+
+      // We do not allow updates to comment bodies.
+      allow update: if false;
     }
   }
 }
