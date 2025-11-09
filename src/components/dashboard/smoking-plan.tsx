@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from "react";
@@ -262,37 +261,42 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
         }) || [];
         batch.update(profileRef, { moments: updatedMoments });
         
+        // This is now separated from public sharing
         try {
-            // Private save is the most important part.
             await batch.commit();
         } catch (e) {
-            console.error("Error saving replacement:", e);
+            console.error("Error saving private replacement:", e);
             toast({ variant: 'destructive', title: "Save Failed", description: "Could not save your replacement. Please try again." });
-            return; // Exit if private save fails
+            // Reset form state and exit on failure
+            setCustomReplacement("");
+            setSelectedReplacement("");
+            setReplacementMood(null);
+            setReplacementMoment(null);
+            return;
         }
-
+        
         // After the private save succeeds, try to share publicly.
-        try {
-            if (userProfile?.shareToCommunity === 'yes') {
-              await createCommunityPost(firestore, {
-                userId: user.uid,
-                username: userProfile.username ?? 'Someone',
-                habit: replacementMoment.habit || 'Cigarettes',
-                activity: replacementValue,
-                momentLabel: replacementMoment.label ?? 'Unplanned'
-              });
-              toast({ title: "Replacement Logged!", description: "Shared to Community 🎉" });
-            } else {
-               toast({ title: "Replacement Logged!", description: `Great choice!` });
+        // This part is non-fatal to the user's primary action.
+        if (userProfile?.shareToCommunity === 'yes') {
+            try {
+                await createCommunityPost(firestore, {
+                    userId: user.uid,
+                    username: userProfile.username ?? 'Someone',
+                    habit: replacementMoment.habit || activeHabit,
+                    activity: replacementValue,
+                    momentLabel: replacementMoment.label
+                });
+                toast({ title: "Replacement Logged!", description: "Shared to Community 🎉" });
+            } catch(e) {
+                console.error("Community post failed:", e);
+                toast({ 
+                    title: "Replacement Logged!", 
+                    description: "Your win was saved privately, but the public share failed.", 
+                    variant: "default" 
+                });
             }
-        } catch (e) {
-            // This is non-fatal. The core replacement was already saved.
-            console.error("Community post failed:", e);
-            toast({ 
-                title: "Replacement Logged!", 
-                description: "Your win was saved privately, but the public share failed.", 
-                variant: "default" 
-            });
+        } else {
+             toast({ title: "Replacement Logged!", description: `Great choice!` });
         }
 
         // Reset form state regardless of community post success

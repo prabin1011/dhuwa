@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  function signedIn() { return request.auth != null; }
+  function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
+  match /databases/{database}/documents {
+
+    // ===== Private user tree =====
+    match /users/{userId}/{doc=**} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // ===== Community: readable to signed-in users =====
+    match /community_posts/{document=**} {
+      allow read: if signedIn();
+    }
+
+    // ----- Posts -----
+    match /community_posts/{postId} {
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
+      
+      // No updates allowed in this simplified version
+      allow update: if false;
+    }
+  }
+}

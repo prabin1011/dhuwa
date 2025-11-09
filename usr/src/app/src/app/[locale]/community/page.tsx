@@ -1,25 +1,18 @@
 'use client';
 
 import { useCollection, useMemoFirebase, useUser } from "@/firebase";
-import { collection, query, orderBy, limit, doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { collection, query, orderBy, limit } from "firebase/firestore";
 import { useFirebase } from "@/firebase";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Heart, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import type { Locale } from '@/i18n';
-import { cn } from "@/lib/utils";
-import { useState } from "react";
-import { addComment } from "@/lib/community";
-import { useToast } from "@/hooks/use-toast";
-import { useComments } from '@/hooks/useComments';
-
 
 interface CommunityPost {
     id: string;
@@ -28,9 +21,6 @@ interface CommunityPost {
     activity: string;
     momentLabel: string;
     createdAt: Timestamp;
-    likesCount: number;
-    commentsCount: number;
-    likeIds: string[];
 }
 
 const PostSkeleton = () => (
@@ -45,10 +35,6 @@ const PostSkeleton = () => (
         <CardContent>
             <Skeleton className="h-5 w-3/4" />
         </CardContent>
-        <CardFooter className="gap-4">
-            <Skeleton className="h-8 w-16" />
-            <Skeleton className="h-8 w-16" />
-        </CardFooter>
     </Card>
 );
 
@@ -56,9 +42,7 @@ const PostSkeleton = () => (
 export default function CommunityPage() {
     const { firestore } = useFirebase();
     const { user } = useUser();
-    const { toast } = useToast();
     const { locale } = useParams() as { locale: Locale };
-    const [textByPost, setTextByPost] = useState<Record<string, string>>({});
 
     const postsQuery = useMemoFirebase(() => {
         if (!user) return null;
@@ -67,42 +51,6 @@ export default function CommunityPage() {
 
     const { data: posts, isLoading } = useCollection<CommunityPost>(postsQuery);
 
-    const handleLike = async (post: CommunityPost) => {
-        if (!user || !firestore) return;
-        const postRef = doc(firestore, 'community_posts', post.id);
-
-        const hasLiked = post.likeIds?.includes(user.uid);
-        
-        try {
-            await updateDoc(postRef, {
-                likeIds: hasLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
-                likesCount: hasLiked ? (post.likesCount || 1) - 1 : (post.likesCount || 0) + 1,
-            });
-        } catch (error) {
-            console.error("Error liking post:", error);
-            toast({ variant: 'destructive', title: 'Like failed', description: 'Could not update like.' });
-        }
-    };
-
-    const handleAddComment = async (postId: string) => {
-        if (!user || !firestore) return;
-        
-        const text = (textByPost[postId] || '').trim();
-        if (!text) return;
-        
-        try {
-            await addComment(firestore, postId, {
-              userId: user.uid,
-              username: user.displayName || 'User',
-              text
-            });
-            setTextByPost(prev => ({ ...prev, [postId]: '' }));
-            toast({ title: 'Comment posted!' });
-        } catch(e: any) {
-             toast({ variant: 'destructive', title: 'Comment failed', description: e.message || 'Could not post your comment.' });
-        }
-    };
-    
     if (!user) {
         return (
              <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
@@ -135,9 +83,6 @@ export default function CommunityPage() {
                  {isLoading && Array.from({ length: 5 }).map((_, i) => <PostSkeleton key={i} />)}
                 
                  {!isLoading && posts?.map(post => {
-                    const hasLiked = user && post.likeIds?.includes(user.uid);
-                    const { comments } = useComments(firestore, post.id, user?.uid);
-
                     return (
                         <Card key={post.id} className="bg-card">
                             <CardHeader className="flex-row gap-3 items-center pb-3">
@@ -153,47 +98,7 @@ export default function CommunityPage() {
                             </CardHeader>
                             <CardContent className="pb-4 space-y-3">
                                 <p className="font-medium text-base">I chose to: <span className="font-semibold text-primary">{post.activity}</span></p>
-
-                                {!!comments.length && (
-                                    <div className="space-y-2 border-t pt-3">
-                                      {comments.map(c => (
-                                        <div key={c.id} className="text-sm rounded-md bg-muted/50 p-2">
-                                          <span className="font-medium">{c.username || 'User'}</span>
-                                          <span className="mx-1 text-muted-foreground">•</span>
-                                          <span>{c.text}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                )}
-                                
-                                <div className="flex gap-2">
-                                <Textarea
-                                    value={textByPost[post.id] || ''}
-                                    onChange={(e) => setTextByPost(prev => ({ ...prev, [post.id]: e.target.value }))}
-                                    placeholder="Add a quick cheer…"
-                                    className="h-9"
-                                />
-                                <Button
-                                    size="sm"
-                                    onClick={() => handleAddComment(post.id)}
-                                    disabled={!((textByPost[post.id] || '').trim())}
-                                >
-                                    Send
-                                </Button>
-                                </div>
                             </CardContent>
-                            <CardFooter className="gap-2 border-t pt-2">
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => handleLike(post)}
-                                    className={cn("flex items-center gap-2", hasLiked && "text-red-500 hover:text-red-600")}
-                                >
-                                    <Heart className={cn("w-4 h-4", hasLiked && "fill-current")} />
-                                    <span>{post.likesCount || 0}</span>
-                                </Button>
-                                <span className="text-xs text-muted-foreground ml-2">💬 {post.commentsCount || 0}</span>
-                            </CardFooter>
                         </Card>
                     );
                 })}

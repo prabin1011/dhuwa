@@ -3,13 +3,6 @@ service cloud.firestore {
   function signedIn() { return request.auth != null; }
   function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
 
-  // True if you're adding/removing your own UID from likeIds.
-  function validLikeToggle(oldIds, newIds, me) {
-    return
-      (newIds.size() == oldIds.size() + 1 && newIds.hasAll(oldIds) && newIds.hasAny([me])) ||
-      (newIds.size() == oldIds.size() - 1 && oldIds.hasAll(newIds) && oldIds.hasAny([me]));
-  }
-
   match /databases/{database}/documents {
 
     // ===== Private user tree =====
@@ -25,45 +18,11 @@ service cloud.firestore {
     // ----- Posts -----
     match /community_posts/{postId} {
       allow create: if signedIn()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.keys().hasAll([
-          'userId','username','habit','activity','momentLabel',
-          'createdAt','likeIds','likesCount','commentsCount'
-        ]);
+        && request.resource.data.userId == request.auth.uid;
 
       allow delete: if signedIn() && resource.data.userId == request.auth.uid;
-
-      // Split the update paths:
-      allow update: if signedIn() && (
-        // (A) Like/unlike
-        (
-          request.resource.data.diff(resource.data).changedKeys().hasOnly(['likeIds','likesCount']) &&
-          validLikeToggle(resource.data.likeIds, request.resource.data.likeIds, request.auth.uid) &&
-          request.resource.data.likesCount == request.resource.data.likeIds.size()
-        )
-        ||
-        // (B) Only increment/decrement commentsCount (batched with comment create/delete)
-        (
-          request.resource.data.diff(resource.data).changedKeys().hasOnly(['commentsCount']) &&
-          (
-            request.resource.data.commentsCount == resource.data.commentsCount + 1 ||
-            request.resource.data.commentsCount == resource.data.commentsCount - 1
-          )
-        )
-      );
-    }
-
-    // ----- Comments -----
-    match /community_posts/{postId}/comments/{commentId} {
-      allow create: if signedIn()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.keys().hasAll(['userId','username','text','parentId','createdAt'])
-        && (request.resource.data.parentId == null || request.resource.data.parentId is string)
-        && request.resource.data.text is string
-        && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 280;
-
-      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
+      
+      // No updates allowed in this simplified version
       allow update: if false;
     }
   }
