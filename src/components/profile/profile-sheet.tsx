@@ -125,9 +125,10 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
 
     const handleLanguageChange = (newLocale: Locale) => {
         setValue('language', newLocale, { shouldDirty: true });
+        handleSubmit(onSubmit)(); // Save the change immediately
         document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
+        
         // We replace the current route with one for the new locale.
-        // The pathname is locale-agnostic, so we need to construct the new path.
         const newPath = pathname.startsWith(`/${locale}`) ? pathname.substring(`/${locale}`.length) : pathname;
         router.replace(`/${newLocale}${newPath}`);
     }
