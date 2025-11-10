@@ -64,7 +64,7 @@ function isAllowedRequest(req: Request): boolean {
     return true;
   }
   
-  // Allow same-origin requests from the app's frontend
+  // Allow same-origin requests from the app's frontend (most reliable)
   if (req.headers.get('sec-fetch-site') === 'same-origin') {
     return true;
   }
@@ -279,3 +279,5 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: error.message ?? 'Internal Server Error' }, { status: 500 });
     }
 }
+
+    

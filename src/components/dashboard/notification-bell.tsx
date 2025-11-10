@@ -202,9 +202,10 @@ export function NotificationBell() {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex flex-col">
+      <SheetContent className="flex flex-col" aria-describedby="notif-desc">
         <SheetHeader>
           <SheetTitle>Insights Inbox</SheetTitle>
+          <p id="notif-desc" className="sr-only">View and refresh your insights.</p>
         </SheetHeader>
         <ScrollArea className="flex-1 -mx-6 px-6">
           <div className="py-4">
@@ -240,3 +241,5 @@ export function NotificationBell() {
     </Sheet>
   );
 }
+
+    
