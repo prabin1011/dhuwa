@@ -59,22 +59,29 @@ type Urge = {
 
 // Helper: allow only Vercel Cron or internal requests
 function isAllowedRequest(req: Request): boolean {
-  const origin = req.headers.get('origin');
-  const referer = req.headers.get('referer');
-  
+  // Allow cron jobs with the correct secret
   if (process.env.CRON_SECRET && req.headers.get('authorization') === `Bearer ${process.env.CRON_SECRET}`) {
     return true;
   }
-
-  const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-
-  if (origin === appUrl || (referer && referer.startsWith(appUrl))) {
+  
+  // Allow same-origin requests from the app's frontend
+  if (req.headers.get('sec-fetch-site') === 'same-origin') {
     return true;
   }
+
+  // Fallback for older browsers or different environments, check origin/referer
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+  const origin = req.headers.get('origin');
+  const referer = req.headers.get('referer');
   
-  console.warn('[API Auth] Blocked request. Origin/Referer did not match app URL.', {
+  if (appUrl) {
+    if (origin === appUrl || (referer && referer.startsWith(appUrl))) {
+      return true;
+    }
+  }
+
+  console.warn('[API Auth] Blocked request. Headers did not match.', {
+      'sec-fetch-site': req.headers.get('sec-fetch-site'),
       origin,
       referer,
       appUrl
