@@ -3,21 +3,21 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Lightbulb, Timer } from 'lucide-react';
-import type { DailyInsightInput } from '@/ai/types/daily-insight-types';
 import type { WithId } from '@/firebase';
-import { subHours, formatDistanceToNow, differenceInHours } from 'date-fns';
+import { differenceInHours } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
-import { alanCarrQuotes } from '@/lib/quotes';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { getSummaryStats, type SummaryStats } from '@/lib/get-summary-stats';
+import { insightTemplates } from '@/lib/insight-templates';
 
 interface SmokingMoment {
     id: string;
     time: string;
     label: string;
     completed: Record<string, boolean>;
-    replacementActivity?: Record<string, string>;
+    replacementActivity?: Record<string, { activity: string; mood?: string; }>;
 }
 interface UserProfile {
     goal?: string;
@@ -25,11 +25,16 @@ interface UserProfile {
     preferredTone?: string;
     itemsPerDay?: string;
     moments?: SmokingMoment[];
+    habitDetails?: Record<string, { packCost?: number; itemsPerPack?: number; itemsPerDay?: string | number }>;
+    currency?: string;
+    breakDuration?: string;
 }
 
 interface Urge {
     timestamp: Timestamp;
     moodBefore?: string;
+    count?: number;
+    type?: string;
 }
 
 interface DailyInsightProps {
@@ -41,7 +46,18 @@ interface DailyInsightProps {
 const COOLDOWN_HOURS = 4;
 const LAST_ANALYSIS_KEY = 'lastAnalysisTime';
 
-export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightProps) {
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function renderTemplate(template: string, stats: SummaryStats) {
+  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
+    const value = stats[key as keyof SummaryStats];
+    return value !== undefined && value !== null ? String(value) : `{{${key}}}`;
+  });
+}
+
+export function DailyInsight({ userProfile, urges }: DailyInsightProps) {
     const [insight, setInsight] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [initialQuoteSet, setInitialQuoteSet] = useState(false);
@@ -56,16 +72,21 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
     }, []);
 
     const showRandomQuote = useCallback(() => {
-        const randomQuote = alanCarrQuotes[Math.floor(Math.random() * alanCarrQuotes.length)];
+        const randomQuote = pick(insightTemplates.identity); // Default to identity
         setInsight(randomQuote);
     }, []);
 
     useEffect(() => {
         if (!initialQuoteSet) {
-            showRandomQuote();
+            const stats = getSummaryStats(urges, userProfile);
+            const randomTemplate = pick([
+                ...insightTemplates.identity,
+                ...insightTemplates.mindfulness,
+            ]);
+            setInsight(renderTemplate(randomTemplate, stats));
             setInitialQuoteSet(true);
         }
-    }, [initialQuoteSet, showRandomQuote]);
+    }, [initialQuoteSet, showRandomQuote, urges, userProfile]);
 
     const handleAnalyze = async () => {
         if (lastAnalysis && differenceInHours(new Date(), lastAnalysis) < COOLDOWN_HOURS) {
@@ -78,47 +99,26 @@ export function DailyInsight({ userProfile, urges, lastUrgeTime }: DailyInsightP
 
         setIsLoading(true);
         try {
-            const twoDaysAgo = subHours(new Date(), 48);
-            const recentUrges = urges
-                .filter(urge => urge.timestamp && urge.timestamp.toDate() > twoDaysAgo)
-                .map(urge => ({
-                    id: urge.id,
-                    timestamp: urge.timestamp.toDate().toISOString(),
-                    mood: urge.moodBefore
-                }));
-
-            const timeSinceLastUrge = lastUrgeTime 
-                ? formatDistanceToNow(lastUrgeTime, { addSuffix: true }) 
-                : 'a long time';
+            const stats = getSummaryStats(urges, userProfile);
+            const allTemplates = [
+                ...insightTemplates.identity,
+                ...insightTemplates.mindfulness,
+                ...insightTemplates.trigger,
+                ...insightTemplates.progress,
+                ...insightTemplates.recovery,
+            ];
+            const randomTemplate = pick(allTemplates);
+            const renderedInsight = renderTemplate(randomTemplate, stats);
             
-            const input: DailyInsightInput = {
-                userProfile: {
-                    goal: userProfile.goal,
-                    motivation: userProfile.motivation,
-                    preferredTone: userProfile.preferredTone,
-                    itemsPerDay: userProfile.itemsPerDay,
-                    moments: userProfile.moments,
-                },
-                recentUrges,
-                timeSinceLastUrge,
-            };
-
-            const res = await fetch('/api/daily-insight', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(input),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data?.error || 'Failed to get insight.');
-            
-            setInsight(data.insight);
+            setInsight(renderedInsight);
             const now = new Date();
             setLastAnalysis(now);
             localStorage.setItem(LAST_ANALYSIS_KEY, String(now.getTime()));
+            toast({ title: 'New Insight Revealed', description: 'Your progress has been analyzed.' });
 
         } catch (error) {
             console.error("Failed to get daily insight:", error);
-            setInsight("Couldn't analyze yet. Please ensure your API key is set up correctly and try again.");
+            setInsight("Couldn't analyze your progress right now. Please try again later.");
         } finally {
             setIsLoading(false);
         }
