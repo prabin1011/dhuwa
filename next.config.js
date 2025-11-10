@@ -22,9 +22,6 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    // Kept for any future experimental features, but empty for now.
-  },
 };
 
 export default withNextIntl(nextConfig);
