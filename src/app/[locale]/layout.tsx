@@ -10,12 +10,13 @@ import Script from 'next/script';
 
 export default async function LocaleLayout({
   children,
-  params: { locale }
+  params,
 }: {
   children: ReactNode;
-  params: {locale: Locale};
+  params: Promise<{locale: Locale}>;
 }) {
 
+  const { locale } = await params;
   if (!i18n.locales.includes(locale)) notFound();
 
   // Enable server-side rendering for this locale
@@ -26,6 +27,10 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
+        {/* PWA Manifest & Theme */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#111317" />
+        
         {/* Google tag (gtag.js) */}
         <Script async src="https://www.googletagmanager.com/gtag/js?id=G-PJ8R05LFX9"></Script>
         <Script id="google-analytics">
