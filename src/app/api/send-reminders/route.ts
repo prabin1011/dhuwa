@@ -4,6 +4,8 @@ import { initializeAdminApp } from '@/functions';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { notificationTemplates } from '@/lib/notification-templates';
 import { differenceInHours, format } from 'date-fns';
+import { canSendNotification } from '@/lib/notify-guard';
+import { renderTemplate as renderTemplateInternal } from '@/lib/render-template';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -23,11 +25,10 @@ function renderTemplate(
   tpl: { title: string; body: string; link?: string },
   vars: Record<string, string | number | undefined> = {}
 ) {
-  const interp = (s: string) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => String(vars[k] ?? ''));
   return {
-    title: interp(tpl.title),
-    body: interp(tpl.body),
-    link: tpl.link ? interp(tpl.link) : undefined,
+    title: renderTemplateInternal(tpl.title, vars),
+    body: renderTemplateInternal(tpl.body, vars),
+    link: tpl.link ? renderTemplateInternal(tpl.link, vars) : undefined,
   };
 }
 
@@ -48,6 +49,10 @@ type UserProfile = {
     replacementActivity?: Record<string, string>;
   }>;
   reminders?: string;
+  meta?: { // For notify guard
+      lastNotifAt?: number;
+      lastNotifHash?: string;
+  }
 };
 
 type Urge = {
@@ -108,7 +113,7 @@ async function generateNotificationsForUser(userId: string, userProfile: UserPro
   const urges = urgesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any })) as Urge[];
 
   // queue we’ll batch-write
-  const toCreate: Array<{ key: string; title: string; body: string; link?: string; rule: string }> = [];
+  const toCreate: Array<{ key: string; title: string; body: string; link?: string; rule: string, hash: string }> = [];
   const lastNotifiedUpdates: Record<string, any> = {};
   const add = (
     rule: string,
@@ -119,8 +124,20 @@ async function generateNotificationsForUser(userId: string, userProfile: UserPro
     if (toCreate.length >= MAX_NOTIFS_PER_CHECK) return;
     const tpl = pick(group);
     const rendered = renderTemplate(tpl, { name: userProfile.username, ...vars });
-    toCreate.push({ key, rule, ...rendered });
-    lastNotifiedUpdates[`lastNotified.${key}`] = true;
+
+    const guard = canSendNotification({
+      lastSentAt: userProfile.meta?.lastNotifAt,
+      minCooldownMin: 90, // 90 min cooldown
+      lastContentHash: userProfile.meta?.lastNotifHash,
+      nextContent: rendered.body,
+    });
+    
+    if (guard.ok) {
+        toCreate.push({ key, rule, ...rendered, hash: guard.hash });
+        lastNotifiedUpdates[`lastNotified.${key}`] = true;
+        lastNotifiedUpdates['meta.lastNotifAt'] = Date.now();
+        lastNotifiedUpdates['meta.lastNotifHash'] = guard.hash;
+    }
   };
 
   // --- Rule 1: High-volume log (>= 5 in one entry)

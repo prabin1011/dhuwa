@@ -9,8 +9,9 @@ import type { Timestamp } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getSummaryStats, type SummaryStats } from '@/lib/get-summary-stats';
+import { getSummaryStats } from '@/lib/get-summary-stats';
 import { insightTemplates } from '@/lib/insight-templates';
+import { renderTemplate } from '@/lib/render-template';
 
 interface SmokingMoment {
     id: string;
@@ -50,13 +51,6 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function renderTemplate(template: string, stats: SummaryStats) {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
-    const value = stats[key as keyof SummaryStats];
-    return value !== undefined && value !== null ? String(value) : `{{${key}}}`;
-  });
-}
-
 export function DailyInsight({ userProfile, urges }: DailyInsightProps) {
     const [insight, setInsight] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -73,8 +67,9 @@ export function DailyInsight({ userProfile, urges }: DailyInsightProps) {
 
     const showRandomQuote = useCallback(() => {
         const randomQuote = pick(insightTemplates.identity); // Default to identity
-        setInsight(randomQuote);
-    }, []);
+        const stats = getSummaryStats(urges, userProfile);
+        setInsight(renderTemplate(randomQuote, stats));
+    }, [urges, userProfile]);
 
     useEffect(() => {
         if (!initialQuoteSet) {
