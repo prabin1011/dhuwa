@@ -9,7 +9,7 @@ import type { Timestamp } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getSummaryStats } from '@/lib/get-summary-stats';
+import { getSummaryStats, type SummaryStats } from '@/lib/get-summary-stats';
 import { insightTemplates } from '@/lib/insight-templates';
 import { renderTemplate } from '@/lib/render-template';
 
@@ -51,6 +51,22 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+function chooseTemplate(stats: SummaryStats) {
+  if (stats.todaySmokes > (stats.previousAverage ?? 0)) {
+    return pick(insightTemplates.recovery);
+  }
+  if (Number(stats.reductionPercent) > 0 || stats.todaySmokes < (stats.previousAverage ?? 0)) {
+    return pick(insightTemplates.progress);
+  }
+  if ((stats.urgeCount ?? 0) <= 1 && stats.timeBetweenUrges !== 'your first one') {
+    return pick(insightTemplates.identity);
+  }
+  return pick([
+    ...insightTemplates.mindfulness,
+    ...insightTemplates.trigger,
+  ]);
+}
+
 export function DailyInsight({ userProfile, urges }: DailyInsightProps) {
     const [insight, setInsight] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -65,10 +81,10 @@ export function DailyInsight({ userProfile, urges }: DailyInsightProps) {
         }
     }, []);
 
-    const showRandomQuote = useCallback(() => {
-        const randomQuote = pick(insightTemplates.identity); // Default to identity
+    const showNewInsight = useCallback(() => {
         const stats = getSummaryStats(urges, userProfile);
-        setInsight(renderTemplate(randomQuote, stats));
+        const template = chooseTemplate(stats);
+        setInsight(renderTemplate(template, stats));
     }, [urges, userProfile]);
 
     useEffect(() => {
@@ -81,7 +97,7 @@ export function DailyInsight({ userProfile, urges }: DailyInsightProps) {
             setInsight(renderTemplate(randomTemplate, stats));
             setInitialQuoteSet(true);
         }
-    }, [initialQuoteSet, showRandomQuote, urges, userProfile]);
+    }, [initialQuoteSet, showNewInsight, urges, userProfile]);
 
     const handleAnalyze = async () => {
         if (lastAnalysis && differenceInHours(new Date(), lastAnalysis) < COOLDOWN_HOURS) {
@@ -94,18 +110,7 @@ export function DailyInsight({ userProfile, urges }: DailyInsightProps) {
 
         setIsLoading(true);
         try {
-            const stats = getSummaryStats(urges, userProfile);
-            const allTemplates = [
-                ...insightTemplates.identity,
-                ...insightTemplates.mindfulness,
-                ...insightTemplates.trigger,
-                ...insightTemplates.progress,
-                ...insightTemplates.recovery,
-            ];
-            const randomTemplate = pick(allTemplates);
-            const renderedInsight = renderTemplate(randomTemplate, stats);
-            
-            setInsight(renderedInsight);
+            showNewInsight();
             const now = new Date();
             setLastAnalysis(now);
             localStorage.setItem(LAST_ANALYSIS_KEY, String(now.getTime()));
