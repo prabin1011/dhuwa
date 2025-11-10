@@ -53,6 +53,7 @@ export interface SummaryStats {
     motivation: string;
     goal: string;
     // For trigger templates
+    previousPattern?: string;
     triggerTime?: string;
     previousCount?: number;
     currentCount?: number;
@@ -71,6 +72,7 @@ export interface SummaryStats {
     smokeFreeHours?: number;
     missedSmokes?: number;
     urgeCount?: number;
+    smokeCount?: number;
     // For recovery templates
     slipCount?: number;
     slipReason?: string;
@@ -195,6 +197,7 @@ export function getSummaryStats(urges: WithId<Urge>[], profile: UserProfile): Su
         goal: profile.goal || 'a smoke-free life',
 
         // Default values for other template placeholders
+        previousPattern: '2', // As in 'every 2 hours'
         previousAverage: Math.round(avgLast7Days),
         triggerTime: "the evening",
         previousCount: 5,
@@ -205,19 +208,19 @@ export function getSummaryStats(urges: WithId<Urge>[], profile: UserProfile): Su
         emotionTriggerCount: 3,
         routineTriggerCount: 5,
         pattern: "a mid-day slump",
-        skippedSmokes: 4,
+        skippedSmokes: (profile.moments || []).filter(m => m.completed?.[today] === false).length,
         oldGap: "2 hours",
         newGap: "4 hours",
-        minutesSaved: 4 * (parseInt(profile.breakDuration || '5', 10)),
+        minutesSaved: (profile.moments || []).filter(m => m.completed?.[today] === false).length * (parseInt(profile.breakDuration || '5', 10)),
         smokeFreeHours: Math.floor(currentStreakMs / (1000 * 60 * 60)),
         missedSmokes: 10,
         urgeCount: todayUrges.length,
+        smokeCount: todayUrges.length,
         slipCount: todaySmokes,
         slipReason: "a moment of high stress",
         oldDailyAverage: Math.round(avgLast7Days),
         moodAfterSlip: "regretful",
         slipTime: "2:00 PM",
         reason: "an old habit",
-        smokeCount: 1, // Example
     };
 }
