@@ -1,5 +1,6 @@
+'use client';
 import {
-  addDoc, collection, doc, serverTimestamp, Firestore,
+  addDoc, collection, serverTimestamp, Firestore,
 } from 'firebase/firestore';
 
 export async function createCommunityPost(
@@ -10,11 +11,14 @@ export async function createCommunityPost(
 ) {
   const ref = collection(firestore, 'community_posts');
   await addDoc(ref, {
-    userId, 
-    username, 
-    habit, 
-    activity, 
+    userId,
+    username,
+    habit,
+    activity,
     momentLabel,
     createdAt: serverTimestamp(),
+    likesCount: 0,
+    commentsCount: 0,
+    likeIds: [],
   });
 }

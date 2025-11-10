@@ -18,12 +18,13 @@ service cloud.firestore {
     // ----- Posts -----
     match /community_posts/{postId} {
       allow create: if signedIn()
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasAll([
+          'userId','username','habit','activity','momentLabel',
+          'createdAt','likeIds','likesCount','commentsCount'
+        ]);
 
       allow delete: if signedIn() && resource.data.userId == request.auth.uid;
-      
-      // No updates allowed in this simplified version
-      allow update: if false;
     }
   }
 }
