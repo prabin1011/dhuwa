@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/firebase";
 import Link from 'next/link';
 import { Button } from "../ui/button";
-import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather, MessageSquare, Shield, HelpCircle, Users } from "lucide-react";
+import { LifeBuoy, LogOut, FileText, Info, User as UserIcon, Book, Feather, MessageSquare, Shield, HelpCircle, Users, Watch } from "lucide-react";
 import { ProfileSheet } from '../profile/profile-sheet';
 import type { WithId } from '@/firebase';
 import { useRouter, useParams } from 'next/navigation';
@@ -127,6 +127,12 @@ export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownPr
             <DropdownMenuItem>
                 <Shield className="mr-2 h-4 w-4" />
                 <span>Privacy Policy</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href={`/${locale}/wearable`}>
+            <DropdownMenuItem>
+                <Watch className="mr-2 h-4 w-4" />
+                <span>Wearable</span>
             </DropdownMenuItem>
           </Link>
            <Link href={`/${locale}/disclaimer`}>

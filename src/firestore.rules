@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   function signedIn() { return request.auth != null; }
@@ -8,6 +9,13 @@ service cloud.firestore {
     // ===== Private user tree =====
     match /users/{userId}/{doc=**} {
       allow read, write: if isOwner(userId);
+    }
+    
+    // Rule for wearable data
+    match /users/{userId}/wearable/{docId} {
+      // Allow wearables to write, but only users to read their own data.
+      allow read: if isOwner(userId);
+      allow write: if signedIn(); // Potentially tighten this with a specific claim for wearables
     }
 
     // ===== Community: readable to signed-in users =====
