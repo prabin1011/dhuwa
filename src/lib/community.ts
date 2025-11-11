@@ -1,3 +1,4 @@
+
 'use client';
 import {
   addDoc, collection, serverTimestamp, Firestore,
@@ -22,3 +23,5 @@ export async function createCommunityPost(
     likeIds: [],
   });
 }
+
+    

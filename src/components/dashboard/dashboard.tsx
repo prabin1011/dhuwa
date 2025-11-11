@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { SmokeLogger } from "@/components/dashboard/smoke-logger";
@@ -33,6 +32,7 @@ import type { Locale } from "@/i18n";
 import { Cigarette, Leaf, MinusCircle } from "lucide-react";
 import { Logo } from "../logo";
 import { CommunityTeaser } from "../community/community-teaser";
+import DeviceCard from "./device-card";
 
 
 interface SmokingMoment {
@@ -220,3 +220,5 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
     </div>
   );
 }
+
+    

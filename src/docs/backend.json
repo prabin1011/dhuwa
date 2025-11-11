@@ -139,6 +139,13 @@
             "$ref": "#/entities/SmokingMoment"
           }
         },
+        "devices": {
+            "type": "array",
+            "description": "List of connected health data sources.",
+            "items": {
+                "$ref": "#/entities/Device"
+            }
+        },
         "fcmTokens": {
           "type": "array",
           "description": "Firebase Cloud Messaging tokens for push notifications.",
@@ -152,12 +159,21 @@
     "UrgeEntry": {
       "title": "UrgeEntry",
       "type": "object",
-      "description": "Represents a single instance of the user logging a smoking urge.",
+      "description": "Represents a single instance of the user logging a smoking urge. Replaces 'smokes' collection.",
       "properties": {
         "timestamp": {
           "type": "string",
           "description": "The exact date and time the urge was logged.",
           "format": "date-time"
+        },
+        "source": {
+            "type": "string",
+            "description": "How the entry was created.",
+            "enum": ["user_confirm", "manual", "import"]
+        },
+        "context": {
+            "type": "string",
+            "description": "Context of the urge, e.g., after_meal, stress."
         },
         "notes": {
           "type": "string",
@@ -188,12 +204,17 @@
         "count": {
           "type": "number",
           "description": "The number of items (e.g., cigarettes) consumed in this single urge."
+        },
+        "hr": {
+            "type": "number",
+            "description": "Heart rate at the time of the event, if available."
         }
       },
       "required": [
         "timestamp",
         "moodBefore",
-        "count"
+        "count",
+        "source"
       ]
     },
     "ReplacementActivity": {
@@ -286,9 +307,64 @@
         "habit": { "type": "string", "description": "The habit being replaced (e.g., 'Cigarettes')." },
         "activity": { "type": "string", "description": "The replacement activity that was performed." },
         "momentLabel": { "type": "string", "description": "The label of the smoking moment that was replaced." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "When the post was created." }
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the post was created." },
+        "likeIds": { "type": "array", "items": { "type": "string" }, "description": "Array of user IDs who liked this post." },
+        "likesCount": { "type": "number", "description": "The total number of likes." },
+        "commentsCount": { "type": "number", "description": "The total number of comments." }
       },
-      "required": ["userId", "username", "activity", "momentLabel", "createdAt"]
+      "required": ["userId", "username", "activity", "momentLabel", "createdAt", "likesCount", "commentsCount"]
+    },
+    "Comment": {
+        "title": "Comment",
+        "type": "object",
+        "description": "A comment on a community post.",
+        "properties": {
+            "userId": { "type": "string", "description": "The ID of the user who made the comment." },
+            "username": { "type": "string", "description": "The display name of the commenter." },
+            "text": { "type": "string", "description": "The content of the comment." },
+            "parentId": { "type": ["string", "null"], "description": "The ID of the parent comment, if this is a reply." },
+            "createdAt": { "type": "string", "format": "date-time", "description": "When the comment was created." }
+        },
+        "required": ["userId", "username", "text", "createdAt"]
+    },
+    "Device": {
+        "title": "Device",
+        "type": "object",
+        "description": "Represents a connected health data source.",
+        "properties": {
+            "id": { "type": "string", "description": "Unique identifier for the device or service." },
+            "type": { "type": "string", "enum": ["healthkit", "healthconnect", "ble", "fitbit"], "description": "The type of health data source." },
+            "status": { "type": "string", "enum": ["connected", "disconnected", "error"], "description": "The connection status." }
+        },
+        "required": ["id", "type", "status"]
+    },
+    "Measurement": {
+        "title": "Measurement",
+        "type": "object",
+        "description": "A single piece of telemetry data from a health source.",
+        "properties": {
+            "ts": { "type": "string", "format": "date-time", "description": "Timestamp of the measurement." },
+            "src": { "type": "string", "enum": ["healthkit", "healthconnect", "ble"], "description": "The source of the data." },
+            "hr": { "type": "number", "description": "Heart rate in beats per minute." },
+            "steps": { "type": "number", "description": "Step count." },
+            "motionState": { "type": "string", "enum": ["still", "active"], "description": "The user's motion state." }
+        },
+        "required": ["ts", "src", "hr"]
+    },
+    "Detection": {
+        "title": "Detection",
+        "type": "object",
+        "description": "A record of a suspected or confirmed smoking event.",
+        "properties": {
+            "ts": { "type": "string", "format": "date-time", "description": "Timestamp of the detection." },
+            "kind": { "type": "string", "enum": ["suspected_smoking"], "description": "The type of event detected." },
+            "hr": { "type": "number", "description": "Heart rate at the time of detection." },
+            "baseline": { "type": "number", "description": "The user's baseline heart rate at the time." },
+            "motionState": { "type": "string", "enum": ["still", "active"], "description": "The user's motion state." },
+            "score": { "type": "number", "description": "The confidence score of the detection (0-1)." },
+            "confirmed": { "type": "boolean", "description": "Whether the user confirmed this was a smoking event." }
+        },
+        "required": ["ts", "kind", "hr", "baseline", "motionState", "score", "confirmed"]
     }
   },
   "auth": {
@@ -307,7 +383,15 @@
       "schema": {
         "$ref": "#/entities/UrgeEntry"
       },
-      "description": "A collection of all smoking urges logged by a specific user."
+      "description": "A collection of all smoking urges logged by a specific user. This collection is the source of truth for 'smokes'."
+    },
+    "'/users/{userId}/measurements/{measurementId}'": {
+        "schema": { "$ref": "#/entities/Measurement" },
+        "description": "A collection of time-series health data from connected devices."
+    },
+    "'/users/{userId}/detections/{detectionId}'": {
+        "schema": { "$ref": "#/entities/Detection" },
+        "description": "A log of smoking events suspected by the backend heuristic."
     },
     "'/users/{userId}/notifications/{notificationId}'": {
         "schema": {
@@ -320,6 +404,14 @@
         "$ref": "#/entities/CommunityPost"
       },
       "description": "A collection of all public replacement activity posts from all users."
+    },
+    "'/community_posts/{postId}/comments/{commentId}'": {
+      "schema": {
+        "$ref": "#/entities/Comment"
+      },
+      "description": "Subcollection of comments for a specific community post."
     }
   }
 }
+
+    
