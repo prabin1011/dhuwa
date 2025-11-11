@@ -24,27 +24,28 @@ export default function DeviceCard({
   const [state, setState] = useState(initial ?? {});
 
   const connectHK = async () => {
-    // open native bridge / prompt; on success:
-    setState(s => ({ ...s, healthkit: true }));
-    // write to Firestore: users/{userId}.devices
+    // SIMULATION: In a real app, this would open a native prompt.
+    // Here, we just update the UI state to show a connection.
+    setState(s => ({ ...s, healthkit: true, lastSync: new Date().toLocaleTimeString() }));
   };
 
   const connectHC = async () => {
-    // request Health Connect perms, then:
-    setState(s => ({ ...s, healthconnect: true }));
+    // SIMULATION: In a real app, this would request Health Connect permissions.
+    setState(s => ({ ...s, healthconnect: true, lastSync: new Date().toLocaleTimeString() }));
   };
 
   const scanBLE = async () => {
-    // start BLE scan & connect to band; save token/deviceId
-    setState(s => ({ ...s, ble: { connected: true, name: 'Dhuwa Band' }}));
+    // SIMULATION: In a real app, this would start a Bluetooth scan.
+    setState(s => ({ ...s, ble: { connected: true, name: 'Dhuwa Band' }, lastSync: new Date().toLocaleTimeString() }));
   };
 
   const toggleAutoDetect = async (v: boolean) => {
+    // In a real app, this would update a user setting in Firestore.
     setState(s => ({ ...s, autoDetect: v }));
-    // update users/{userId}.settings.autoDetect
   };
 
   const toggleAutoLog = async (v: boolean) => {
+    // In a real app, this would update a user setting in Firestore.
     setState(s => ({ ...s, autoLog: v }));
   };
 
@@ -58,10 +59,14 @@ export default function DeviceCard({
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex gap-2 flex-wrap">
-          <Button onClick={connectHK} disabled={!!state.healthkit}>Connect Apple Health</Button>
-          <Button onClick={connectHC} disabled={!!state.healthconnect}>Connect Health Connect</Button>
+          <Button onClick={connectHK} disabled={!!state.healthkit}>
+            {state.healthkit ? "✓ Apple Health Connected" : "Connect Apple Health"}
+          </Button>
+          <Button onClick={connectHC} disabled={!!state.healthconnect}>
+            {state.healthconnect ? "✓ Health Connect Connected" : "Connect Health Connect"}
+          </Button>
           <Button variant="outline" onClick={scanBLE} disabled={!!state.ble?.connected}>
-            {state.ble?.connected ? `Connected: ${state.ble?.name ?? 'Band'}` : 'Pair Dhuwa Band (BLE)'}
+            {state.ble?.connected ? `✓ ${state.ble?.name ?? 'Band'} Connected` : 'Pair Dhuwa Band (BLE)'}
           </Button>
         </div>
 
@@ -102,5 +107,3 @@ export default function DeviceCard({
     </Card>
   );
 }
-
-    
