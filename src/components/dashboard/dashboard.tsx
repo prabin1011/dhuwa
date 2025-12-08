@@ -169,10 +169,10 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
 
                 {habitTabs.length > 2 && (
                     <Tabs value={activeHabit} onValueChange={setActiveHabit} className="w-full mb-6">
-                        <TabsList className="grid w-full grid-cols-4 h-12">
+                        <TabsList className="grid w-full h-12" style={{ gridTemplateColumns: `repeat(${habitTabs.length}, 1fr)` }}>
                             {habitTabs.map(habit => (
                                 <TabsTrigger key={habit} value={habit} className="flex-grow text-xs h-full">
-                                     {habit === 'All' ? 'All' : <HabitIcon habit={habit} className="w-6 h-6" />}
+                                     {habit === 'All' ? 'All' : <HabitIcon habit={habit} className="w-5 h-5" />}
                                 </TabsTrigger>
                             ))}
                         </TabsList>
