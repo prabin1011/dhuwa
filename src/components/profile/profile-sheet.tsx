@@ -88,11 +88,12 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         try {
             const finalHabitDetails: OnboardingData['habitDetails'] = {};
             for (const habit in data.habitDetails) {
+                const d = data.habitDetails[habit] || {};
                 finalHabitDetails[habit] = {
-                    packCost: String(data.habitDetails[habit].packCost) || '0',
-                    itemsPerPack: String(data.habitDetails[habit].itemsPerPack) || '0',
-                    itemsPerDay: data.habitDetails[habit].itemsPerDay
-                }
+                    packCost: String(d.packCost) || '0',
+                    itemsPerPack: String(d.itemsPerPack) || '0',
+                    itemsPerDay: d.itemsPerDay || '',
+                };
             }
 
             const dataToSave = {
