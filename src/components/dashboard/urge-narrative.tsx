@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from "react";
@@ -7,7 +8,7 @@ import { format } from "date-fns";
 import { Skeleton } from "../ui/skeleton";
 import { useFirebase } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
-import { Cigarette, Leaf, MinusCircle } from "lucide-react";
+import { Cigarette, Leaf, MinusCircle, Wind } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocale } from "next-intl";
 import { narrateUrge } from "@/ai/flows/narrate-urge-flow";
@@ -85,6 +86,7 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
     const countLabel = urge.count && urge.count > 1 ? ` (x${urge.count})` : '';
     
     const HabitIcon = () => {
+      if (urge.type === 'Vape') return <Wind className="w-3.5 h-3.5 text-blue-400" />;
       if (urge.type === 'Weed') return <Leaf className="w-3.5 h-3.5 text-purple-400" />;
       if (urge.type === 'Snus') return <MinusCircle className="w-3.5 h-3.5 text-gray-400" />;
       return <Cigarette className="w-3.5 h-3.5 text-primary" />;

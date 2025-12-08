@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -77,6 +78,7 @@ export function DailyHabitChart({ urges, selectedDate, habits }: DailyHabitChart
 
     const habitColors: Record<string, string> = {
         'Cigarettes': 'hsl(var(--primary))',
+        'Vape': 'hsl(var(--chart-4))',
         'Weed': 'hsl(var(--chart-6))',
         'Snus': 'hsl(var(--chart-3))'
     };

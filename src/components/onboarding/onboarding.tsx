@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -5,7 +6,7 @@ import { useFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Check, Cigarette, Leaf, MinusCircle } from 'lucide-react';
+import { ArrowLeft, Check, Cigarette, Leaf, MinusCircle, Wind } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '../ui/checkbox';
@@ -78,6 +79,7 @@ const INITIAL_DATA: OnboardingData = {
     checkInTime: '',
     preferredTone: '',
     reminders: '',
+    shareToCommunity: 'no',
 };
 
 export function Onboarding() {
@@ -112,8 +114,8 @@ export function Onboarding() {
   const dynamicSteps = useMemo(() => {
     const steps: Step[] = [];
     (formData.habits || []).forEach(habit => {
-        steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.packCost`, question: `Average cost of a pack of ${habit}?`, type: 'number'});
-        steps.push({ id: -2, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerPack`, question: `How many ${habit} in a pack?`, type: 'number' });
+        steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.packCost`, question: `Average cost of a pack/pod of ${habit}?`, type: 'number'});
+        steps.push({ id: -2, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerPack`, question: `How many ${habit === 'Cigarettes' ? 'in a pack' : 'pods/cartridges'}?`, type: 'number' });
         steps.push({ id: -3, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerDay`, question: `Average ${habit} per day?`, type: 'radio', options: [ {value: '1-5', label: '1-5'}, {value: '6-10', label: '6-10'}, {value: '11-15', label: '11-15'}, {value: '16-20', label: '16-20'}, {value: '20+', label: 'More than 20'}, ]});
     });
     return steps;
@@ -267,11 +269,12 @@ export function Onboarding() {
             </h1>
             <div className="w-full max-w-md">
                 {currentStepConfig.type === 'checkbox' && (
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <div className="grid grid-cols-2 gap-4">
                        {(currentStepConfig.options || []).map(habit => (
                             <Label key={habit.value} htmlFor={`habit-${habit.value}`} className={cn("flex flex-col items-center justify-center gap-2 rounded-md border-2 border-secondary bg-secondary/50 p-6 cursor-pointer hover:border-primary transition-colors", (formData.habits || []).includes(habit.value) && 'border-primary ring-2 ring-primary bg-primary/10')}>
                                  <Checkbox id={`habit-${habit.value}`} checked={(formData.habits || []).includes(habit.value)} onCheckedChange={() => handleHabitChange(habit.value)} className="sr-only" />
                                  {habit.value === 'Cigarettes' && <Cigarette className="w-8 h-8" />}
+                                 {habit.value === 'Vape' && <Wind className="w-8 h-8" />}
                                  {habit.value === 'Weed' && <Leaf className="w-8 h-8" />}
                                  {habit.value === 'Snus' && <MinusCircle className="w-8 h-8" />}
                                  <span className="font-medium text-sm">{habit.label}</span>

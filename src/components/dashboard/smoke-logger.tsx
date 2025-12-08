@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { collection, serverTimestamp, addDoc } from "firebase/firestore";
-import { Cigarette, Leaf, Minus, Plus, MinusCircle } from "lucide-react";
+import { Cigarette, Leaf, Minus, Plus, MinusCircle, Wind } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -105,6 +105,7 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
   }
 
   const HabitIcon = ({ habit }: { habit: string }) => {
+    if (habit === 'Vape') return <Wind className="w-4 h-4" />;
     if (habit === 'Weed') return <Leaf className="w-4 h-4" />;
     if (habit === 'Snus') return <MinusCircle className="w-4 h-4" />;
     return <Cigarette className="w-4 h-4" />;

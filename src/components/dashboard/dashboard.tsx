@@ -29,7 +29,7 @@ import { User } from "firebase/auth";
 import { ReplacementMoodReport } from "./replacement-mood-report";
 import { useParams } from "next/navigation";
 import type { Locale } from "@/i18n";
-import { Cigarette, Leaf, MinusCircle } from "lucide-react";
+import { Cigarette, Leaf, MinusCircle, Wind } from "lucide-react";
 import { Logo } from "../logo";
 import { CommunityTeaser } from "../community/community-teaser";
 import DeviceCard from "./device-card";
@@ -67,6 +67,7 @@ interface DashboardProps {
 const HabitIcon = ({ habit, className }: { habit: string, className?: string }) => {
     switch (habit) {
         case 'Cigarettes': return <Cigarette className={className} />;
+        case 'Vape': return <Wind className={className} />;
         case 'Weed': return <Leaf className={className} />;
         case 'Snus': return <MinusCircle className={className} />;
         default: return null;
@@ -220,5 +221,3 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
     </div>
   );
 }
-
-    
