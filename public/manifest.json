@@ -1,22 +1,24 @@
+
 {
   "name": "Dhuwa",
   "short_name": "Dhuwa",
-  "description": "A quiet, reflective companion for your quit journey. No judgment, no willpower battles—just clarity.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#111317",
   "theme_color": "#111317",
+  "description": "A quiet, reflective companion for your quit journey. No judgment, no willpower battles—just clarity.",
   "icons": [
     {
       "src": "/192x192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "sizes": "192x192"
+      "purpose": "any maskable"
     },
     {
       "src": "/512x512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }
