@@ -26,11 +26,17 @@ export default function DashboardPage() {
   }, [isUserLoading, user, router, locale]);
 
 
-  // Build the user profile ref when user exists
-  const ref = useMemoFirebase(() => (user ? doc(firestore, 'users', user.uid) : null), [firestore, user]);
-  const {data: profile, isLoading} = useDoc(ref);
+  // Build the user profile ref only when user and firestore are available.
+  const ref = useMemoFirebase(() => {
+    if (user && firestore) {
+      return doc(firestore, 'users', user.uid);
+    }
+    return null;
+  }, [firestore, user]);
 
-  if (isUserLoading || isLoading) {
+  const {data: profile, isLoading: isProfileLoading} = useDoc(ref);
+
+  if (isUserLoading || isProfileLoading) {
     return (
         <div className="h-screen w-screen grid place-items-center text-center p-4">
             <div className="flex flex-col items-center gap-4">
