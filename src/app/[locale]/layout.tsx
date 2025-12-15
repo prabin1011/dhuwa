@@ -32,8 +32,8 @@ export default async function LocaleLayout({
         <meta name="theme-color" content="#111317" />
         
         {/* Favicon Links */}
-        <link rel="icon" href="/icons.png" type="image/png" sizes="any" />
-        <link rel="apple-touch-icon" href="/icons.png" />
+        <link rel="icon" href="/Favicon.png" type="image/png" sizes="any" />
+        <link rel="apple-touch-icon" href="/192x192.png" />
 
         {/* Google tag (gtag.js) */}
         <Script async src="https://www.googletagmanager.com/gtag/js?id=G-PJ8R05LFX9"></Script>
