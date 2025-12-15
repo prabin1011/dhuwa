@@ -32,7 +32,7 @@ export default async function LocaleLayout({
         <meta name="theme-color" content="#111317" />
         
         {/* Favicon Links */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
         <link rel="apple-touch-icon" href="/192x192.png" />
 
         {/* Google tag (gtag.js) */}
