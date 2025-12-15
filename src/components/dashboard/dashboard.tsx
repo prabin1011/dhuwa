@@ -67,7 +67,7 @@ interface DashboardProps {
 const HabitIcon = ({ habit, className }: { habit: string, className?: string }) => {
     switch (habit) {
         case 'Cigarettes': return <Cigarette className={className} />;
-        case 'Vape': return <Wind className={className} />;
+        case 'Vape': return <Wind className={cn("w-5 h-5", className)} />;
         case 'Weed': return <Leaf className={className} />;
         case 'Snus': return <MinusCircle className={className} />;
         default: return null;
@@ -149,14 +149,10 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
             <div className="w-full max-w-md mx-auto">
                 <header className="mb-6 flex justify-between items-start">
                     <div>
-                        <div className="flex items-baseline gap-2">
-                            <Link href={`/${locale}/dashboard`} className="flex items-center gap-2">
-                                <Logo className="w-7 h-7" />
-                                <h1 className="text-3xl font-bold tracking-tighter font-heading lowercase cursor-pointer">
-                                    dhuwa
-                                </h1>
-                             </Link>
-                        </div>
+                        <Link href={`/${locale}/dashboard`} className="flex items-center gap-2">
+                          <Logo className="w-8 h-8" />
+                          <span className="text-xl font-bold font-heading">Dhuwa</span>
+                        </Link>
                         <p className="text-sm text-muted-foreground mt-1">
                           Welcome, {userProfile.username || user?.email || "Guest"}. Your freedom starts with awareness.
                         </p>
