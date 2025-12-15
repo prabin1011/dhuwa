@@ -8,8 +8,8 @@ export function Logo(props: Omit<ComponentProps<typeof Image>, 'src' | 'alt' | '
     <Image
       src="/512x512.png"
       alt="Dhuwa Logo"
-      width={32}
-      height={32}
+      width={96}
+      height={96}
       {...props}
       className={cn("w-8 h-8", props.className)}
     />
