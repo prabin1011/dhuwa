@@ -67,10 +67,10 @@ interface DashboardProps {
 
 const HabitIcon = ({ habit, className }: { habit: string, className?: string }) => {
     switch (habit) {
-        case 'Cigarettes': return <Cigarette className={className} />;
-        case 'Vape': return <Wind className={cn("w-5 h-5", className)} />;
-        case 'Weed': return <Leaf className={className} />;
-        case 'Snus': return <MinusCircle className={className} />;
+        case 'Cigarettes': return <Cigarette className={cn("h-5 w-5", className)} />;
+        case 'Vape': return <Wind className={cn("h-5 w-5", className)} />;
+        case 'Weed': return <Leaf className={cn("h-5 w-5", className)} />;
+        case 'Snus': return <MinusCircle className={cn("h-5 w-5", className)} />;
         default: return null;
     }
 };
@@ -150,9 +150,8 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
             <div className="w-full max-w-md mx-auto">
                 <header className="mb-6 flex justify-between items-start">
                     <div>
-                        <Link href={`/${locale}/dashboard`} className="flex items-center gap-2">
-                          <Logo className="w-8 h-8" />
-                          <span className="text-xl font-bold font-heading">Dhuwa</span>
+                        <Link href={`/${locale}/dashboard`}>
+                          <Logo className="w-12 h-12" />
                         </Link>
                         <p className="text-sm text-muted-foreground mt-1">
                           Welcome, {userProfile.username || user?.email || "Guest"}. Your freedom starts with awareness.
@@ -169,7 +168,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                         <TabsList className="grid w-full h-12" style={{ gridTemplateColumns: `repeat(${habitTabs.length}, 1fr)` }}>
                             {habitTabs.map(habit => (
                                 <TabsTrigger key={habit} value={habit} className="flex flex-grow items-center justify-center text-xs h-full">
-                                     {habit === 'All' ? 'All' : <HabitIcon habit={habit} className="w-5 h-5" />}
+                                     {habit === 'All' ? 'All' : <HabitIcon habit={habit} />}
                                 </TabsTrigger>
                             ))}
                         </TabsList>

@@ -14,7 +14,6 @@ export default function LandingPage({ params: { locale } }: { params: { locale: 
         <div className="container flex h-14 items-center">
           <div className="mr-4 flex items-center">
             <Logo className="h-8 w-8" />
-            <span className="ml-2 font-bold">Dhuwa</span>
           </div>
           <div className="flex flex-1 items-center justify-end space-x-2">
             <nav className="flex items-center space-x-2">
@@ -70,7 +69,6 @@ export default function LandingPage({ params: { locale } }: { params: { locale: 
         <div className="container flex flex-col items-center justify-between gap-4 sm:flex-row">
             <div className="flex items-center gap-2">
                 <Logo className="h-6 w-6" />
-                <p className="text-sm font-medium">Dhuwa</p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
                  <Link href={`/${locale}/about`} className="hover:text-foreground">About</Link>

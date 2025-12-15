@@ -6,7 +6,7 @@ import type { ComponentProps } from "react";
 export function Logo(props: Omit<ComponentProps<typeof Image>, 'src' | 'alt' | 'width' | 'height'>) {
   return (
     <Image
-      src="/192x192.png"
+      src="/512x512.png"
       alt="Dhuwa Logo"
       width={32}
       height={32}
