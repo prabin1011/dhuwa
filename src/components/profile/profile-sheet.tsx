@@ -126,12 +126,24 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
 
     const handleLanguageChange = (newLocale: Locale) => {
         setValue('language', newLocale, { shouldDirty: true });
-        handleSubmit(onSubmit)(); // Save the change immediately
-        document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
         
-        // We replace the current route with one for the new locale.
-        const newPath = pathname.startsWith(`/${locale}`) ? pathname.substring(`/${locale}`.length) : pathname;
-        router.replace(`/${newLocale}${newPath}`);
+        // Immediately save just the language change and then redirect.
+        handleSubmit(async (data) => {
+            if (!user) return;
+            const profileRef = doc(firestore, 'users', user.uid);
+            try {
+                await updateDoc(profileRef, { language: data.language });
+                document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
+                const newPath = pathname.startsWith(`/${locale}`) ? pathname.substring(`/${locale}`.length) : pathname;
+                router.replace(`/${newLocale}${newPath}`);
+            } catch (error: any) {
+                 toast({
+                    variant: "destructive",
+                    title: "Language Update Failed",
+                    description: error.message || "Could not save your language preference.",
+                });
+            }
+        })();
     }
     
     const isPermissionDenied = permissionStatus === 'denied';
@@ -442,3 +454,5 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     </Sheet>
   );
 }
+
+    
