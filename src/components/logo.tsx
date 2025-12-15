@@ -16,8 +16,8 @@ export function Logo(props: SVGProps<SVGSVGElement>) {
         {...props}
     >
         <title>Dhuwa Logo</title>
-        <path d="M12 4c-3.5 4-3 10.5 0 16" />
-        <path d="M12 4c3.5 4 3 10.5 0 16" />
+        {/* Replace this circle with your own SVG path data */}
+        <circle cx="12" cy="12" r="10" />
     </svg>
   );
 }
