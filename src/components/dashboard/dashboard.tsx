@@ -33,6 +33,7 @@ import { Cigarette, Leaf, MinusCircle, Wind } from "lucide-react";
 import { Logo } from "../logo";
 import { CommunityTeaser } from "../community/community-teaser";
 import DeviceCard from "./device-card";
+import { cn } from "@/lib/utils";
 
 
 interface SmokingMoment {
@@ -167,7 +168,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                     <Tabs value={activeHabit} onValueChange={setActiveHabit} className="w-full mb-6">
                         <TabsList className="grid w-full h-12" style={{ gridTemplateColumns: `repeat(${habitTabs.length}, 1fr)` }}>
                             {habitTabs.map(habit => (
-                                <TabsTrigger key={habit} value={habit} className="flex-grow text-xs h-full">
+                                <TabsTrigger key={habit} value={habit} className="flex flex-grow items-center justify-center text-xs h-full">
                                      {habit === 'All' ? 'All' : <HabitIcon habit={habit} className="w-5 h-5" />}
                                 </TabsTrigger>
                             ))}
