@@ -1,13 +1,41 @@
+'use client';
 
+import { useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import type { Locale } from '@/i18n';
 import { useTranslations } from 'next-intl';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export default function LandingPage({ params: { locale } }: { params: { locale: Locale } }) {
+export default function LandingPage() {
   const t = useTranslations('landing');
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+  const { locale } = useParams() as { locale: Locale };
 
+  useEffect(() => {
+    // If the user is loaded and authenticated, redirect to the dashboard.
+    if (!isUserLoading && user) {
+      router.replace(`/${locale}/dashboard`);
+    }
+  }, [user, isUserLoading, router, locale]);
+
+  // While checking auth state, show a loading UI.
+  if (isUserLoading || user) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Logo className="h-24 w-24 text-primary" />
+          <Skeleton className="h-6 w-48 mt-4" />
+        </div>
+      </div>
+    );
+  }
+
+  // Only render the landing page if the user is not logged in.
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">
