@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -87,11 +88,12 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         try {
             const finalHabitDetails: OnboardingData['habitDetails'] = {};
             for (const habit in data.habitDetails) {
+                const d = data.habitDetails[habit] || {};
                 finalHabitDetails[habit] = {
-                    packCost: String(data.habitDetails[habit].packCost) || '0',
-                    itemsPerPack: String(data.habitDetails[habit].itemsPerPack) || '0',
-                    itemsPerDay: data.habitDetails[habit].itemsPerDay
-                }
+                    packCost: String(d.packCost) || '0',
+                    itemsPerPack: String(d.itemsPerPack) || '0',
+                    itemsPerDay: d.itemsPerDay || '',
+                };
             }
 
             const dataToSave = {
@@ -104,6 +106,13 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                 description: "Your changes have been saved successfully.",
             });
             onOpenChange(false);
+
+            // If language was changed, reload the page to apply it
+            if (data.language !== locale) {
+                const newPath = pathname.startsWith(`/${locale}`) ? pathname.substring(`/${locale}`.length) : pathname;
+                router.push(`/${data.language}${newPath}`);
+            }
+
         } catch (error: any) {
             toast({
                 variant: "destructive",
@@ -125,10 +134,6 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const handleLanguageChange = (newLocale: Locale) => {
         setValue('language', newLocale, { shouldDirty: true });
         document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
-        // We replace the current route with one for the new locale.
-        // The pathname is locale-agnostic, so we need to construct the new path.
-        const newPath = pathname.startsWith(`/${locale}`) ? pathname.substring(`/${locale}`.length) : pathname;
-        router.replace(`/${newLocale}${newPath}`);
     }
     
     const isPermissionDenied = permissionStatus === 'denied';
@@ -163,7 +168,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
             router.push(`/${locale}/login`);
             onOpenChange(false);
 
-        } catch (error: any) {
+        } catch (error: any) => {
             console.error("Error deleting account:", error);
             setIsDeleting(false);
             toast({ variant: "destructive", title: "Deletion Failed", description: error.message || "Could not delete account. You may need to log in again." });
