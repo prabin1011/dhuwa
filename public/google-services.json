@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "856277572255",
+    "project_id": "studio-7251750297-88bd3",
+    "storage_bucket": "studio-7251750297-88bd3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:856277572255:android:dd4faff04fb7514ba620aa",
+        "android_client_info": {
+          "package_name": "com.dhuwa.twa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCZakqJObMl9rt2Uqetndv_Tb7AA0Lbso"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
