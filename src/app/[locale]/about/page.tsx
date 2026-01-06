@@ -1,4 +1,9 @@
+
 import type { Metadata } from 'next';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import type { Locale } from '@/i18n';
 
 export const metadata: Metadata = {
   title: 'About Dhuwa – Mission, Vision & Philosophy of Smoke-Free Living',
@@ -6,6 +11,8 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
+    const { locale } = useParams() as { locale: Locale };
+
   return (
     <div className="space-y-6">
       <div className="space-y-4 text-base italic text-foreground/90">
@@ -52,6 +59,11 @@ export default function AboutPage() {
       </div>
       
        <p>Welcome to your journey. Welcome to Dhuwa.</p>
+        <div className="py-8 text-center">
+            <Button asChild size="lg">
+                <Link href={`/${locale}/login`}>Join Dhuwa Today</Link>
+            </Button>
+        </div>
     </div>
   );
 }

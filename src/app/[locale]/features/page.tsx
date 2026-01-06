@@ -2,6 +2,10 @@
 import type { Metadata } from 'next';
 import { CheckCircle, Zap, BookOpen, Bell, Feather } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import type { Locale } from '@/i18n';
 
 export const metadata: Metadata = {
   title: 'Dhuwa App Features – Habit Tracker, Smoke Planner & Quit Journal',
@@ -42,6 +46,8 @@ const features = [
 ];
 
 export default function FeaturesPage() {
+    const { locale } = useParams() as { locale: Locale };
+
   return (
     <div className="space-y-8">
       <div className="text-center">
@@ -64,6 +70,11 @@ export default function FeaturesPage() {
           </Card>
         ))}
       </div>
+        <div className="py-8 text-center">
+            <Button asChild size="lg">
+                <Link href={`/${locale}/login`}>Join Dhuwa Today</Link>
+            </Button>
+        </div>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import {
   Accordion,
@@ -5,6 +6,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import type { Locale } from '@/i18n';
 
 export const metadata: Metadata = {
   title: 'FAQ – Dhuwa Quit Smoking App | Frequently Asked Questions',
@@ -46,6 +51,8 @@ const faqs = [
 ];
 
 export default function FAQPage() {
+    const { locale } = useParams() as { locale: Locale };
+
   return (
     <div className="space-y-8">
       <div className="text-center">
@@ -65,6 +72,12 @@ export default function FAQPage() {
           </AccordionItem>
         ))}
       </Accordion>
+
+        <div className="py-8 text-center">
+            <Button asChild size="lg">
+                <Link href={`/${locale}/login`}>Join Dhuwa Today</Link>
+            </Button>
+        </div>
     </div>
   );
 }

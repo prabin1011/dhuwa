@@ -129,12 +129,6 @@ export function UserProfileDropdown({ user, userProfile }: UserProfileDropdownPr
                 <span>Privacy Policy</span>
             </DropdownMenuItem>
           </Link>
-          <Link href={`/${locale}/wearable`}>
-            <DropdownMenuItem>
-                <Watch className="mr-2 h-4 w-4" />
-                <span>Wearable</span>
-            </DropdownMenuItem>
-          </Link>
            <Link href={`/${locale}/disclaimer`}>
             <DropdownMenuItem>
                 <Shield className="mr-2 h-4 w-4" />
