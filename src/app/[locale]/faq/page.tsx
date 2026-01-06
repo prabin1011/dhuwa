@@ -1,5 +1,5 @@
+'use client';
 
-import type { Metadata } from 'next';
 import {
   Accordion,
   AccordionContent,
@@ -10,12 +10,6 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import type { Locale } from '@/i18n';
-
-export const metadata: Metadata = {
-  title: 'FAQ – Dhuwa Quit Smoking App | Frequently Asked Questions',
-  description:
-    'Find answers about the Dhuwa habit tracker. Learn about our philosophy, costs, data privacy, and using the smoke planner and replacement tools to quit.',
-};
 
 const faqs = [
   {

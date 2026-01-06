@@ -1,14 +1,10 @@
+'use client';
 
 import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import type { Locale } from '@/i18n';
-
-export const metadata: Metadata = {
-  title: 'About Dhuwa – Mission, Vision & Philosophy of Smoke-Free Living',
-  description: 'Learn about Dhuwa’s mission to help you quit smoking mindfully. Inspired by Allen Carr’s Easy Way, we focus on clarity over willpower using our habit tracker and smoke planner.',
-};
 
 export default function AboutPage() {
     const { locale } = useParams() as { locale: Locale };
@@ -55,7 +51,7 @@ export default function AboutPage() {
       
        <div className="space-y-2">
         <h3 className="text-xl font-semibold">Why Dhuwa is Different</h3>
-        <p>Unlike willpower-based trackers that turn your journey into punishment and countdowns, Dhuwa acts as a silent observer. It reflects back your choices, your wins, and your patterns — so you can see the truth for yourself.</p>
+        <p>Unlike willpower-based trackers that turn your journey into a punishment and countdowns, Dhuwa acts as a silent observer. It reflects back your choices, your wins, and your patterns — so you can see the truth for yourself.</p>
       </div>
       
        <p>Welcome to your journey. Welcome to Dhuwa.</p>

@@ -1,3 +1,4 @@
+'use client';
 
 import type { Metadata } from 'next';
 import { CheckCircle, Zap, BookOpen, Bell, Feather } from 'lucide-react';
@@ -6,11 +7,6 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import type { Locale } from '@/i18n';
-
-export const metadata: Metadata = {
-  title: 'Dhuwa App Features – Habit Tracker, Smoke Planner & Quit Journal',
-  description: 'Explore Dhuwa’s quit smoking tools: mindful urge logging, a quiet insights inbox, smoke planner with replacement activities, and pattern tracking to find freedom.',
-};
 
 const features = [
     {
