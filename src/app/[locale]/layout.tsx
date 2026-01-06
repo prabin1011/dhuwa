@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
 import Script from 'next/script';
+import { AdSenseScript } from '@/components/adsense-script';
 
 export default async function LocaleLayout({
   children,
@@ -58,6 +59,7 @@ export default async function LocaleLayout({
             }
           `}
         </Script>
+        <AdSenseScript />
       </head>
        <body suppressHydrationWarning className="min-h-screen bg-background font-sans antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>

@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { eachDayOfInterval, endOfDay, format, isSameDay, startOfMonth, startOfWeek, startOfDay } from 'date-fns';
@@ -10,6 +11,7 @@ import { Info } from "lucide-react";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { useTranslations } from "next-intl";
+import { trackEvent } from "@/lib/analytics";
 
 interface Urge {
     timestamp: Timestamp;
@@ -55,6 +57,14 @@ function parseItemsPerDay(itemsPerDay?: string | number): number {
 
 export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: SavingsStatsProps) {
     const t = useTranslations('dashboard.financials');
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleOpenChange = (open: boolean) => {
+        if (open) {
+            trackEvent('view_financials', 'Dashboard');
+        }
+        setIsOpen(open);
+    }
 
     const formatMoney = useMemo(() => {
         const currency = userProfile.currency || 'USD';
@@ -176,7 +186,7 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
 
     return (
         <Card>
-            <Accordion type="single" collapsible>
+            <Accordion type="single" collapsible onValueChange={(value) => handleOpenChange(!!value)}>
                 <AccordionItem value="item-1" className="border-b-0">
                     <div className="flex justify-between items-start w-full gap-2 p-4 hover:no-underline [&[data-state=open]]:pb-0">
                         <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">

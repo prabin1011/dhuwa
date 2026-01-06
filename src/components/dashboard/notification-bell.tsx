@@ -12,6 +12,7 @@ import type { Timestamp } from 'firebase/firestore';
 import { ScrollArea } from '../ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { Trash2 } from 'lucide-react';
+import { trackEvent } from '@/lib/analytics';
 
 interface StoredNotification {
   id: string;
@@ -101,6 +102,7 @@ export function NotificationBell() {
     }
 
     setLoading(true);
+    trackEvent('refresh_insights', 'Notifications');
     try {
       const res = await fetch('/api/send-reminders', {
         method: 'POST',
@@ -164,6 +166,7 @@ export function NotificationBell() {
   
   const handleClearHistory = async () => {
     if (!firestore || !user || !storedNotifications || storedNotifications.length === 0) return;
+    trackEvent('clear_notification_history', 'Notifications');
     const batch = writeBatch(firestore);
     storedNotifications.forEach(notif => {
         const notifRef = doc(firestore, `users/${user.uid}/notifications`, notif.id);
@@ -179,6 +182,7 @@ export function NotificationBell() {
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (open) {
+      trackEvent('open_notification_bell', 'Notifications');
       handleSyncNotifications(); // Trigger sync on open
       if (unreadCount > 0) {
         markAllAsRead();
@@ -241,5 +245,3 @@ export function NotificationBell() {
     </Sheet>
   );
 }
-
-    

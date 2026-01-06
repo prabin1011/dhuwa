@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from "react";
@@ -25,6 +26,7 @@ import { MoodAfterDialogAction } from "./mood-after-toast-action";
 import { getNarrative } from "@/lib/narrative-vault";
 import { useTranslations } from "next-intl";
 import { createCommunityPost } from "@/lib/community";
+import { trackEvent } from "@/lib/analytics";
 
 const PREMADE_REPLACEMENTS = [
     "Drink a glass of water",
@@ -85,6 +87,7 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
     const t = useTranslations('dashboard');
     const { firestore } = useFirebase();
     const { toast } = useToast();
+    const [isOpen, setIsOpen] = useState(false);
 
     const [newMomentTime, setNewMomentTime] = useState('');
     const [newMomentLabel, setNewMomentLabel] = useState('');
@@ -102,6 +105,13 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
 
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    
+    const handleOpenChange = (open: boolean) => {
+        if (open) {
+            trackEvent('view_daily_plan', 'Dashboard');
+        }
+        setIsOpen(open);
+    }
 
     const sortedMoments = useMemo(() => {
         const moments = userProfile.moments || [];
@@ -140,6 +150,7 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
             });
             return;
         }
+        trackEvent('add_planned_moment', 'Daily Plan');
         
         const newMoment: SmokingMoment = {
             id: crypto.randomUUID(),
@@ -164,6 +175,7 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
     };
 
     const handleDeleteMoment = async (momentId: string) => {
+        trackEvent('delete_planned_moment', 'Daily Plan');
         const updatedMoments = userProfile.moments?.filter(m => m.id !== momentId);
         try {
             await updateMoments(updatedMoments || []);
@@ -178,7 +190,8 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
 
     const handleMarkMoment = async () => {
         if (!moodMoment || !selectedMood || !user || !firestore) return;
-
+        
+        trackEvent('log_planned_smoke', 'Daily Plan', moodMoment.label);
         const urgesCollection = collection(firestore, 'users', user.uid, 'urges');
         const momentToUpdate = moodMoment;
         
@@ -238,6 +251,8 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
             toast({ variant: 'destructive', title: "Mood Required", description: "Please select how you feel." });
             return;
         }
+
+        trackEvent('log_replacement_activity', 'Daily Plan', replacementValue);
 
         const batch = writeBatch(firestore);
 
@@ -322,7 +337,7 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
 
     return (
         <Card>
-            <Accordion type="single" collapsible defaultValue="item-1">
+            <Accordion type="single" collapsible defaultValue="item-1" onValueChange={(value) => handleOpenChange(!!value)}>
                 <AccordionItem value="item-1" className="border-b-0">
                     <div className="p-4 hover:no-underline [&[data-state=open]]:pb-0">
                         <div className="flex justify-between items-start w-full gap-2">

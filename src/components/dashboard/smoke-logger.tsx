@@ -20,6 +20,7 @@ import { Label } from "../ui/label";
 import { MoodAfterDialogAction } from "./mood-after-toast-action";
 import { getNarrative } from "@/lib/narrative-vault";
 import { useTranslations } from "next-intl";
+import { trackEvent } from "@/lib/analytics";
 
 
 const MOOD_OPTIONS = [
@@ -61,6 +62,8 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
     
     // Close the initial mood dialog
     setIsMoodDialogOpen(false);
+    
+    trackEvent('log_smoke', 'Smoke Logger', selectedHabit, quantity);
     
     const urgesCollection = collection(firestore, 'users', user.uid, 'urges');
     
