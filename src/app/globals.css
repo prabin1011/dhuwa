@@ -13,24 +13,24 @@
     --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71.4% 4.1%;
-    --primary: 166 50% 64%; /* #74D1BC Gentle Teal */
+    --primary: 150 56% 68%; /* #90E0B3 Light Sage Green */
     --primary-foreground: 224 71.4% 4.1%;
     --secondary: 210 20% 94%; /* Light gray */
     --secondary-foreground: 224 71.4% 4.1%;
     --muted: 210 20% 90%;
     --muted-foreground: 224 71.4% 4.1%;
-    --accent: 14 74% 65%; /* #E07A5F Muted Coral */
+    --accent: 40 84% 75%; /* #FAD089 Soft Gold */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 210 20% 85%;
     --input: 210 20% 85%;
-    --ring: 166 50% 64%;
+    --ring: 150 56% 68%;
     --radius: 0.8rem;
     
     /* Chart Colors */
-    --chart-1: 14 74% 65%; /* Muted Coral */
-    --chart-2: 166 50% 50%; /* Darker Teal */
+    --chart-1: 40 84% 75%; /* Soft Gold */
+    --chart-2: 150 50% 50%; /* Darker Sage */
     --chart-3: 210 30% 60%; /* Muted Blue-Gray */
     --chart-4: 30 70% 70%; /* Soft Orange */
     --chart-5: 180 30% 50%; /* Sea Green */
@@ -45,23 +45,23 @@
     --card-foreground: 0 0% 98%;
     --popover: 220 20% 7%;
     --popover-foreground: 0 0% 98%;
-    --primary: 166 50% 64%; /* #74D1BC Gentle Teal */
+    --primary: 150 56% 68%; /* #90E0B3 Light Sage Green */
     --primary-foreground: 220 20% 7%;
     --secondary: 220 20% 15%;
     --secondary-foreground: 0 0% 98%;
     --muted: 220 20% 15%;
     --muted-foreground: 0 0% 63.9%;
-    --accent: 14 74% 65%; /* #E07A-5F Muted Coral */
+    --accent: 40 84% 75%; /* #FAD089 Soft Gold */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 220 20% 20%;
     --input: 220 20% 20%;
-    --ring: 166 50% 64%;
+    --ring: 150 56% 68%;
 
     /* Chart Colors */
-    --chart-1: 14 74% 65%;
-    --chart-2: 166 50% 50%;
+    --chart-1: 40 84% 75%;
+    --chart-2: 150 50% 50%;
     --chart-3: 210 30% 60%;
     --chart-4: 30 70% 70%;
     --chart-5: 180 30% 50%;
