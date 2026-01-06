@@ -1,12 +1,11 @@
 
 
-
 // Data Types
 export type OnboardingData = {
   habits: string[];
   habitDetails: Record<string, {
-    packCost?: string;
-    itemsPerPack?: string;
+    packCost?: string | number;
+    itemsPerPack?: string | number;
     itemsPerDay?: string;
   }>;
   currency: string;

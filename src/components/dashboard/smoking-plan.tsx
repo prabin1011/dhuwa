@@ -210,6 +210,7 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
                 narrative: long,
                 shortMessage: short,
                 count: 1, // Assume 1 for planned moments
+                source: 'manual',
             };
             const docRef = await addDoc(urgesCollection, urgeData);
             

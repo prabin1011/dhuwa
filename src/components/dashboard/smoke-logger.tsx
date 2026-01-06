@@ -78,6 +78,7 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
           narrative: long,
           shortMessage: short,
           count: quantity,
+          source: 'manual',
         };
 
         const docRef = await addDoc(urgesCollection, urgeData);

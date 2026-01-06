@@ -24,7 +24,7 @@
           "items": {
             "type": "string"
           },
-          "description": "The habits the user wants to track (Cigarettes, Weed)."
+          "description": "The habits the user wants to track (Cigarettes, Weed, Vape, Snus)."
         },
         "frequency": {
           "type": "string",
@@ -124,7 +124,7 @@
         },
         "language": {
           "type": "string",
-          "enum": ["en", "no"],
+          "enum": ["en", "nb"],
           "description": "The user's preferred language for the app interface and AI content."
         },
         "shareToCommunity": {
@@ -186,7 +186,7 @@
         "moodBefore": {
           "type": "string",
           "description": "The user's mood when they logged the urge.",
-          "enum": ["stressed", "bored", "lonely", "happy", "tired", "anxious", "neutral"]
+          "enum": ["stressed", "bored", "lonely", "happy", "tired", "anxious", "neutral", "daily-ritual"]
         },
         "moodAfter": {
           "type": "string",
@@ -413,5 +413,3 @@
     }
   }
 }
-
-    

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
@@ -83,21 +84,27 @@ export const useAuthActions = () => {
 
   const signUpWithEmail = async (email: string, password: string, username?: string) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    if (username) await updateProfile(cred.user, { displayName: username });
     
-    // Also send the verification email, but don't block on it
-    sendEmailVerification(cred.user);
+    // Check if the user is not anonymous before proceeding
+    if (!cred.user.isAnonymous) {
+        if (username) await updateProfile(cred.user, { displayName: username });
+    
+        // Also send the verification email, but don't block on it
+        sendEmailVerification(cred.user);
 
-    await setDoc(
-      doc(firestore, 'users', cred.user.uid),
-      {
-        email,
-        username: username || '',
-        createdAt: serverTimestamp(),
-        hasOnboarded: false,
-      },
-      { merge: true }
-    );
+        // Create user profile document
+        await setDoc(
+          doc(firestore, 'users', cred.user.uid),
+          {
+            email,
+            username: username || '',
+            createdAt: serverTimestamp(),
+            hasOnboarded: false,
+          },
+          { merge: true }
+        );
+    }
+    
     return cred;
   };
 
