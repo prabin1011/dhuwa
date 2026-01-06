@@ -8,8 +8,6 @@ import {
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import type { Locale } from '@/i18n';
 
 const faqs = [
   {
@@ -45,8 +43,6 @@ const faqs = [
 ];
 
 export default function FAQPage() {
-    const { locale } = useParams() as { locale: Locale };
-
   return (
     <div className="space-y-8">
       <div className="text-center">
@@ -69,7 +65,7 @@ export default function FAQPage() {
 
         <div className="py-8 text-center">
             <Button asChild size="lg">
-                <Link href={`/${locale}/login`}>Join Dhuwa Today</Link>
+                <Link href="https://dhuwa.com/en/login">Join Dhuwa Today</Link>
             </Button>
         </div>
     </div>
