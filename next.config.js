@@ -24,4 +24,5 @@ const nextConfig = {
   },
 };
 
+// This comment is added to force a rebuild and clear the cache.
 export default withNextIntl(nextConfig);
