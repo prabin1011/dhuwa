@@ -34,6 +34,7 @@ import { Logo } from "../logo";
 import { CommunityTeaser } from "../community/community-teaser";
 import DeviceCard from "./device-card";
 import { cn } from "@/lib/utils";
+import { ThemeSwitcher } from "../theme-switcher";
 
 
 interface SmokingMoment {
@@ -157,7 +158,8 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                           Welcome, {userProfile.username || user?.email || "Guest"}. Your freedom starts with awareness.
                         </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                        <ThemeSwitcher />
                         <NotificationBell />
                         <UserProfileDropdown user={user} userProfile={userProfile} />
                     </div>

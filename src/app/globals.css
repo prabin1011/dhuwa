@@ -6,62 +6,66 @@
 
 @layer base {
   :root {
-    --background: 220 20% 7%; /* Dark background */
-    --foreground: 0 0% 98%; /* White text */
-    --card: 220 20% 12%; /* Slightly lighter card background */
-    --card-foreground: 0 0% 98%;
-    --popover: 220 20% 7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 140 70% 50%; /* Green accent */
-    --primary-foreground: 220 20% 7%; /* Dark text on green button */
-    --secondary: 220 20% 15%; /* Lighter gray for secondary elements */
-    --secondary-foreground: 0 0% 98%;
-    --muted: 220 20% 15%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 140 70% 50%; /* Green accent */
-    --accent-foreground: 220 20% 7%;
-    --destructive: 0 62.8% 30.6%;
+    /* Light Theme */
+    --background: 210 20% 98%; /* Almost white */
+    --foreground: 224 71.4% 4.1%; /* Almost black */
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 166 50% 64%; /* #74D1BC Gentle Teal */
+    --primary-foreground: 224 71.4% 4.1%;
+    --secondary: 210 20% 94%; /* Light gray */
+    --secondary-foreground: 224 71.4% 4.1%;
+    --muted: 210 20% 90%;
+    --muted-foreground: 224 71.4% 4.1%;
+    --accent: 14 74% 65%; /* #E07A5F Muted Coral */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 140 70% 60%;
+    --border: 210 20% 85%;
+    --input: 210 20% 85%;
+    --ring: 166 50% 64%;
     --radius: 0.8rem;
-
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    
+    /* Chart Colors */
+    --chart-1: 14 74% 65%; /* Muted Coral */
+    --chart-2: 166 50% 50%; /* Darker Teal */
+    --chart-3: 210 30% 60%; /* Muted Blue-Gray */
+    --chart-4: 30 70% 70%; /* Soft Orange */
+    --chart-5: 180 30% 50%; /* Sea Green */
     --chart-6: 262 80% 70%; /* Purple for Weed */
   }
 
   .dark {
-    --background: 220 20% 7%; /* Dark background */
-    --foreground: 0 0% 98%; /* White text */
-    --card: 220 20% 12%; /* Slightly lighter card background */
+    /* Dark Theme */
+    --background: 220 20% 7%;
+    --foreground: 0 0% 98%;
+    --card: 220 20% 12%;
     --card-foreground: 0 0% 98%;
     --popover: 220 20% 7%;
     --popover-foreground: 0 0% 98%;
-    --primary: 140 70% 50%; /* Green accent */
-    --primary-foreground: 220 20% 7%; /* Dark text on green button */
-    --secondary: 220 20% 15%; /* Lighter gray for secondary elements */
+    --primary: 166 50% 64%; /* #74D1BC Gentle Teal */
+    --primary-foreground: 220 20% 7%;
+    --secondary: 220 20% 15%;
     --secondary-foreground: 0 0% 98%;
     --muted: 220 20% 15%;
     --muted-foreground: 0 0% 63.9%;
-    --accent: 140 70% 50%; /* Green accent */
-    --accent-foreground: 220 20% 7%;
+    --accent: 14 74% 65%; /* #E07A-5F Muted Coral */
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 220 20% 20%;
     --input: 220 20% 20%;
-    --ring: 140 70% 60%;
-    
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --chart-6: 262 80% 70%; /* Purple for Weed */
+    --ring: 166 50% 64%;
+
+    /* Chart Colors */
+    --chart-1: 14 74% 65%;
+    --chart-2: 166 50% 50%;
+    --chart-3: 210 30% 60%;
+    --chart-4: 30 70% 70%;
+    --chart-5: 180 30% 50%;
+    --chart-6: 262 80% 70%;
   }
 }
 
@@ -74,7 +78,11 @@
     font-family: 'PT Sans', sans-serif;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'PT Sans', sans-serif;
-    font-weight: 700;
+    font-family: 'Belleza', sans-serif;
+    font-weight: 400;
+  }
+  .prose h1, .prose h2, .prose h3 {
+     font-family: 'Belleza', sans-serif;
+     font-weight: 400;
   }
 }

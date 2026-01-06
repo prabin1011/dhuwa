@@ -8,6 +8,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
 import Script from 'next/script';
 import { AdSenseScript } from '@/components/adsense-script';
+import { ThemeProvider } from '@/components/theme-provider';
 
 export default async function LocaleLayout({
   children,
@@ -33,8 +34,9 @@ export default async function LocaleLayout({
         <meta name="theme-color" content="#111317" />
         
         {/* Favicon Links */}
-        <link rel="icon" href="/192x192.png" type="image/png" />
+        <link rel="icon" href="/192x192.png" type="image/png" sizes="192x192" />
         <link rel="apple-touch-icon" href="/192x192.png" />
+
 
         {/* Google tag (gtag.js) */}
         <Script async src="https://www.googletagmanager.com/gtag/js?id=G-PJ8R05LFX9"></Script>
@@ -62,12 +64,19 @@ export default async function LocaleLayout({
         <AdSenseScript />
       </head>
        <body suppressHydrationWarning className="min-h-screen bg-background font-sans antialiased">
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <FirebaseClientProvider>
-            {children}
-          </FirebaseClientProvider>
-          <Toaster />
-        </NextIntlClientProvider>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+        >
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <FirebaseClientProvider>
+              {children}
+            </FirebaseClientProvider>
+            <Toaster />
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
