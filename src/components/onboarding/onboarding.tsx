@@ -113,25 +113,28 @@ export function Onboarding() {
 
   const dynamicSteps = useMemo(() => {
     const steps: Step[] = [];
-    (formData.habits || []).forEach(habit => {
-        steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.packCost`, question: `Average cost of a pack/pod of ${habit}?`, type: 'number'});
-        steps.push({ id: -2, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerPack`, question: `How many ${habit === 'Cigarettes' ? 'in a pack' : 'pods/cartridges'}?`, type: 'number' });
-        steps.push({ id: -3, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerDay`, question: `Average ${habit} per day?`, type: 'radio', options: [ {value: '1-5', label: '1-5'}, {value: '6-10', label: '6-10'}, {value: '11-15', label: '11-15'}, {value: '16-20', label: '16-20'}, {value: '20+', label: 'More than 20'}, ]});
-    });
+    const selectedHabits = formData.habits || [];
+    
+    // Only add dynamic steps if 'Weed' is selected.
+    if (selectedHabits.includes('Weed')) {
+        const habit = 'Weed';
+        steps.push({ id: -1, title: 'The Cost & Amount', field: `habitDetails.${habit}.packCost`, question: `Average cost of your usual ${habit} purchase?`, type: 'number'});
+        steps.push({ id: -2, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerPack`, question: `How many grams/units in that purchase?`, type: 'number' });
+        steps.push({ id: -3, title: 'The Cost & Amount', field: `habitDetails.${habit}.itemsPerDay`, question: `Average joints/vapes per day?`, type: 'radio', options: [ {value: '1-2', label: '1-2'}, {value: '3-5', label: '3-5'}, {value: '6-10', label: '6-10'}, {value: '10+', label: 'More than 10'}, ]});
+    }
     return steps;
   }, [formData.habits]);
   
   const allSteps = useMemo(() => {
-      const all: Step[] = [];
-      ONBOARDING_STEPS.forEach(step => {
-          if (step.type === 'dynamic') {
-              all.push(...dynamicSteps);
-          } else {
-              all.push(step);
-          }
-      });
-      // Re-assign IDs
-      return all.map((step, index) => ({...step, id: index + 1}));
+    const baseSteps = ONBOARDING_STEPS.filter(step => step.type !== 'dynamic');
+    const dynamicStepIndex = ONBOARDING_STEPS.findIndex(step => step.type === 'dynamic');
+    
+    if (dynamicSteps.length > 0 && dynamicStepIndex !== -1) {
+        baseSteps.splice(dynamicStepIndex, 0, ...dynamicSteps);
+    }
+      
+    // Re-assign IDs to ensure they are sequential
+    return baseSteps.map((step, index) => ({...step, id: index + 1}));
   }, [dynamicSteps]);
 
 
@@ -208,7 +211,10 @@ export function Onboarding() {
 
     if (!data.goal) {
       toast({ variant: 'destructive', title: 'Goal required', description: 'Please pick a goal before finishing.' });
-      setCurrentStep(allSteps.findIndex(s => s.field === 'goal') + 1); // Go to goal step
+      const goalStepIndex = allSteps.findIndex(s => s.field === 'goal');
+      if (goalStepIndex !== -1) {
+        setCurrentStep(goalStepIndex + 1); // Go to goal step
+      }
       setIsSubmitting(false);
       return;
     }

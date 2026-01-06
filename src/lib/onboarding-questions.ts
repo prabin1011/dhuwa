@@ -1,5 +1,6 @@
 
 
+
 // Data Types
 export type OnboardingData = {
   habits: string[];
@@ -120,11 +121,12 @@ export const ONBOARDING_STEPS: Step[] = [
         {value: 'weekly', label: 'Once a week'},
         {value: 'occasionally', label: 'Occasionally'},
     ]},
-    { id: 4, title: 'The Cost & Amount', field: 'habitDetails', question: 'Tell us about your habits.', type: 'dynamic' },
+    // This 'dynamic' step will be replaced by specific steps if 'Weed' is selected
+    { id: 4, title: 'The Cost & Amount', field: 'habitDetails', question: 'Tell us about your habits.', type: 'dynamic' }, 
     { id: 5, title: 'Your Goal', field: 'goal', question: 'What’s your primary goal right now?', type: 'radio', options: [
         {value: 'quit', label: 'Quit completely'},
         {value: 'reduce', label: 'Cut down gradually'},
         {value: 'track', label: 'Just track and understand my habits'},
     ]},
     { id: 6, title: 'Summary', field: 'habits', question: 'Summary', type: 'summary'},
-]
+];
