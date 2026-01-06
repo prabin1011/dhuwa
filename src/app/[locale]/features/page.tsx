@@ -1,6 +1,5 @@
 'use client';
 
-import type { Metadata } from 'next';
 import { CheckCircle, Zap, BookOpen, Bell, Feather } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
