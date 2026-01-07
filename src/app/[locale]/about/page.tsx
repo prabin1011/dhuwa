@@ -2,8 +2,11 @@
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import type { Locale } from '@/i18n';
 
 export default function AboutPage() {
+  const { locale } = useParams() as { locale: Locale };
 
   return (
     <div className="space-y-6">
