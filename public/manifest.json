@@ -1,11 +1,11 @@
 {
-  "name": "Dhuwa - Quit Smoking, Mindfully",
+  "name": "Dhuwa",
   "short_name": "Dhuwa",
-  "start_url": ".",
+  "description": "A mindful companion for your quit journey.",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#111317",
   "theme_color": "#111317",
-  "description": "A quiet, reflective companion for your quit journey. No judgment, no willpower battles—just clarity.",
   "icons": [
     {
       "src": "/192x192.png",
@@ -16,26 +16,6 @@
       "src": "/512x512.png",
       "sizes": "512x512",
       "type": "image/png"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "screenshot1.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "screenshot2.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "screenshot3.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow"
     }
   ]
 }

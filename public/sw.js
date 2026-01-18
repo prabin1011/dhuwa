@@ -1,118 +1,131 @@
-// The Easy Way Out - Service Worker
 
 const CACHE_NAME = 'dhuwa-cache-v1';
-// URLs to cache on installation. Adjust this list as your app grows.
-const urlsToCache = [
-  '/',
-  '/en/dashboard',
-  '/manifest.json',
-  '/192x192.png',
-  '/512x512.png',
-  '/1080x1080.png',
+const OFFLINE_URL = '/offline.html';
+const PRECACHE_ASSETS = [
+    OFFLINE_URL,
+    '/192x192.png',
+    '/512x512.png'
 ];
 
-// 1. Installation: Caching the App Shell
-self.addEventListener('install', (event) => {
-  console.log('[SW] Install event');
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Caching app shell');
-        return cache.addAll(urlsToCache);
-      })
-      .catch(err => {
-        console.error('[SW] Caching failed', err);
-      })
-  );
+self.addEventListener('install', event => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(cache => cache.addAll(PRECACHE_ASSETS))
+            .then(() => self.skipWaiting())
+    );
 });
 
-// 2. Activation: Cleaning up old caches
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Activate event');
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            console.log('[SW] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-  return self.clients.claim();
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim())
+    );
 });
 
-// 3. Fetch: Serving cached content when offline
-self.addEventListener('fetch', (event) => {
-  // We only want to cache GET requests.
-  if (event.request.method !== 'GET') {
-    return;
-  }
-  // For navigation requests, use a network-first strategy to ensure users get the latest version.
-  if (event.request.mode === 'navigate') {
-     event.respondWith(
-        fetch(event.request).catch(() => caches.match('/'))
-     );
-     return;
-  }
+self.addEventListener('fetch', event => {
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    // Clone the response to cache it
+                    const responseToCache = response.clone();
+                    caches.open(CACHE_NAME)
+                        .then(cache => cache.put(event.request, responseToCache));
+                    return response;
+                })
+                .catch(() => {
+                    // If network fails, try to get from cache
+                    return caches.match(event.request)
+                        .then(response => response || caches.match(OFFLINE_URL));
+                })
+        );
+    } else if (PRECACHE_ASSETS.some(asset => event.request.url.endsWith(asset))) {
+         // For precached assets, use a cache-first strategy
+        event.respondWith(
+            caches.match(event.request).then(response => response || fetch(event.request))
+        );
+    } else {
+        // For other requests (API calls, dynamic assets), use a network-first strategy
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    const responseToCache = response.clone();
+                    caches.open(CACHE_NAME)
+                        .then(cache => cache.put(event.request, responseToCache));
+                    return response;
+                })
+                .catch(() => caches.match(event.request).then(response => {
+                    // For failed API calls etc., we don't want to return the offline page,
+                    // so we just let the failure happen if it's not in the cache.
+                    if (response) return response;
+                }))
+        );
+    }
+});
 
-  // For other requests (CSS, JS, images), use a cache-first strategy.
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        return response || fetch(event.request).then((fetchResponse) => {
-           // Optionally, you could cache new resources here dynamically.
-           return fetchResponse;
+
+self.addEventListener('notificationclick', event => {
+    const notification = event.notification;
+    const action = event.action;
+    const data = notification.data;
+
+    notification.close();
+
+    if (action === 'log_yes' || action === 'log_no') {
+        const smoked = action === 'log_yes';
+        
+        // This is the fetch request that will be sent to your API
+        const promise = fetch('/api/log-from-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: data.userId,
+                momentId: data.momentId,
+                dateStr: data.dateStr,
+                smoked: smoked
+            })
+        }).then(response => {
+            if (!response.ok) {
+                console.error('Failed to log from notification:', response.statusText);
+            }
+        }).catch(err => {
+            console.error('Fetch error in service worker:', err);
         });
-      })
-  );
+
+        event.waitUntil(promise);
+    } else if (data.url) {
+        // This handles clicks on the notification body itself (not the action buttons)
+        event.waitUntil(
+            clients.matchAll({ type: 'window' }).then(windowClients => {
+                for (let client of windowClients) {
+                    if (client.url === data.url && 'focus' in client) {
+                        return client.focus();
+                    }
+                }
+                if (clients.openWindow) {
+                    return clients.openWindow(data.url);
+                }
+            })
+        );
+    }
 });
 
-
-// 4. Notification Click: Handling notification actions
-self.addEventListener('notificationclick', (event) => {
-  const notification = event.notification;
-  const action = event.action; // e.g., 'log_yes' or 'log_no'
-  const data = notification.data;
-
-  notification.close();
-
-  // If the user clicked a "log smoke" action
-  if (data && data.action === 'log_smoke_result' && (action === 'log_yes' || action === 'log_no')) {
-    const smoked = action === 'log_yes';
-
-    // This is an async operation, so we must wrap it in waitUntil
-    const logPromise = fetch('/api/log-from-notification', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        smoked,
-        userId: data.userId,
-        momentId: data.momentId,
-        dateStr: data.dateStr,
-      }),
-    })
-    .then(response => {
-        if (!response.ok) {
-            console.error('[SW] Failed to log smoke from notification:', response.statusText);
-        } else {
-            console.log('[SW] Successfully logged smoke from notification.');
-        }
-    })
-    .catch(error => {
-        console.error('[SW] Error logging smoke from notification:', error);
-    });
-
-    event.waitUntil(logPromise);
-  }
-
-  // If it's a simple reminder click, just open the app
-  else {
-     event.waitUntil(clients.openWindow(data && data.url ? data.url : '/'));
-  }
+self.addEventListener('push', event => {
+    const data = event.data ? event.data.json() : {};
+    const title = data.title || 'Dhuwa';
+    const options = {
+        body: data.body || 'A new message from Dhuwa.',
+        icon: '/192x192.png',
+        badge: '/192x192.png',
+        ...data,
+    };
+    event.waitUntil(self.registration.showNotification(title, options));
 });
+

@@ -1,7 +1,15 @@
 
 import createNextIntlPlugin from 'next-intl/plugin';
+import withPWAInit from "@ducanh2912/next-pwa";
 
 const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
+
+const withPWA = withPWAInit({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  // add more PWA options here
+});
+
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -24,5 +32,4 @@ const nextConfig = {
   },
 };
 
-// This comment is added to force a rebuild and clear the cache.
-export default withNextIntl(nextConfig);
+export default withPWA(withNextIntl(nextConfig));
