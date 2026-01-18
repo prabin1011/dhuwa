@@ -35,6 +35,7 @@ import { CommunityTeaser } from "../community/community-teaser";
 import DeviceCard from "./device-card";
 import { cn } from "@/lib/utils";
 import { ThemeSwitcher } from "../theme-switcher";
+import { useScheduledReminders } from "@/hooks/use-scheduled-reminders";
 
 
 interface SmokingMoment {
@@ -89,6 +90,9 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
 
   // State for replacement flow, lifted from SmokingPlan
   const [replacementMoment, setReplacementMoment] = useState<SmokingMoment | null>(null);
+
+  // Activate the reminder scheduling hook
+  useScheduledReminders({ moments: userProfile.moments, remindersEnabled: userProfile.reminders === 'yes' });
 
   useEffect(() => {
     const shouldRequest = userProfile.reminders === 'yes' && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default';
