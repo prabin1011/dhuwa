@@ -1,4 +1,5 @@
 
+
 export const REMINDER_TEMPLATES = [
     {
         title: "A Moment of Choice",
@@ -29,3 +30,18 @@ export const REMINDER_TEMPLATES = [
         body: "The urge for '{{label}}' is coming. You don't have to obey it. Just watch it. Notice its texture, its voice. It has no power over you."
     }
 ];
+
+export const CONFIRMATION_TEMPLATES = [
+    {
+        title: "Checking In: '{{label}}'",
+        body: "The moment has passed. Did you end up smoking?"
+    },
+    {
+        title: "How did '{{label}}' go?",
+        body: "A quick log helps you see your patterns. Did you smoke?"
+    },
+    {
+        title: "Quick Question...",
+        body: "Regarding your '{{label}}' moment, did you smoke?"
+    }
+]

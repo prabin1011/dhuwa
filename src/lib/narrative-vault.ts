@@ -48,6 +48,10 @@ const templates: Record<string, Narrative[]> = {
         { short: "An action without a reason.", long: "I can't even say why I smoked this one. It was a reflex, a twitch, a program running in the background. That's the trap." },
         { short: "Just because it's there.", long: "It was time. The clock in my head struck 'smoke o'clock'. There was no real trigger, just the relentless march of addiction." }
     ],
+    planned: [
+        { short: "A planned moment.", long: "This smoke was on the schedule. It was a conscious choice, logged via notification. Now, what does this choice reveal?" },
+        { short: "Following the script.", long: "The plan included this smoke, and I followed through. Acknowledging the pattern is the first step to changing it." }
+    ],
     default: [
         { short: "Another link in the chain.", long: "And so, another cigarette was smoked. Each one forges the chain, but each one skipped breaks it." },
         { short: "A moment recorded.", long: "A moment, a smoke, a log. Data for the future me to understand. It is what it is." }

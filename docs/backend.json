@@ -186,7 +186,7 @@
         "moodBefore": {
           "type": "string",
           "description": "The user's mood when they logged the urge.",
-          "enum": ["stressed", "bored", "lonely", "happy", "tired", "anxious", "neutral"]
+          "enum": ["stressed", "bored", "lonely", "happy", "tired", "anxious", "neutral", "planned"]
         },
         "moodAfter": {
           "type": "string",
