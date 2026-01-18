@@ -34,8 +34,8 @@ export default async function LocaleLayout({
         <meta name="theme-color" content="#111317" />
         
         {/* Favicon Links */}
-        <link rel="icon" href="/192x192.png" type="image/png" sizes="192x192" />
-        <link rel="apple-touch-icon" href="/192x192.png" />
+        <link rel="icon" href="/1080x1080.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/1080x1080.png" />
 
 
         {/* Google tag (gtag.js) */}
@@ -46,19 +46,6 @@ export default async function LocaleLayout({
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-PJ8R05LFX9');
-          `}
-        </Script>
-        <Script id="service-worker-registration">
-          {`
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').then(registration => {
-                  console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                }, err => {
-                  console.log('ServiceWorker registration failed: ', err);
-                });
-              });
-            }
           `}
         </Script>
         <AdSenseScript />

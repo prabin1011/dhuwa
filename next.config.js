@@ -1,13 +1,18 @@
 
 import createNextIntlPlugin from 'next-intl/plugin';
 import withPWAInit from "@ducanh2912/next-pwa";
+import runtimeCaching from "@ducanh2912/next-pwa/cache";
+
 
 const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
-  // add more PWA options here
+  runtimeCaching,
+  fallbacks: {
+    document: "/offline.html",
+  }
 });
 
 
