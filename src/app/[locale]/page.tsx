@@ -19,8 +19,9 @@ export default function LandingPage() {
   const [authWaitOver, setAuthWaitOver] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setAuthWaitOver(true), 1500);
-    return () => clearTimeout(t);
+    // This timer prevents getting stuck on the skeleton if auth takes too long (e.g., offline).
+    const timer = setTimeout(() => setAuthWaitOver(true), 1500);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {

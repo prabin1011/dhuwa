@@ -25,6 +25,15 @@ const withPWA = withPWAInit({
   ],
   runtimeCaching: [
     {
+      urlPattern: ({ request }) => request.mode === "navigate",
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "pages",
+        networkTimeoutSeconds: 3,
+        expiration: { maxEntries: 50, maxAgeSeconds: 7 * 24 * 60 * 60 },
+      },
+    },
+    {
       urlPattern: /^\/_next\/static\/.*/i,
       handler: "CacheFirst",
       options: {
@@ -38,15 +47,6 @@ const withPWA = withPWAInit({
       options: {
         cacheName: "next-image",
         expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
-      },
-    },
-    {
-      urlPattern: ({ request }) => request.mode === "navigate",
-      handler: "NetworkFirst",
-      options: {
-        cacheName: "pages",
-        networkTimeoutSeconds: 3,
-        expiration: { maxEntries: 50, maxAgeSeconds: 7 * 24 * 60 * 60 },
       },
     },
     {

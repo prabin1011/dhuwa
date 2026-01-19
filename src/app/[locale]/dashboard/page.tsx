@@ -1,4 +1,3 @@
-
 'use client';
 
 import {useParams, useRouter} from 'next/navigation';
@@ -19,8 +18,8 @@ export default function DashboardPage() {
   const firestore = useFirestore();
 
   useEffect(() => {
-    // Redirect to login only after auth state is known and there's no user.
-    if (!isUserLoading && !user) {
+    // Redirect to login only after auth state is known, there's no user, AND we are online.
+    if (!isUserLoading && !user && typeof navigator !== 'undefined' && navigator.onLine) {
       router.replace(`/${locale}/login`);
     }
   }, [isUserLoading, user, router, locale]);
@@ -36,7 +35,7 @@ export default function DashboardPage() {
 
   const {data: profile, isLoading: isProfileLoading} = useDoc(ref);
 
-  if (isUserLoading || isProfileLoading) {
+  if (isUserLoading || (user && isProfileLoading)) {
     return (
         <div className="h-screen w-screen grid place-items-center text-center p-4">
             <div className="flex flex-col items-center gap-4">
@@ -47,12 +46,36 @@ export default function DashboardPage() {
     );
   }
 
-  // If there's no user, the useEffect above has already initiated the redirect.
-  // Return null to prevent rendering anything further.
-  if (!user) return null;
+  // If there's no user (and we're likely online), the useEffect redirect will handle it.
+  // If offline, we might land here temporarily.
+  if (!user) {
+       return (
+            <div className="h-screen w-screen grid place-items-center text-center p-4">
+                <div className="flex flex-col items-center gap-4">
+                    <WelcomeIllustration />
+                    <h1 className="text-2xl font-bold">You're Offline</h1>
+                    <p className="text-muted-foreground">Please connect to log in and view your dashboard.</p>
+                </div>
+            </div>
+       )
+  };
 
   const onboarded = profile?.hasOnboarded === true;
-  if (!onboarded) return <Onboarding />;
+  if (!onboarded) {
+    // If offline and profile isn't loaded from cache, don't show onboarding.
+    if (typeof navigator !== 'undefined' && !navigator.onLine && !profile) {
+        return (
+           <div className="h-screen w-screen grid place-items-center text-center p-4">
+              <div className="flex flex-col items-center gap-4">
+                  <WelcomeIllustration />
+                  <h1 className="text-2xl font-bold">You're Offline</h1>
+                  <p className="text-muted-foreground max-w-xs">Your profile couldn't be loaded from the cache. Please connect to the internet to complete setup or view your data.</p>
+              </div>
+          </div>
+        )
+    }
+    return <Onboarding />;
+  }
 
   return (
     <div className="h-screen w-screen bg-background">
