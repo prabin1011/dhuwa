@@ -1,77 +1,78 @@
 'use client';
 
 import { useEffect } from 'react';
-import { parse, isToday, format } from 'date-fns';
+import { parse, format } from 'date-fns';
 import { useFirebase } from '@/firebase';
 
 interface SmokingMoment {
-    id: string;
-    time: string; // "HH:mm"
-    label: string;
-    completed: Record<string, boolean>;
-    habit?: string;
+  id: string;
+  time: string; // "HH:mm"
+  label: string;
+  completed: Record<string, boolean>;
+  habit?: string;
 }
 
 interface UseScheduledRemindersProps {
-    moments?: SmokingMoment[];
-    remindersEnabled?: boolean;
+  moments?: SmokingMoment[];
+  remindersEnabled?: boolean;
 }
 
 export function useScheduledReminders({ moments, remindersEnabled }: UseScheduledRemindersProps) {
-    const { user } = useFirebase();
+  const { user } = useFirebase();
 
-    useEffect(() => {
-        const supportsTriggers = 
-            typeof window !== 'undefined' &&
-            'serviceWorker' in navigator &&
-            'Notification' in window &&
-            Notification.permission === 'granted' &&
-            'TimestampTrigger' in (window as any);
+  useEffect(() => {
+    const supportsTriggers =
+      typeof window !== 'undefined' &&
+      'serviceWorker' in navigator &&
+      'Notification' in window &&
+      Notification.permission === 'granted' &&
+      'TimestampTrigger' in (window as any);
 
+    if (!remindersEnabled || !moments?.length || !user || !supportsTriggers) return;
 
-        if (!remindersEnabled || !moments || !user || !supportsTriggers) {
-            return;
+    const run = async () => {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+
+        // Opportunistic flush (helps iOS/unsupported sync cases)
+        reg.active?.postMessage({ type: 'FLUSH_QUEUE' });
+
+        const nowMs = Date.now();
+        const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+        for (const m of moments) {
+          // Skip already completed for today
+          if (m.completed?.[todayStr] !== undefined) continue;
+
+          const plannedDate = parse(`${todayStr} ${m.time}`, 'yyyy-MM-dd HH:mm', new Date());
+          const plannedAtMs = plannedDate.getTime();
+
+          // Two notifications per moment
+          const nudgeAt = plannedAtMs - 5 * 60 * 1000;  // -5 min
+          const checkAt = plannedAtMs + 5 * 60 * 1000;  // +5 min
+
+          // Schedule if at least one of the two is still in the future
+          const shouldSchedule = nudgeAt > nowMs || checkAt > nowMs;
+          if (!shouldSchedule) continue;
+
+          reg.active?.postMessage({
+            type: 'SCHEDULE_MOMENT',
+            payload: {
+              momentId: m.id,
+              userId: user.uid,
+              dateStr: todayStr,
+              plannedAtMs,
+              label: m.label,
+              habit: m.habit || 'Cigarettes',
+              url: `/en/dashboard`,
+            },
+          });
         }
+      } catch (e) {
+        console.error('[Scheduler] Failed:', e);
+      }
+    };
 
-        const scheduleNotifications = async () => {
-            try {
-                const registration = await navigator.serviceWorker.ready;
-                
-                // On app load, always try to flush any logs that were queued while offline.
-                registration.active?.postMessage({ type: 'FLUSH_QUEUE' });
-                
-                const now = new Date();
-                const todayStr = format(now, 'yyyy-MM-dd');
-
-                moments.forEach(moment => {
-                    // Combine the moment's time with today's date
-                    const plannedDate = parse(`${todayStr} ${moment.time}`, 'yyyy-MM-dd HH:mm', new Date());
-                    
-                    // Only schedule for moments planned for today that haven't been completed and are in the future.
-                    if (isToday(plannedDate) && plannedDate > now && moment.completed?.[todayStr] === undefined) {
-                        const plannedAtMs = plannedDate.getTime();
-                        
-                        // Use the active service worker to post the message.
-                        registration.active?.postMessage({
-                            type: "SCHEDULE_MOMENT",
-                            payload: {
-                                momentId: moment.id,
-                                userId: user.uid,
-                                dateStr: todayStr,
-                                plannedAtMs: plannedAtMs,
-                                label: moment.label,
-                                habit: moment.habit || 'Cigarettes',
-                                url: `/en/dashboard`, // Ensure a default valid URL
-                            }
-                        });
-                    }
-                });
-            } catch (error) {
-                console.error("[Scheduler] Error delegating notification scheduling to Service Worker:", error);
-            }
-        };
-
-        scheduleNotifications();
-
-    }, [moments, remindersEnabled, user]);
+    run();
+  }, [moments, remindersEnabled, user]);
 }
