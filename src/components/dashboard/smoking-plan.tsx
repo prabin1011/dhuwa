@@ -63,13 +63,13 @@ interface SmokingMoment {
     label: string;
     completed: Record<string, boolean>;
     replacementActivity?: Record<string, { activity: string; mood?: string; }>;
-    type?: string;
     habit?: string;
 }
 
 interface UserProfile {
     username?: string;
     moments?: SmokingMoment[];
+    habits?: string[];
     breakDuration?: string;
     shareToCommunity?: 'yes' | 'no';
 }
@@ -157,6 +157,7 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
             time: newMomentTime,
             label: newMomentLabel,
             completed: {},
+            habit: activeHabit !== 'All' ? activeHabit : (userProfile.habits?.[0] || 'Cigarettes')
         };
         
         const newMomentsArray = [...(userProfile.moments || []), newMoment];
@@ -204,7 +205,7 @@ export function SmokingPlan({ user, userProfile, selectedDate, replacementMoment
             // 1. Log the new urge to the 'urges' collection
             const urgeData = {
                 timestamp: serverTimestamp(),
-                type: momentToUpdate.type || 'Cigarettes',
+                type: momentToUpdate.habit || 'Cigarettes',
                 moodBefore: selectedMood,
                 notes: `Planned: ${momentToUpdate.label} at ${momentToUpdate.time}`,
                 narrative: long,

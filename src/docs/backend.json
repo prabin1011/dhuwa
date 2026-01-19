@@ -186,7 +186,7 @@
         "moodBefore": {
           "type": "string",
           "description": "The user's mood when they logged the urge.",
-          "enum": ["stressed", "bored", "lonely", "happy", "tired", "anxious", "neutral", "daily-ritual"]
+          "enum": ["stressed", "bored", "lonely", "happy", "tired", "anxious", "neutral", "daily-ritual", "planned"]
         },
         "moodAfter": {
           "type": "string",
@@ -250,6 +250,10 @@
         "label": {
           "type": "string",
           "description": "A short description for the moment (e.g., 'Morning coffee')."
+        },
+        "habit": {
+            "type": "string",
+            "description": "The habit associated with this moment (e.g. 'Cigarettes')."
         },
         "completed": {
           "type": "object",

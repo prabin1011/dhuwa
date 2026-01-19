@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     }
 
     try {
-        const { userId, momentId, dateStr, smoked } = await req.json();
+        const { userId, momentId, dateStr, smoked, habit } = await req.json();
 
         if (!userId || !momentId || !dateStr || typeof smoked !== 'boolean') {
             return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
@@ -47,39 +47,37 @@ export async function POST(req: Request) {
         const userProfile = userDoc.data() as UserProfile;
         const moments = userProfile.moments || [];
         
-        let momentFound = false;
         const momentToUpdate = moments.find(m => m.id === momentId);
 
+        if (!momentToUpdate) {
+             // Acknowledge the request but do nothing if moment is gone
+            return NextResponse.json({ ok: true, message: 'Moment not found, may have been deleted.' });
+        }
+        
         const updatedMoments = moments.map(m => {
             if (m.id === momentId) {
-                momentFound = true;
-                // Mark the moment with the result from the notification
                 return { ...m, completed: { ...(m.completed || {}), [dateStr]: smoked } };
             }
             return m;
         });
 
-        if (!momentFound || !momentToUpdate) {
-            return NextResponse.json({ error: 'Moment not found' }, { status: 404 });
-        }
-        
         const batch = db.batch();
         batch.update(userRef, { moments: updatedMoments });
 
         // If the user confirmed they smoked, create an urge entry
         if (smoked) {
             const { long, short } = getNarrative('planned'); // A specific narrative for planned smokes
-            const urgeRef = userRef.collection('urges').doc(); // Create a new urge document
+            const urgeRef = userRef.collection('urges').doc();
             
             batch.set(urgeRef, {
               timestamp: FieldValue.serverTimestamp(),
-              type: momentToUpdate.habit || 'Cigarettes',
+              type: habit || momentToUpdate.habit || 'Cigarettes',
               moodBefore: 'planned',
               notes: `Logged via notification for planned moment: ${momentToUpdate.label} at ${momentToUpdate.time}`,
               narrative: long,
               shortMessage: short,
               count: 1, // Assume 1 for notification-logged smokes
-              source: 'user_confirm', // This is a new source type
+              source: 'user_confirm',
             });
         }
         

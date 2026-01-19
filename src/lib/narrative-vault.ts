@@ -1,5 +1,4 @@
 
-
 type Mood = string | undefined;
 
 interface Narrative {

@@ -1,5 +1,4 @@
 
-
 export const REMINDER_TEMPLATES = [
     {
         title: "A Moment of Choice",
