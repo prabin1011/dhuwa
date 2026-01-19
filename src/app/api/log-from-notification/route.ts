@@ -21,6 +21,10 @@ function isAllowedRequest(req: Request): boolean {
   }
   const origin = req.headers.get('origin');
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+  // Service worker fetch might not have an origin, but will be same-site.
+  const secFetchSite = req.headers.get('sec-fetch-site');
+  if (secFetchSite === 'same-origin') return true;
+
   return !!appUrl && origin === appUrl;
 }
 
