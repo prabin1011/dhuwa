@@ -83,17 +83,10 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const [isResetting, setIsResetting] = useState(false);
 
     const onSubmit = async (data: OnboardingData) => {
-        if (typeof navigator !== 'undefined' && !navigator.onLine) {
-            toast({
-                variant: 'destructive',
-                title: "You're Offline",
-                description: 'Please connect to the internet to save your profile.',
-            });
-            return;
-        }
-
         if (!user) return;
+
         const profileRef = doc(firestore, 'users', user.uid);
+
         try {
             const finalHabitDetails: OnboardingData['habitDetails'] = {};
             for (const habit in data.habitDetails) {
@@ -110,10 +103,15 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
                 habitDetails: finalHabitDetails,
             };
             await updateDoc(profileRef, dataToSave as any);
+
+            const offline = typeof navigator !== 'undefined' && !navigator.onLine;
             toast({
-                title: "Profile Updated",
-                description: "Your changes have been saved successfully.",
+                title: offline ? "Saved Offline" : "Profile Updated",
+                description: offline
+                    ? "Your changes are saved on this device and will sync when you're online."
+                    : "Your changes have been saved successfully.",
             });
+
             onOpenChange(false);
         } catch (error: any) {
             toast({

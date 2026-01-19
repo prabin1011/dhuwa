@@ -163,8 +163,8 @@ export function NotificationBell() {
     });
     try {
       await batch.commit();
-    } catch (error) {
-      console.error("Error marking notifications as read:", error);
+    } catch (error: any) {
+      toast({ title: "Couldn't update read status", description: "Try again when online." });
     }
   };
   
