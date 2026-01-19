@@ -32,6 +32,14 @@ const withPWA = withPWAInit({
       },
     },
     {
+      urlPattern: /^\/_next\/image(\?.*)?$/i,
+      handler: "CacheFirst",
+      options: {
+        cacheName: "next-image",
+        expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
+      },
+    },
+    {
       urlPattern: ({ request }) => request.mode === "navigate",
       handler: "NetworkFirst",
       options: {
@@ -54,14 +62,6 @@ const withPWA = withPWAInit({
       handler: "CacheFirst",
       options: {
         cacheName: "images",
-        expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
-      },
-    },
-    {
-      urlPattern: /^\/_next\/image\?url=.*/i,
-      handler: "CacheFirst",
-      options: {
-        cacheName: "next-image",
         expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
       },
     },
