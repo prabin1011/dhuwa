@@ -59,11 +59,11 @@ export default async function LocaleLayout({
           <NextIntlClientProvider locale={locale} messages={messages}>
             <FirebaseClientProvider>
               {children}
+              <OpenInAppBanner />
             </FirebaseClientProvider>
             <Toaster />
           </NextIntlClientProvider>
         </ThemeProvider>
-        <OpenInAppBanner />
       </body>
     </html>
   );

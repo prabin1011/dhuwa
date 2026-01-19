@@ -25,17 +25,16 @@ export default function OpenInAppBanner() {
 
   const intentUrl = useMemo(() => {
     if (typeof window === 'undefined') return '';
+    const CANONICAL_HOST = 'dhuwa.com'; // Use the canonical production host
     // Preserve the current path/query so the app opens the same route (TWA will load it)
     const path = window.location.pathname.replace(/^\//, '');
     const qs = window.location.search || '';
-    const host = window.location.host;
 
     // intent://<HOST>/<PATH>?<QS>#Intent;scheme=https;package=<PKG>;S.browser_fallback_url=<PLAY>;end
-    // If you have deep-link routing, keeping path/query helps.
-    return `intent://${host}/${path}${qs}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=${encodeURIComponent(
+    return `intent://${CANONICAL_HOST}/${path}${qs}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=${encodeURIComponent(
       playStoreUrl
     )};end`;
-  }, [playStoreUrl]);
+  }, [playStoreUrl, pkg]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
