@@ -23,11 +23,13 @@ export function useScheduledReminders({ moments, remindersEnabled }: UseSchedule
     useEffect(() => {
         const supportsTriggers = 
             typeof window !== 'undefined' &&
-            'Notification' in window &&
             'serviceWorker' in navigator &&
-            'showTrigger' in Notification.prototype;
+            'Notification' in window &&
+            Notification.permission === 'granted' &&
+            'TimestampTrigger' in (window as any);
 
-        if (!remindersEnabled || !moments || !user || !supportsTriggers || Notification.permission !== 'granted') {
+
+        if (!remindersEnabled || !moments || !user || !supportsTriggers) {
             return;
         }
 
