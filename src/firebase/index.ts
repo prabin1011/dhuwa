@@ -2,7 +2,12 @@
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import { 
+  type Firestore, 
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager
+} from 'firebase/firestore';
 import { getFirebaseConfig } from './config';
 
 // This structure will hold the initialized services.
@@ -37,11 +42,16 @@ export function initializeFirebase() {
     );
   }
   
+  // Initialize Firestore with offline persistence
+  const firestore = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+  });
+  
   // Store the initialized services so we don't have to do this again.
   firebaseServices = {
     firebaseApp: app,
     auth: getAuth(app),
-    firestore: getFirestore(app),
+    firestore: firestore,
   };
 
   return firebaseServices;
