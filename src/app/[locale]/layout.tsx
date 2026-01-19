@@ -7,7 +7,6 @@ import { notFound } from 'next/navigation';
 import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
 import Script from 'next/script';
-import { AdSenseScript } from '@/components/adsense-script';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export default async function LocaleLayout({
@@ -48,7 +47,6 @@ export default async function LocaleLayout({
             gtag('config', 'G-PJ8R05LFX9');
           `}
         </Script>
-        <AdSenseScript />
       </head>
        <body suppressHydrationWarning className="min-h-screen bg-background font-sans antialiased">
         <ThemeProvider

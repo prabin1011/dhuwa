@@ -7,34 +7,52 @@ const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
 const withPWA = withPWAInit({
   dest: "public",
+  register: true,
+  skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
   fallbacks: {
-    document: "/offline.html",
+    document: "/offline",
   },
+  cacheOnFrontEndNav: true,
+  reloadOnOnline: true,
+  additionalManifestEntries: [
+    { url: "/", revision: null },
+    { url: "/offline", revision: null },
+    { url: "/manifest.json", revision: null },
+    { url: "/1080x1080.png", revision: null },
+  ],
   runtimeCaching: [
     {
       urlPattern: ({ request }) => request.mode === "navigate",
       handler: "NetworkFirst",
       options: {
         cacheName: "pages",
-        expiration: {
-          maxEntries: 64,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-        },
+        networkTimeoutSeconds: 3,
+        expiration: { maxEntries: 50, maxAgeSeconds: 7 * 24 * 60 * 60 },
       },
     },
     {
-      urlPattern: /\.(?:js|css|ico|png|svg|jpg|jpeg|webp|woff2?|eot|ttf|otf)$/,
+      urlPattern: ({ request }) =>
+        ["style", "script", "worker", "font"].includes(request.destination),
       handler: "CacheFirst",
       options: {
-        cacheName: "static-assets",
-        expiration: {
-          maxEntries: 128,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-        },
+        cacheName: "assets",
+        expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
       },
     },
-     {
+    {
+      urlPattern: ({ request }) => request.destination === "image",
+      handler: "CacheFirst",
+      options: {
+        cacheName: "images",
+        expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
+      },
+    },
+    {
+      urlPattern: ({ url }) => url.pathname.startsWith("/api/"),
+      handler: "NetworkOnly",
+    },
+    {
       urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/,
       handler: 'CacheFirst',
       options: {
