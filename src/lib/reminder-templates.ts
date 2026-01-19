@@ -1,5 +1,19 @@
+// This file is now primarily for reference, as the SW handles the text directly.
+// Keeping it allows for potential future use where templates might be fetched or varied.
 
-export const REMINDER_TEMPLATES = [
+export const REMINDER_TEMPLATES = {
+    nudge: {
+        title: "A Moment of Choice",
+        body: "Your planned smoke for '{{label}}' is in 5 minutes. Is this what you truly want, or is it just the habit talking?"
+    },
+    checkin: {
+        title: "Checking In: '{{label}}'",
+        body: "The moment has passed. Did you end up smoking?"
+    }
+};
+
+// Kept for backward compatibility or other potential uses, but nudge/checkin is preferred.
+export const LEGACY_REMINDER_TEMPLATES = [
     {
         title: "A Moment of Choice",
         body: "Your planned smoke for '{{label}}' is in 5 minutes. Is this what you truly want, or is it just the habit talking?"
@@ -12,25 +26,9 @@ export const REMINDER_TEMPLATES = [
         title: "A Message From Your Future Self",
         body: "In 5 minutes, a choice arrives. The 'you' of tomorrow is hoping you choose fresh air. What will you decide for '{{label}}'?"
     },
-    {
-        title: "Is It a Real Need?",
-        body: "Your '{{label}}' moment is near. Pause and ask: What am I really feeling? What do I truly need right now? The cigarette is rarely the answer."
-    },
-    {
-        title: "The Chain",
-        body: "The next cigarette only ensures the one after it. Your '{{label}}' moment is in 5 minutes. You have the power to break the chain, right here."
-    },
-    {
-        title: "Reclaim This Moment",
-        body: "You scheduled '{{label}}' in 5 minutes. What if you replaced it with 5 minutes of something else? A short walk, a glass of water, a deep breath."
-    },
-    {
-        title: "Observe, Don't Obey",
-        body: "The urge for '{{label}}' is coming. You don't have to obey it. Just watch it. Notice its texture, its voice. It has no power over you."
-    }
 ];
 
-export const CONFIRMATION_TEMPLATES = [
+export const LEGACY_CONFIRMATION_TEMPLATES = [
     {
         title: "Checking In: '{{label}}'",
         body: "The moment has passed. Did you end up smoking?"
@@ -39,8 +37,4 @@ export const CONFIRMATION_TEMPLATES = [
         title: "How did '{{label}}' go?",
         body: "A quick log helps you see your patterns. Did you smoke?"
     },
-    {
-        title: "Quick Question...",
-        body: "Regarding your '{{label}}' moment, did you smoke?"
-    }
-]
+];

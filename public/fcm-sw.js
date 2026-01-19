@@ -1,24 +1,11 @@
-// --- Self-management: Install and activate the service worker ---
-self.addEventListener('install', (event) => {
-  // skipWaiting forces the waiting service worker to become the active service worker.
-  event.waitUntil(self.skipWaiting());
-});
+// Dhuwa - Offline-First Notification Service Worker
 
-self.addEventListener('activate', (event) => {
-  // clients.claim() allows an active service worker to set itself as the controller for all clients within its scope.
-  event.waitUntil(self.clients.claim());
-});
-
-
-// --- IndexedDB Queue for Offline Logging ---
 const DB_NAME = 'dhuwa-log-queue';
 const STORE = 'queue';
 const SYNC_TAG = 'log-queue';
 
-/**
- * Opens and initializes the IndexedDB database.
- * @returns {Promise<IDBDatabase>} A promise that resolves with the database instance.
- */
+// --- IndexedDB Queue for Offline Logging ---
+
 function openDb() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, 1);
@@ -33,11 +20,6 @@ function openDb() {
   });
 }
 
-/**
- * Adds or updates an entry in the log queue.
- * @param {object} entry - The log entry to queue.
- * @returns {Promise<boolean>} A promise that resolves when the operation is complete.
- */
 async function enqueueLog(entry) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
@@ -48,10 +30,6 @@ async function enqueueLog(entry) {
   });
 }
 
-/**
- * Retrieves all log entries from the queue.
- * @returns {Promise<Array<object>>} A promise that resolves with an array of log entries.
- */
 async function getAllLogs() {
   const db = await openDb();
   return new Promise((resolve, reject) => {
@@ -62,11 +40,6 @@ async function getAllLogs() {
   });
 }
 
-/**
- * Deletes a log entry from the queue by its ID.
- * @param {string} id - The ID of the log entry to delete.
- * @returns {Promise<boolean>} A promise that resolves when the deletion is complete.
- */
 async function deleteLog(id) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
@@ -77,13 +50,13 @@ async function deleteLog(id) {
   });
 }
 
-/**
- * Attempts to flush the log queue by sending entries to the server.
- * It stops on the first network failure to preserve order and prevent spamming.
- */
+// --- Queue Flushing Logic ---
+
 async function flushQueue() {
   const items = await getAllLogs();
   if (!items.length) return;
+
+  console.log(`[SW] Flushing ${items.length} items from queue.`);
 
   for (const item of items) {
     try {
@@ -94,36 +67,104 @@ async function flushQueue() {
       });
 
       if (res.ok) {
-        // If the server successfully processed the log, remove it from the local queue.
         await deleteLog(item.id);
+        console.log(`[SW] Flushed and deleted log: ${item.id}`);
       } else {
-        // If the server returns an error (e.g., 4xx, 5xx), stop processing to avoid sending bad data.
-        console.error(`[SW] Server rejected log item ${item.id} with status ${res.status}`);
+        // Server rejected the request; stop so we don't spam.
+        console.error(`[SW] Server rejected log ${item.id}, status: ${res.status}. Stopping flush.`);
         break;
       }
     } catch (e) {
-      // This catches network errors (e.g., offline). Stop processing and retry later.
-      console.log(`[SW] Network error during flush. Will retry later.`);
+      // Offline or network error — stop, keep queued.
+      console.log('[SW] Network error during flush. Will retry later.', e.message);
       break;
     }
   }
 }
 
+// --- Notification Scheduling Logic ---
+
+// Helper to safely close notifications by a tag prefix
+async function closeByPrefix(prefix) {
+  try {
+    const notifs = await self.registration.getNotifications({ includeTriggered: true });
+    for (const n of notifs) {
+      if (typeof n.tag === 'string' && n.tag.startsWith(prefix)) {
+        n.close();
+      }
+    }
+  } catch (e) {
+    console.error('[SW] Error clearing notifications:', e);
+  }
+}
+
+// Main scheduling function
+async function scheduleNotifications(payload) {
+  // Use `self.TimestampTrigger` for robustness inside the worker
+  const TT = self.TimestampTrigger || (self.clients ? self.TimestampTrigger : null);
+  if (!TT) {
+    console.warn('[SW] Notification Triggers not supported. Skipping schedule.');
+    return;
+  }
+
+  const { momentId, userId, dateStr, plannedAtMs, label, habit, url } = payload;
+  const now = Date.now();
+
+  const nudgeAt = plannedAtMs - 5 * 60 * 1000;   // 8:55 for a 9:00 moment
+  const checkAt = plannedAtMs + 1 * 60 * 1000;   // 9:01 for a 9:00 moment
+
+  const baseTag = `moment:${momentId}:${dateStr}`;
+  await closeByPrefix(baseTag); // Clear any old notifications for this moment
+
+  // --- 1. Schedule "Nudge" Notification (-5 min) ---
+  if (nudgeAt > now) {
+    const nudgeTag = `${baseTag}:nudge`;
+    await self.registration.showNotification("A Moment of Choice", {
+      body: `Your planned smoke for '${label}' is in 5 minutes. Is this what you want?`,
+      data: { url, userId, momentId, dateStr, habit }, // Pass data for click handling
+      showTrigger: new TT(nudgeAt),
+      tag: nudgeTag,
+    });
+  }
+
+  // --- 2. Schedule "Check-in" Notification (+1 min) ---
+  if (checkAt > now) {
+    const checkinTag = `${baseTag}:checkin`;
+    await self.registration.showNotification(`Checking In: ${label}`, {
+      body: "Did you end up smoking?",
+      actions: [
+        { action: "log_yes", title: "Yes, I smoked" },
+        { action: "log_no", title: "No, I skipped!" },
+      ],
+      data: { url, userId, momentId, dateStr, habit },
+      showTrigger: new TT(checkAt),
+      tag: checkinTag,
+      renotify: true, // Allow re-notification if user didn't interact
+    });
+  }
+}
+
 // --- Service Worker Event Listeners ---
 
-/**
- * Handles the 'sync' event, triggered by the Background Sync API.
- * This is the primary mechanism for processing the offline queue when network is restored.
- */
-self.addEventListener('sync', (event) => {
-  if (event.tag === SYNC_TAG) {
+// On activate, claim clients and try to flush any pending logs
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    await self.clients.claim();
+    await flushQueue();
+  })());
+});
+
+// Handle messages from the app (for scheduling and flushing)
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SCHEDULE_MOMENT") {
+    event.waitUntil(scheduleNotifications(event.data.payload));
+  }
+  if (event.data?.type === "FLUSH_QUEUE") {
     event.waitUntil(flushQueue());
   }
 });
 
-/**
- * Handles clicks on notifications, including custom actions.
- */
+// Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
   const { action } = event;
   const data = event.notification.data || {};
@@ -131,108 +172,44 @@ self.addEventListener('notificationclick', (event) => {
 
   event.notification.close();
 
-  // If the user clicks the body of the notification, open the app.
+  // If user just clicks the body of the notification, open the app
   if (!action) {
     event.waitUntil(clients.openWindow(url || '/'));
     return;
   }
 
-  // If the click was on a "log" action button.
+  // If it's a "Yes" or "No" action
   if (action === 'log_yes' || action === 'log_no') {
     const smoked = action === 'log_yes';
-
-    // Prepare the data payload for the API.
     const payload = { userId, momentId, dateStr, smoked, habit };
+    
+    // Use a unique ID for the queue entry
     const entry = {
-      id: `${momentId}:${dateStr}:${Date.now()}`, // Create a unique ID for the queue entry.
+      id: `${momentId}:${dateStr}:${Date.now()}`,
       payload,
       createdAt: Date.now(),
     };
 
     event.waitUntil((async () => {
-      // 1. Always store the action locally first. This guarantees it's not lost.
+      // 1) Always store locally first to guarantee it's not lost
       await enqueueLog(entry);
 
-      // 2. If Background Sync is supported, register a sync task.
+      // 2) Register for a background sync to flush later (if supported)
       if (self.registration.sync) {
-        try { await self.registration.sync.register(SYNC_TAG); } catch (err) {
-          console.error('[SW] Could not register sync:', err);
+        try { await self.registration.sync.register(SYNC_TAG); } catch (e) {
+          console.error('[SW] Background Sync registration failed:', e.message);
         }
       }
 
-      // 3. Attempt to flush the queue immediately as a best-effort.
-      // If online, this provides instant feedback. If offline, it does nothing.
+      // 3) Attempt a best-effort flush immediately
       await flushQueue();
     })());
   }
 });
 
-/**
- * Listens for messages from the main application to schedule notifications.
- */
-self.addEventListener("message", (event) => {
-    if (event.data?.type !== "SCHEDULE_MOMENT") return;
-    
-    // Wrap in waitUntil to ensure the service worker stays active while scheduling.
-    event.waitUntil(scheduleNotifications(event.data.payload));
+// Sync event for flushing the queue when network returns
+self.addEventListener('sync', (event) => {
+  if (event.tag === SYNC_TAG) {
+    event.waitUntil(flushQueue());
+  }
 });
-
-/**
- * Schedules the "nudge" and "check-in" notifications for a planned moment.
- * @param {object} payload - The details of the moment to schedule.
- */
-async function scheduleNotifications(payload) {
-    const { momentId, userId, dateStr, plannedAtMs, label, habit, url } = payload;
-    const now = Date.now();
-    
-    // Guard: Check if Notification Triggers are supported in the current browser.
-    const TT = self.TimestampTrigger || (typeof TimestampTrigger !== 'undefined' ? TimestampTrigger : null);
-    if (!TT) {
-        console.warn('[SW] Notification Triggers not supported. Skipping schedule.');
-        return;
-    }
-    
-    // Clear any previously scheduled notifications for this specific moment to avoid duplicates.
-    const existingNotifs = await self.registration.getNotifications({ tag: `moment:${momentId}:${dateStr}` });
-    existingNotifs.forEach(notif => notif.close());
-
-    // Define the templates for our two notifications.
-    const reminderTemplates = {
-        nudge: {
-            title: "A Moment of Choice",
-            body: `Your planned smoke for '${label}' is in 5 minutes. Is this what you truly want?`
-        },
-        checkin: {
-            title: `Checking In: ${label}`,
-            body: "The moment has passed. Did you end up smoking?"
-        }
-    };
-    
-    const nudgeAt = plannedAtMs - 5 * 60 * 1000;   // 5 minutes before
-    const checkAt = plannedAtMs + 5 * 60 * 1000;   // 5 minutes after
-
-    // Only schedule the nudge notification if its planned time is in the future.
-    if (nudgeAt > now) {
-         await self.registration.showNotification(reminderTemplates.nudge.title, {
-            body: reminderTemplates.nudge.body,
-            data: { url, userId, momentId, dateStr, habit },
-            showTrigger: new TT(nudgeAt),
-            tag: `moment:${momentId}:${dateStr}`, // Unique tag for this specific moment and day
-        });
-    }
-
-    // Only schedule the check-in notification if its planned time is in the future.
-    if (checkAt > now) {
-        await self.registration.showNotification(reminderTemplates.checkin.title, {
-            body: reminderTemplates.checkin.body,
-            actions: [
-                { action: "log_yes", title: "Yes, I smoked" },
-                { action: "log_no", title: "No, I skipped it!" },
-            ],
-            data: { url, userId, momentId, dateStr, habit },
-            showTrigger: new TT(checkAt),
-            tag: `moment:${momentId}:${dateStr}`, // Re-use tag to replace the nudge notification
-            renotify: true,
-        });
-    }
-}

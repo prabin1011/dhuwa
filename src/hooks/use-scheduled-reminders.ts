@@ -33,23 +33,19 @@ export function useScheduledReminders({ moments, remindersEnabled }: UseSchedule
 
         const scheduleNotifications = async () => {
             try {
-                // Ensure the service worker is ready before trying to message it.
                 const registration = await navigator.serviceWorker.ready;
                 
-                // The SW will handle clearing old notifications, but we can clear them here too if we want.
-                const existingNotifications = await registration.getNotifications({ includeTriggered: true });
-                existingNotifications.forEach(notif => {
-                    // This is a simple way to clear all, could be more targeted
-                     notif.close();
-                });
+                // On app load, always try to flush any logs that were queued while offline.
+                registration.active?.postMessage({ type: 'FLUSH_QUEUE' });
                 
                 const now = new Date();
                 const todayStr = format(now, 'yyyy-MM-dd');
 
                 moments.forEach(moment => {
+                    // Combine the moment's time with today's date
                     const plannedDate = parse(`${todayStr} ${moment.time}`, 'yyyy-MM-dd HH:mm', new Date());
                     
-                    // Only schedule for moments planned for today that haven't been completed yet and are in the future.
+                    // Only schedule for moments planned for today that haven't been completed and are in the future.
                     if (isToday(plannedDate) && plannedDate > now && moment.completed?.[todayStr] === undefined) {
                         const plannedAtMs = plannedDate.getTime();
                         
@@ -69,7 +65,7 @@ export function useScheduledReminders({ moments, remindersEnabled }: UseSchedule
                     }
                 });
             } catch (error) {
-                console.error("Error delegating notification scheduling to Service Worker:", error);
+                console.error("[Scheduler] Error delegating notification scheduling to Service Worker:", error);
             }
         };
 
