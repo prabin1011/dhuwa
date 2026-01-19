@@ -42,10 +42,17 @@ export function initializeFirebase() {
     );
   }
   
-  // Initialize Firestore with offline persistence
-  const firestore = initializeFirestore(app, {
-    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-  });
+  let firestore: Firestore;
+  try {
+    // Initialize Firestore with offline persistence
+    firestore = initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    });
+  } catch (e) {
+    console.warn("[Firestore] Offline persistence failed to initialize. Falling back to in-memory persistence.", e);
+    // Fallback to in-memory persistence if offline fails
+    firestore = initializeFirestore(app, {});
+  }
   
   // Store the initialized services so we don't have to do this again.
   firebaseServices = {

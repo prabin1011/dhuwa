@@ -49,7 +49,7 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const params = useParams();
     const locale = params.locale as Locale;
     const { toast } = useToast();
-    const { requestPermissionAndToken, permissionStatus: initialPermissionStatus } = useNotifications();
+    const { requestPermission, permissionStatus: initialPermissionStatus } = useNotifications();
     const [permissionStatus, setPermissionStatus] = useState(initialPermissionStatus);
     
     useEffect(() => {
@@ -119,8 +119,8 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
         setValue('reminders', enabled ? 'yes' : 'no', { shouldDirty: true });
         
         if (enabled) {
-            await requestPermissionAndToken();
-            setPermissionStatus(Notification.permission); // Re-check permission status after request
+            const permission = await requestPermission();
+            setPermissionStatus(permission);
         }
     }
 
@@ -454,5 +454,3 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     </Sheet>
   );
 }
-
-    
