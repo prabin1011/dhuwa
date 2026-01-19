@@ -16,7 +16,7 @@ const withPWA = withPWAInit({
   cacheOnFrontEndNav: true,
   reloadOnOnline: true,
   additionalManifestEntries: [
-    { url: "/", revision: null },
+    { url: "/en", revision: null },
     { url: "/offline", revision: null },
     { url: "/manifest.json", revision: null },
     { url: "/1080x1080.png", revision: null },

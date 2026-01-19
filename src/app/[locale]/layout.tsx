@@ -38,8 +38,8 @@ export default async function LocaleLayout({
 
 
         {/* Google tag (gtag.js) */}
-        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-PJ8R05LFX9"></Script>
-        <Script id="google-analytics">
+        <Script strategy="afterInteractive" async src="https://www.googletagmanager.com/gtag/js?id=G-PJ8R05LFX9"></Script>
+        <Script id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
