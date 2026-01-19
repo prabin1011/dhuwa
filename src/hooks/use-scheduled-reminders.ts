@@ -33,9 +33,12 @@ export function useScheduledReminders({ moments, remindersEnabled }: UseSchedule
     const run = async () => {
       try {
         const reg = await navigator.serviceWorker.ready;
+        
+        // Use a more robust target for posting messages.
+        const target = reg.active || navigator.serviceWorker.controller;
 
-        // Opportunistic flush (helps iOS/unsupported sync cases)
-        reg.active?.postMessage({ type: 'FLUSH_QUEUE' });
+        // Opportunistic flush to send any queued logs when the app opens.
+        target?.postMessage({ type: 'FLUSH_QUEUE' });
 
         const nowMs = Date.now();
         const todayStr = format(new Date(), 'yyyy-MM-dd');
@@ -55,7 +58,7 @@ export function useScheduledReminders({ moments, remindersEnabled }: UseSchedule
           const shouldSchedule = nudgeAt > nowMs || checkAt > nowMs;
           if (!shouldSchedule) continue;
 
-          reg.active?.postMessage({
+          target?.postMessage({
             type: 'SCHEDULE_MOMENT',
             payload: {
               momentId: m.id,
