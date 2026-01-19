@@ -14,7 +14,9 @@ function isStandalone() {
   // @ts-ignore
   const iosStandalone = typeof navigator !== 'undefined' && (navigator as any).standalone;
   const mql = typeof window !== 'undefined' && window.matchMedia?.('(display-mode: standalone)').matches;
-  return !!iosStandalone || !!mql;
+  const ref = typeof document !== 'undefined' ? document.referrer || '' : '';
+  const isAndroidAppReferrer = ref.startsWith('android-app://');
+  return !!iosStandalone || !!mql || isAndroidAppReferrer;
 }
 
 export default function OpenInAppBanner() {
@@ -27,11 +29,11 @@ export default function OpenInAppBanner() {
     if (typeof window === 'undefined') return '';
     const CANONICAL_HOST = 'dhuwa.com'; // Use the canonical production host
     // Preserve the current path/query so the app opens the same route (TWA will load it)
-    const path = window.location.pathname.replace(/^\//, '');
+    const path = window.location.pathname;
     const qs = window.location.search || '';
 
     // intent://<HOST>/<PATH>?<QS>#Intent;scheme=https;package=<PKG>;S.browser_fallback_url=<PLAY>;end
-    return `intent://${CANONICAL_HOST}/${path}${qs}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=${encodeURIComponent(
+    return `intent://${CANONICAL_HOST}${path}${qs}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=${encodeURIComponent(
       playStoreUrl
     )};end`;
   }, [playStoreUrl, pkg]);
@@ -41,9 +43,10 @@ export default function OpenInAppBanner() {
 
     const dismissed = localStorage.getItem(STORAGE_KEY) === '1';
     const ua = navigator.userAgent || '';
+    const isMobile = /Mobile/i.test(ua);
 
-    // Show only on Android browsers, not inside installed standalone/TWA
-    if (!dismissed && isAndroid(ua) && !isStandalone()) {
+    // Show only on Android mobile browsers, not inside installed standalone/TWA
+    if (!dismissed && isAndroid(ua) && isMobile && !isStandalone()) {
       setShow(true);
     }
   }, []);
