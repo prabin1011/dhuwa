@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
@@ -16,19 +16,25 @@ export default function LandingPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { locale } = useParams() as { locale: Locale };
+  const [authWaitOver, setAuthWaitOver] = useState(false);
 
   useEffect(() => {
-    // If the user is loaded and authenticated, redirect to the dashboard.
-    // This runs after the initial render, so it won't block the UI.
-    if (!isUserLoading && user) {
+    const t = setTimeout(() => setAuthWaitOver(true), 1500);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    // If the user is loaded, authenticated, and online, redirect to the dashboard.
+    // This runs after the initial render and avoids offline redirect loops.
+    if (!isUserLoading && user && typeof navigator !== 'undefined' && navigator.onLine) {
       router.replace(`/${locale}/dashboard`);
     }
   }, [user, isUserLoading, router, locale]);
 
-  // While checking auth, show a minimal skeleton.
-  // This avoids a "flash of unauthenticated content" for logged-in users
-  // but is lightweight enough not to cause a white screen offline.
-  if (isUserLoading || (!isUserLoading && user)) {
+  // Only show skeleton for a brief period to avoid getting stuck offline.
+  const shouldShowSkeleton = !authWaitOver && (isUserLoading || !!user);
+
+  if (shouldShowSkeleton) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -39,7 +45,8 @@ export default function LandingPage() {
     );
   }
 
-  // Only render the full landing page if we know for sure there is no user.
+  // Only render the full landing page if we know for sure there is no user,
+  // or if the auth check has timed out.
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">

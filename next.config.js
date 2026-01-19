@@ -58,6 +58,14 @@ const withPWA = withPWAInit({
       },
     },
     {
+      urlPattern: /^\/_next\/image\?url=.*/i,
+      handler: "CacheFirst",
+      options: {
+        cacheName: "next-image",
+        expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
+      },
+    },
+    {
       urlPattern: ({ url }) => url.pathname.startsWith("/api/"),
       handler: "NetworkOnly",
     },
