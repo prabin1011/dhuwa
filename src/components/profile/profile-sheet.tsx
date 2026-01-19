@@ -149,6 +149,10 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const isPermissionDenied = permissionStatus === 'denied';
 
     const handleDeleteAccount = async () => {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            toast({ variant: 'destructive', title: "You're offline", description: "Please connect to the internet to delete your account." });
+            return;
+        }
         if (!user) {
              toast({ variant: "destructive", title: "Not logged in", description: "You must be logged in to delete an account." });
              return;
@@ -186,6 +190,10 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     }
 
     const handleResetData = async () => {
+         if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            toast({ variant: 'destructive', title: "You're offline", description: "Please connect to the internet to reset your data." });
+            return;
+        }
         if (!user) return;
         setIsResetting(true);
         const urgesRef = collection(firestore, `users/${user.uid}/urges`);
