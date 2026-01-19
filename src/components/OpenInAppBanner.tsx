@@ -83,7 +83,7 @@ export default function OpenInAppBanner() {
 
   const dismiss = () => {
     try {
-      localStorage.setItem(STORAGE_DISMISSED, '1');
+      // Not now → just cooldown
       localStorage.setItem(STORAGE_SHOWN_AT, String(Date.now()));
     } catch {}
     setShow(false);
