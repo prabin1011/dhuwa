@@ -83,6 +83,15 @@ export function ProfileSheet({ isOpen, onOpenChange, userProfile }: ProfileSheet
     const [isResetting, setIsResetting] = useState(false);
 
     const onSubmit = async (data: OnboardingData) => {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            toast({
+                variant: 'destructive',
+                title: "You're Offline",
+                description: 'Please connect to the internet to save your profile.',
+            });
+            return;
+        }
+
         if (!user) return;
         const profileRef = doc(firestore, 'users', user.uid);
         try {

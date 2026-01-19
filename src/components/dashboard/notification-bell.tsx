@@ -149,7 +149,11 @@ export function NotificationBell() {
   };
 
   const markAllAsRead = async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        return; // Silently skip if offline
+    }
     if (!firestore || !user || !storedNotifications || unreadCount === 0) return;
+    
     const batch = writeBatch(firestore);
     storedNotifications.forEach(notif => {
       if (!notif.read) {
@@ -165,8 +169,13 @@ export function NotificationBell() {
   };
   
   const handleClearHistory = async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        toast({ title: 'Offline', description: 'Reconnect to clear history.' });
+        return;
+    }
     if (!firestore || !user || !storedNotifications || storedNotifications.length === 0) return;
     trackEvent('clear_notification_history', 'Notifications');
+    
     const batch = writeBatch(firestore);
     storedNotifications.forEach(notif => {
         const notifRef = doc(firestore, `users/${user.uid}/notifications`, notif.id);
@@ -174,8 +183,10 @@ export function NotificationBell() {
     });
      try {
       await batch.commit();
-    } catch (error) {
+      toast({ title: "Cleared", description: "Notification history removed." });
+    } catch (error: any) {
       console.error("Error clearing notification history:", error);
+      toast({ variant: 'destructive', title: 'Clear failed', description: error?.message || 'Try again later.' });
     }
   }
 
@@ -183,9 +194,9 @@ export function NotificationBell() {
     setIsOpen(open);
     if (open) {
       trackEvent('open_notification_bell', 'Notifications');
-      handleSyncNotifications(); // Trigger sync on open
+      handleSyncNotifications(); // This function now has an offline guard
       if (unreadCount > 0) {
-        markAllAsRead();
+        markAllAsRead(); // This function now has an offline guard
       }
     }
   };
