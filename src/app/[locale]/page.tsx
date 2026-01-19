@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -18,13 +19,16 @@ export default function LandingPage() {
 
   useEffect(() => {
     // If the user is loaded and authenticated, redirect to the dashboard.
+    // This runs after the initial render, so it won't block the UI.
     if (!isUserLoading && user) {
       router.replace(`/${locale}/dashboard`);
     }
   }, [user, isUserLoading, router, locale]);
 
-  // While checking auth state, show a loading UI.
-  if (isUserLoading || user) {
+  // While checking auth, show a minimal skeleton.
+  // This avoids a "flash of unauthenticated content" for logged-in users
+  // but is lightweight enough not to cause a white screen offline.
+  if (isUserLoading || (!isUserLoading && user)) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -35,7 +39,7 @@ export default function LandingPage() {
     );
   }
 
-  // Only render the landing page if the user is not logged in.
+  // Only render the full landing page if we know for sure there is no user.
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">

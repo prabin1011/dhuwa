@@ -17,11 +17,20 @@ const withPWA = withPWAInit({
   reloadOnOnline: true,
   additionalManifestEntries: [
     { url: "/en", revision: null },
+    { url: "/en/", revision: null },
     { url: "/offline", revision: null },
     { url: "/manifest.json", revision: null },
     { url: "/1080x1080.png", revision: null },
   ],
   runtimeCaching: [
+    {
+      urlPattern: /^\/_next\/static\/.*/i,
+      handler: "CacheFirst",
+      options: {
+        cacheName: "next-static",
+        expiration: { maxEntries: 200, maxAgeSeconds: 30 * 24 * 60 * 60 },
+      },
+    },
     {
       urlPattern: ({ request }) => request.mode === "navigate",
       handler: "NetworkFirst",
