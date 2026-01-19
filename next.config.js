@@ -15,6 +15,7 @@ const withPWA = withPWAInit({
   },
   cacheOnFrontEndNav: true,
   reloadOnOnline: true,
+  importScripts: ["/fcm-sw.js"],
   additionalManifestEntries: [
     { url: "/en", revision: null },
     { url: "/en/", revision: null },

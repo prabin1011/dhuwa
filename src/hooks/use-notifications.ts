@@ -8,33 +8,6 @@ import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from './use-toast';
 import { getVapidKey } from '@/firebase/config';
 
-// This hook is no longer in active use for generating notifications,
-// but is kept for potential future re-integration of push notifications.
-// It manages FCM token registration and foreground message handling.
-
-const SW_URL = '/firebase-messaging-sw.js';
-
-async function ensureMessagingSW(): Promise<ServiceWorkerRegistration | null> {
-  if (!('serviceWorker' in navigator)) return null;
-
-  const regs = await navigator.serviceWorker.getRegistrations();
-  const existing =
-    regs.find(r =>
-      r.active?.scriptURL.endsWith(SW_URL) ||
-      r.waiting?.scriptURL.endsWith(SW_URL) ||
-      r.installing?.scriptURL.endsWith(SW_URL)
-    ) || null;
-
-  if (existing) return existing;
-
-  try {
-    return await navigator.serviceWorker.register(SW_URL, { scope: '/' });
-  } catch (e) {
-    console.error('SW register failed', e);
-    return null;
-  }
-}
-
 export function useNotifications() {
   const { firebaseApp, firestore, user } = useFirebase();
   const { toast } = useToast();
@@ -68,12 +41,6 @@ export function useNotifications() {
         return null;
     }
 
-    const swReg = await ensureMessagingSW();
-    if (!swReg) {
-      toast({ variant: 'destructive', title: 'Setup failed', description: 'Couldn’t register service worker.' });
-      return null;
-    }
-
     try {
       const permission = await Notification.requestPermission();
       setPermissionStatus(permission);
@@ -81,7 +48,10 @@ export function useNotifications() {
         toast({ variant: 'destructive', title: 'Permission denied', description: 'Enable notifications in browser settings.' });
         return null;
       }
-
+      
+      // Get the service worker registration managed by next-pwa
+      const swReg = await navigator.serviceWorker.ready;
+      
       const messaging = getMessaging(firebaseApp);
       const token = await getToken(messaging, {
         vapidKey,
@@ -111,5 +81,3 @@ export function useNotifications() {
 
   return { requestPermissionAndToken, fcmToken, permissionStatus, messages, clearMessages };
 }
-
-    
