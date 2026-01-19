@@ -8,6 +8,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
 import Script from 'next/script';
 import { ThemeProvider } from '@/components/theme-provider';
+import OpenInAppBanner from '@/components/OpenInAppBanner';
 
 export default async function LocaleLayout({
   children,
@@ -62,6 +63,7 @@ export default async function LocaleLayout({
             <Toaster />
           </NextIntlClientProvider>
         </ThemeProvider>
+        <OpenInAppBanner />
       </body>
     </html>
   );
