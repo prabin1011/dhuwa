@@ -2,7 +2,20 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-const STORAGE_KEY = 'dhuwa_open_in_app_dismissed_v1';
+const STORAGE_DISMISSED = 'dhuwa_open_in_app_dismissed_v1';
+const STORAGE_SHOWN_AT = 'dhuwa_open_in_app_shown_at_v1';
+const STORAGE_PAGEVIEWS = 'dhuwa_open_in_app_pv_v1';
+
+const MIN_PAGEVIEWS_BEFORE_SHOW = 2;
+const SHOW_DELAY_MS = 4500;                 // wait 4.5s
+const COOLDOWN_DAYS = 7;                    // don’t show again for 7 days if they saw it
+
+function daysSince(ts: number) {
+  if (!ts) return Infinity;
+  const ms = Date.now() - ts;
+  return ms / (1000 * 60 * 60 * 24);
+}
+
 
 function isAndroid(ua: string) {
   return /Android/i.test(ua);
@@ -10,7 +23,6 @@ function isAndroid(ua: string) {
 
 // If you're already inside the installed PWA/TWA, don't show banner
 function isStandalone() {
-  // iOS: navigator.standalone, others: matchMedia
   // @ts-ignore
   const iosStandalone = typeof navigator !== 'undefined' && (navigator as any).standalone;
   const mql = typeof window !== 'undefined' && window.matchMedia?.('(display-mode: standalone)').matches;
@@ -28,11 +40,10 @@ export default function OpenInAppBanner() {
   const intentUrl = useMemo(() => {
     if (typeof window === 'undefined') return '';
     const CANONICAL_HOST = 'dhuwa.com'; // Use the canonical production host
-    // Preserve the current path/query so the app opens the same route (TWA will load it)
     const path = window.location.pathname;
     const qs = window.location.search || '';
 
-    // intent://<HOST>/<PATH>?<QS>#Intent;scheme=https;package=<PKG>;S.browser_fallback_url=<PLAY>;end
+    // intent://<HOST><PATH>?<QS>#Intent;scheme=https;package=<PKG>;S.browser_fallback_url=<PLAY>;end
     return `intent://${CANONICAL_HOST}${path}${qs}#Intent;scheme=https;package=${pkg};S.browser_fallback_url=${encodeURIComponent(
       playStoreUrl
     )};end`;
@@ -41,19 +52,39 @@ export default function OpenInAppBanner() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const dismissed = localStorage.getItem(STORAGE_KEY) === '1';
     const ua = navigator.userAgent || '';
     const isMobile = /Mobile/i.test(ua);
 
-    // Show only on Android mobile browsers, not inside installed standalone/TWA
-    if (!dismissed && isAndroid(ua) && isMobile && !isStandalone()) {
+    // basic eligibility
+    if (!isAndroid(ua) || !isMobile) return;
+    if (isStandalone()) return;
+
+    // dismissed permanently
+    const dismissed = localStorage.getItem(STORAGE_DISMISSED) === '1';
+    if (dismissed) return;
+
+    // pageview gating
+    const pv = Number(localStorage.getItem(STORAGE_PAGEVIEWS) || '0') + 1;
+    localStorage.setItem(STORAGE_PAGEVIEWS, String(pv));
+    if (pv < MIN_PAGEVIEWS_BEFORE_SHOW) return;
+
+    // cooldown gating (if they’ve seen it recently)
+    const lastShown = Number(localStorage.getItem(STORAGE_SHOWN_AT) || '0');
+    if (lastShown && daysSince(lastShown) < COOLDOWN_DAYS) return;
+
+    // delay before showing (feels less spammy)
+    const t = window.setTimeout(() => {
+      localStorage.setItem(STORAGE_SHOWN_AT, String(Date.now()));
       setShow(true);
-    }
+    }, SHOW_DELAY_MS);
+
+    return () => window.clearTimeout(t);
   }, []);
 
   const dismiss = () => {
     try {
-      localStorage.setItem(STORAGE_KEY, '1');
+      localStorage.setItem(STORAGE_DISMISSED, '1');
+      localStorage.setItem(STORAGE_SHOWN_AT, String(Date.now()));
     } catch {}
     setShow(false);
   };
@@ -66,33 +97,33 @@ export default function OpenInAppBanner() {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-3 left-3 right-3 z-[1000] rounded-2xl border bg-background/95 backdrop-blur p-4 shadow-lg">
-      <div className="flex items-start gap-3">
-        <div className="flex-1">
-          <div className="text-sm font-semibold">Open Dhuwa in the app</div>
-          <div className="text-xs text-muted-foreground mt-1">
-            Faster, offline-first, and reminders work better in the app.
-          </div>
-          <div className="mt-3 flex gap-2">
-            <button
-              onClick={openApp}
-              className="rounded-xl px-4 py-2 text-sm font-medium bg-primary text-primary-foreground"
-            >
-              Open in app
-            </button>
-            <a
-              href={playStoreUrl}
-              className="rounded-xl px-4 py-2 text-sm font-medium border"
-            >
-              Get the app
-            </a>
+    <div className="fixed top-0 left-0 right-0 z-[1000] border-b bg-background/95 backdrop-blur">
+      <div className="mx-auto flex max-w-5xl items-center gap-3 px-3 py-2">
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold truncate">Open Dhuwa in the app</div>
+          <div className="text-xs text-muted-foreground truncate">
+            Faster, offline-first, reminders work best in the app.
           </div>
         </div>
 
         <button
+          onClick={openApp}
+          className="shrink-0 rounded-xl px-3 py-2 text-xs font-medium bg-primary text-primary-foreground"
+        >
+          Open
+        </button>
+
+        <a
+          href={playStoreUrl}
+          className="shrink-0 rounded-xl px-3 py-2 text-xs font-medium border"
+        >
+          Get
+        </a>
+
+        <button
           onClick={dismiss}
           aria-label="Dismiss"
-          className="rounded-xl px-2 py-1 text-muted-foreground hover:text-foreground"
+          className="shrink-0 rounded-xl px-2 py-1 text-muted-foreground hover:text-foreground"
         >
           ✕
         </button>
