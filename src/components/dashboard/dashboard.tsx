@@ -36,6 +36,19 @@ import DeviceCard from "./device-card";
 import { cn } from "@/lib/utils";
 import { ThemeSwitcher } from "../theme-switcher";
 import { useScheduledReminders } from "@/hooks/use-scheduled-reminders";
+import { useGamification } from "@/hooks/use-gamification";
+import { useDailyMissions } from "@/hooks/use-daily-missions";
+import { useWeeklyChallenge } from "@/hooks/use-weekly-challenge";
+import { useStreakShields } from "@/hooks/use-streak-shields";
+import { useAchievementToasts } from "@/hooks/use-achievement-toasts";
+import { DashboardHero } from "./dashboard-hero";
+import { DailyMissionsCard } from "./daily-missions-card";
+import { AchievementGallery } from "./achievement-gallery";
+import { HealthTimeline } from "./health-timeline";
+import { StreakHeatmap } from "./streak-heatmap";
+import { WeeklyChallengeCard } from "./weekly-challenge-card";
+import { Trophy } from "lucide-react";
+import { AppNav } from "./app-nav";
 
 
 interface SmokingMoment {
@@ -86,7 +99,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
   const availableHabits = userProfile.habits || ['Cigarettes'];
   const [activeHabit, setActiveHabit] = useState<string>('All');
   
-  const { requestPermissionAndToken } = useNotifications();
+  const { requestPermission: requestPermissionAndToken } = useNotifications();
 
   // State for replacement flow, lifted from SmokingPlan
   const [replacementMoment, setReplacementMoment] = useState<SmokingMoment | null>(null);
@@ -120,6 +133,13 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
   }, [sortedUrges, activeHabit]);
   
   const lastUrgeTime = sortedUrges?.[0]?.timestamp?.toDate();
+
+  // Gamification
+  const gamification = useGamification(sortedUrges, userProfile);
+  const { missions, isLoading: missionsLoading, completeMission, allCompleted, completedCount } = useDailyMissions(userProfile.goal);
+  const weeklyChallenge = useWeeklyChallenge(sortedUrges, userProfile.moments ?? [], gamification.stats.currentStreakDays);
+  const { shields } = useStreakShields(gamification.stats.currentStreakDays);
+  useAchievementToasts(gamification.unlockedIds);
   
   if (isLoading || !user) {
     return (
@@ -151,7 +171,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-        <main className="flex-1 flex flex-col items-center p-4 md:p-6 pb-28">
+        <main className="flex-1 flex flex-col items-center p-4 md:p-6 pb-36">
             <div className="w-full max-w-md mx-auto">
                 <header className="mb-6 flex justify-between items-start">
                     <div>
@@ -182,29 +202,72 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                 )}
 
                 <div className="space-y-6">
+                    {/* ── Gamification Hero ── */}
+                    <DashboardHero
+                      stats={gamification.stats}
+                      username={userProfile.username}
+                      shields={shields}
+                    />
+
+                    {/* ── Daily Missions ── */}
+                    <DailyMissionsCard
+                      missions={missions}
+                      isLoading={missionsLoading}
+                      completedCount={completedCount}
+                      allCompleted={allCompleted}
+                      onCompleteMission={completeMission}
+                    />
+
                     <DailyInsight userProfile={userProfile} urges={filteredUrges} lastUrgeTime={lastUrgeTime}/>
-                    <RealTimeTimer 
-                      sortedUrges={filteredUrges} 
+                    <RealTimeTimer
+                      sortedUrges={filteredUrges}
                       selectedDate={selectedDate}
                       onSelectDate={setSelectedDate}
                     />
+
+                    {/* ── Health Recovery Timeline ── */}
+                    <HealthTimeline smokeFreeHours={gamification.stats.currentStreakMs / (1000 * 60 * 60)} />
+
                     <CommunityTeaser />
-                    <NextRiskWindow 
-                        user={user} 
-                        userProfile={userProfile} 
-                        urges={filteredUrges} 
+                    <NextRiskWindow
+                        user={user}
+                        userProfile={userProfile}
+                        urges={filteredUrges}
                         onReplace={setReplacementMoment}
                     />
-                    <SmokingPlan 
-                        user={user} 
-                        userProfile={userProfile} 
-                        selectedDate={selectedDate || new Date()} 
+                    <SmokingPlan
+                        user={user}
+                        userProfile={userProfile}
+                        selectedDate={selectedDate || new Date()}
                         replacementMoment={replacementMoment}
                         setReplacementMoment={setReplacementMoment}
                         activeHabit={activeHabit}
                     />
                     <SavingsStats urges={filteredUrges} userProfile={userProfile} selectedDate={selectedDate} activeHabit={activeHabit} />
                     <ProgressTracker userProfile={userProfile} selectedDate={selectedDate || new Date()} />
+
+                    {/* ── Streak Heatmap ── */}
+                    <StreakHeatmap
+                      urges={filteredUrges}
+                      currentStreakDays={gamification.stats.currentStreakDays}
+                      longestStreakDays={gamification.stats.longestStreakDays}
+                    />
+
+                    {/* ── Weekly Challenge ── */}
+                    {weeklyChallenge && <WeeklyChallengeCard challenge={weeklyChallenge} />}
+
+                    {/* ── Achievement Gallery ── */}
+                    <AchievementGallery unlockedIds={gamification.unlockedIds} />
+
+                    {/* ── Achievements page link ── */}
+                    <Link
+                      href={`/${locale}/achievements`}
+                      className="flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-primary/30 text-sm text-primary hover:bg-primary/5 transition-colors"
+                    >
+                      <Trophy className="w-4 h-4" />
+                      View full achievements page
+                    </Link>
+
                     <ReplacementReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <ReplacementMoodReport userProfile={userProfile} selectedDate={selectedDate || new Date()} />
                     <MoodReport urges={filteredUrges} selectedDate={selectedDate || new Date()} />
@@ -214,10 +277,11 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
                 </div>
             </div>
         </main>
-        <footer className="sticky bottom-0 bg-background/80 backdrop-blur-sm border-t border-border">
-            <div className="w-full max-w-md mx-auto p-4 space-y-3">
-                 <SmokeLogger habits={availableHabits}/>
+        <footer className="sticky bottom-0 bg-background/90 backdrop-blur-md border-t border-border shadow-floating">
+            <div className="w-full max-w-md mx-auto px-4 pt-3 pb-1 space-y-2">
+                 <SmokeLogger habits={availableHabits} lastUrgeTime={lastUrgeTime} />
                  <SosActionBar />
+                 <AppNav />
             </div>
         </footer>
     </div>

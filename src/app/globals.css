@@ -6,66 +6,78 @@
 
 @layer base {
   :root {
-    /* Light Theme */
-    --background: 210 20% 98%; /* Almost white */
-    --foreground: 224 71.4% 4.1%; /* Almost black */
-    --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 150 56% 68%; /* #90E0B3 Light Sage Green */
-    --primary-foreground: 224 71.4% 4.1%;
-    --secondary: 210 20% 94%; /* Light gray */
-    --secondary-foreground: 224 71.4% 4.1%;
-    --muted: 210 20% 90%;
-    --muted-foreground: 224 71.4% 4.1%;
-    --accent: 40 84% 75%; /* #FAD089 Soft Gold */
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 210 20% 85%;
-    --input: 210 20% 85%;
-    --ring: 150 56% 68%;
-    --radius: 0.8rem;
-    
-    /* Chart Colors */
-    --chart-1: 40 84% 75%; /* Soft Gold */
-    --chart-2: 150 50% 50%; /* Darker Sage */
-    --chart-3: 210 30% 60%; /* Muted Blue-Gray */
-    --chart-4: 30 70% 70%; /* Soft Orange */
-    --chart-5: 180 30% 50%; /* Sea Green */
-    --chart-6: 262 80% 70%; /* Purple for Weed */
+    /* ── Light Theme ──────────────────────────────────────── */
+    --background:    210 22% 97%;
+    --foreground:    224 30% 8%;
+    --card:          0 0% 100%;
+    --card-foreground: 224 30% 8%;
+    --popover:       0 0% 100%;
+    --popover-foreground: 224 30% 8%;
+    --primary:       152 52% 52%;   /* richer sage green */
+    --primary-foreground: 0 0% 100%;
+    --secondary:     210 18% 92%;
+    --secondary-foreground: 224 30% 8%;
+    --muted:         210 18% 88%;
+    --muted-foreground: 220 14% 46%;
+    --accent:        38 90% 62%;    /* warmer gold */
+    --accent-foreground: 224 30% 8%;
+    --destructive:   0 72% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --border:        210 18% 86%;
+    --input:         210 18% 86%;
+    --ring:          152 52% 52%;
+    --radius:        1rem;
+
+    /* Elevation shadows */
+    --shadow-sm:  0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+    --shadow:     0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 6px -2px rgb(0 0 0 / 0.04);
+    --shadow-md:  0 8px 24px -4px rgb(0 0 0 / 0.10), 0 4px 8px -4px rgb(0 0 0 / 0.06);
+    --shadow-lg:  0 16px 40px -8px rgb(0 0 0 / 0.12), 0 8px 16px -6px rgb(0 0 0 / 0.07);
+
+    /* Chart colours */
+    --chart-1: 38 90% 62%;
+    --chart-2: 152 48% 46%;
+    --chart-3: 210 30% 58%;
+    --chart-4: 28 72% 64%;
+    --chart-5: 180 32% 48%;
+    --chart-6: 262 70% 64%;
   }
 
   .dark {
-    /* Dark Theme */
-    --background: 220 20% 7%;
-    --foreground: 0 0% 98%;
-    --card: 220 20% 12%;
-    --card-foreground: 0 0% 98%;
-    --popover: 220 20% 7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 150 56% 68%; /* #90E0B3 Light Sage Green */
-    --primary-foreground: 220 20% 7%;
-    --secondary: 220 20% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 220 20% 15%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 40 84% 75%; /* #FAD089 Soft Gold */
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
+    /* ── Dark Theme ───────────────────────────────────────── */
+    --background:    226 18% 7%;    /* warm-tinted deep dark */
+    --foreground:    210 14% 95%;
+    --card:          226 18% 11%;   /* clearly distinct from bg */
+    --card-foreground: 210 14% 95%;
+    --popover:       226 18% 9%;
+    --popover-foreground: 210 14% 95%;
+    --primary:       152 56% 62%;   /* Sage green — same hue, slightly dimmed */
+    --primary-foreground: 226 18% 7%;
+    --secondary:     226 18% 17%;   /* surface layer */
+    --secondary-foreground: 210 14% 90%;
+    --muted:         226 18% 17%;
+    --muted-foreground: 220 10% 56%;
+    --accent:        38 88% 65%;
+    --accent-foreground: 226 18% 7%;
+    --destructive:   0 58% 42%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 150 56% 68%;
+    --border:        226 18% 19%;
+    --input:         226 18% 19%;
+    --ring:          152 56% 62%;
 
-    /* Chart Colors */
-    --chart-1: 40 84% 75%;
-    --chart-2: 150 50% 50%;
-    --chart-3: 210 30% 60%;
-    --chart-4: 30 70% 70%;
-    --chart-5: 180 30% 50%;
-    --chart-6: 262 80% 70%;
+    /* Elevation shadows — subtle in dark mode */
+    --shadow-sm:  0 1px 3px 0 rgb(0 0 0 / 0.30), 0 1px 2px -1px rgb(0 0 0 / 0.20);
+    --shadow:     0 4px 12px -2px rgb(0 0 0 / 0.40), 0 2px 6px -2px rgb(0 0 0 / 0.25);
+    --shadow-md:  0 8px 24px -4px rgb(0 0 0 / 0.50), 0 4px 8px -4px rgb(0 0 0 / 0.30);
+    --shadow-lg:  0 16px 40px -8px rgb(0 0 0 / 0.60), 0 8px 16px -6px rgb(0 0 0 / 0.35);
+
+    /* Chart colours */
+    --chart-1: 38 88% 65%;
+    --chart-2: 152 52% 48%;
+    --chart-3: 210 30% 56%;
+    --chart-4: 28 70% 62%;
+    --chart-5: 180 30% 46%;
+    --chart-6: 262 68% 62%;
   }
 }
 
@@ -73,16 +85,74 @@
   * {
     @apply border-border;
   }
+
+  html {
+    /* Smooth momentum scroll on iOS */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'PT Sans', sans-serif;
+    /* Better font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Remove tap highlight on mobile */
+    -webkit-tap-highlight-color: transparent;
   }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Belleza', sans-serif;
     font-weight: 400;
+    letter-spacing: -0.01em;
   }
-  .prose h1, .prose h2, .prose h3 {
-     font-family: 'Belleza', sans-serif;
-     font-weight: 400;
+
+  /* Better scrollbar in dark mode */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+
+  /* Text selection colour matches primary */
+  ::selection {
+    background: hsl(var(--primary) / 0.25);
+    color: hsl(var(--foreground));
+  }
+}
+
+/* ── Utility layer ──────────────────────────────────────── */
+@layer utilities {
+  /* Glass-morphism surface */
+  .glass {
+    @apply backdrop-blur-md bg-card/70 border border-border/50;
+  }
+
+  /* Elevation helpers */
+  .shadow-card {
+    box-shadow: var(--shadow-sm);
+  }
+  .shadow-raised {
+    box-shadow: var(--shadow);
+  }
+  .shadow-floating {
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+
+  /* Numeric / tabular figures */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
   }
 }

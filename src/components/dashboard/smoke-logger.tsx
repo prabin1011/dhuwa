@@ -15,12 +15,14 @@ import {
 } from "@/components/ui/select"
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
 import { MoodAfterDialogAction } from "./mood-after-toast-action";
 import { getNarrative } from "@/lib/narrative-vault";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/analytics";
+import { formatDistanceStrict } from "date-fns";
 
 
 const MOOD_OPTIONS = [
@@ -34,11 +36,14 @@ const MOOD_OPTIONS = [
     {value: 'neutral', label: 'Neutral'},
 ]
 
+const RELAPSE_THRESHOLD_HOURS = 24;
+
 interface SmokeLoggerProps {
     habits: string[];
+    lastUrgeTime?: Date;
 }
 
-export function SmokeLogger({ habits }: SmokeLoggerProps) {
+export function SmokeLogger({ habits, lastUrgeTime }: SmokeLoggerProps) {
   const t = useTranslations('dashboard');
   const { firestore, user } = useFirebase();
   const { toast } = useToast();
@@ -46,8 +51,10 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [isMoodDialogOpen, setIsMoodDialogOpen] = useState(false);
   const [isAfterMoodDialogOpen, setIsAfterMoodDialogOpen] = useState(false);
+  const [isRelapseDialogOpen, setIsRelapseDialogOpen] = useState(false);
   const [lastUrgeId, setLastUrgeId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [smokeFreeBeforeLog, setSmokeFreeBeforeLog] = useState<string | null>(null);
 
 
   const handleLogSmoke = async () => {
@@ -59,14 +66,26 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
         toast({ variant: "destructive", title: "Mood Required", description: "Please select a mood to continue." });
         return;
     }
-    
+
+    // Detect relapse: check if the user was smoke-free for 24+ hours before this log
+    const now = new Date();
+    let wasLongBreak = false;
+    let smokeFreeLabel: string | null = null;
+    if (lastUrgeTime) {
+      const gapHours = (now.getTime() - lastUrgeTime.getTime()) / (1000 * 60 * 60);
+      if (gapHours >= RELAPSE_THRESHOLD_HOURS) {
+        wasLongBreak = true;
+        smokeFreeLabel = formatDistanceStrict(lastUrgeTime, now);
+      }
+    }
+
     // Close the initial mood dialog
     setIsMoodDialogOpen(false);
-    
+
     trackEvent('log_smoke', 'Smoke Logger', selectedHabit, quantity);
-    
+
     const urgesCollection = collection(firestore, 'users', user.uid, 'urges');
-    
+
     try {
         const { long, short } = getNarrative(selectedMood);
 
@@ -83,10 +102,16 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
 
         const docRef = await addDoc(urgesCollection, urgeData);
         setLastUrgeId(docRef.id);
-        
-        // Immediately open the second dialog
-        setIsAfterMoodDialogOpen(true);
-        
+
+        if (wasLongBreak && smokeFreeLabel) {
+          // Show compassionate relapse recovery dialog first
+          setSmokeFreeBeforeLog(smokeFreeLabel);
+          setIsRelapseDialogOpen(true);
+        } else {
+          // Normal flow: open the "mood after" dialog
+          setIsAfterMoodDialogOpen(true);
+        }
+
     } catch(e) {
         console.error("Error logging smoke: ", e);
         toast({
@@ -105,8 +130,15 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
     setQuantity(1);
     setIsMoodDialogOpen(false);
     setIsAfterMoodDialogOpen(false);
+    setIsRelapseDialogOpen(false);
     setLastUrgeId(null);
+    setSmokeFreeBeforeLog(null);
   }
+
+  const handleRelapseAcknowledge = () => {
+    setIsRelapseDialogOpen(false);
+    setIsAfterMoodDialogOpen(true);
+  };
 
   const HabitIcon = ({ habit }: { habit: string }) => {
     if (habit === 'Vape') return <Wind className="w-4 h-4" />;
@@ -181,6 +213,32 @@ export function SmokeLogger({ habits }: SmokeLoggerProps) {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+
+        {/* Compassionate relapse recovery dialog */}
+        <Dialog open={isRelapseDialogOpen} onOpenChange={open => { if (!open) handleRelapseAcknowledge(); }}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <div className="text-4xl text-center mb-1">🌱</div>
+              <DialogTitle className="text-center">Every step still counts</DialogTitle>
+              <DialogDescription className="text-center space-y-3 pt-2">
+                <span className="block">
+                  You were smoke-free for <span className="font-semibold text-foreground">{smokeFreeBeforeLog}</span>. That is real progress — and it belongs to you forever.
+                </span>
+                <span className="block text-xs">
+                  A slip is not a failure. It is data. Every quit attempt teaches your brain something new about your triggers. You are still moving forward.
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 pt-2">
+              <Button className="w-full" onClick={handleRelapseAcknowledge}>
+                Continue my journey
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Your streak will reset — but your history stays. You have not lost anything.
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* This is the second, mandatory dialog for "mood after" */}
          <AlertDialog open={isAfterMoodDialogOpen} onOpenChange={setIsAfterMoodDialogOpen}>
