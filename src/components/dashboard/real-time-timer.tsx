@@ -9,6 +9,7 @@ import type { WithId } from '@/firebase';
 import type { Timestamp } from 'firebase/firestore';
 import { Dialog, DialogTrigger, DialogContent } from '../ui/dialog';
 import { Calendar } from '../ui/calendar';
+import { timestampToDate } from '@/lib/timestamp';
 
 interface Urge {
   timestamp: Timestamp;
@@ -43,17 +44,19 @@ export function RealTimeTimer({ sortedUrges, selectedDate, onSelectDate }: RealT
   }, []);
 
   const { lastUrgeTime, previousInterval } = useMemo(() => {
-    // Defensively filter for urges that have a valid timestamp with a toDate method.
-    const validUrges = sortedUrges.filter(urge => urge.timestamp && typeof urge.timestamp.toDate === 'function');
+    const validUrges = sortedUrges
+      .map((urge) => timestampToDate(urge.timestamp))
+      .filter((date): date is Date => date != null)
+      .sort((a, b) => b.getTime() - a.getTime());
 
     if (validUrges.length === 0) {
       return { lastUrgeTime: undefined, previousInterval: null };
     }
-    const lastUrge = validUrges[0].timestamp.toDate();
+    const lastUrge = validUrges[0];
     if (validUrges.length < 2) {
       return { lastUrgeTime: lastUrge, previousInterval: null };
     }
-    const secondLastUrge = validUrges[1].timestamp.toDate();
+    const secondLastUrge = validUrges[1];
     const interval = formatDistanceStrict(lastUrge, secondLastUrge);
     return { lastUrgeTime: lastUrge, previousInterval: interval };
   }, [sortedUrges]);

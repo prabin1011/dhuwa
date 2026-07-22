@@ -143,7 +143,7 @@ export function DailyInsight({ userProfile, urges }: DailyInsightProps) {
                         variant="ghost" 
                         className="text-primary hover:bg-primary/20 hover:text-primary -mr-2 -mt-2 h-8 w-8" 
                         onClick={handleAnalyze} 
-                        disabled={isLoading || isCoolingDown}
+                        disabled={isLoading || !!isCoolingDown}
                     >
                          {isCoolingDown ? <Timer className="w-5 h-5" /> : <Lightbulb className="w-5 h-5" />}
                     </Button>

@@ -2,6 +2,7 @@
 // Weekly Challenge system — one big challenge per Mon–Sun week
 
 import { startOfWeek, endOfWeek, format, isWithinInterval } from 'date-fns';
+import { timestampToDate, type TimestampLike } from '@/lib/timestamp';
 
 export type ChallengeType =
   | 'replacements_this_week'
@@ -142,7 +143,7 @@ export function getWeeklyChallenge(weekKey: string): WeeklyChallenge {
 export function computeChallengeProgress(
   challenge: WeeklyChallenge,
   params: {
-    urges: { timestamp: { toDate(): Date }; count?: number }[];
+    urges: { timestamp: TimestampLike; count?: number }[];
     moments: { replacementActivity?: Record<string, { activity: string }> }[];
     currentStreakDays: number;
     copingToolUses: number;
@@ -169,13 +170,17 @@ export function computeChallengeProgress(
     case 'streak_days':
       return Math.min(params.currentStreakDays, challenge.target);
     case 'urges_logged':
-      return params.urges.filter(u => inThisWeek(u.timestamp.toDate())).length;
+      return params.urges.filter(u => {
+        const date = timestampToDate(u.timestamp);
+        return date != null && inThisWeek(date);
+      }).length;
     case 'smoke_free_days': {
       // Count distinct dates in this week with zero urges
       const smokedDates = new Set(
         params.urges
-          .filter(u => inThisWeek(u.timestamp.toDate()))
-          .map(u => format(u.timestamp.toDate(), 'yyyy-MM-dd'))
+          .map(u => timestampToDate(u.timestamp))
+          .filter((date): date is Date => date != null && inThisWeek(date))
+          .map(date => format(date, 'yyyy-MM-dd'))
       );
       // Days in this week up to today
       let freeDays = 0;

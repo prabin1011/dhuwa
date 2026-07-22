@@ -8,6 +8,7 @@ import { format, subDays, eachDayOfInterval, isSameDay } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
 import type { WithId } from '@/firebase';
 import { CalendarDays } from 'lucide-react';
+import { timestampToDate } from '@/lib/timestamp';
 
 interface Urge {
   timestamp: Timestamp;
@@ -54,13 +55,17 @@ export function StreakHeatmap({ urges, currentStreakDays, longestStreakDays }: S
     const days = eachDayOfInterval({ start, end: today });
 
     // earliest urge date to detect "no data" period
-    const earliestUrge = urges.length > 0
-      ? new Date(Math.min(...urges.map(u => u.timestamp.toDate().getTime())))
+    const urgeDates = urges
+      .map(u => timestampToDate(u.timestamp))
+      .filter((date): date is Date => date != null);
+
+    const earliestUrge = urgeDates.length > 0
+      ? new Date(Math.min(...urgeDates.map(date => date.getTime())))
       : today;
 
     const cells = days.map(day => {
       const hasData = day >= earliestUrge || isSameDay(day, earliestUrge);
-      const urgesOnDay = urges.filter(u => isSameDay(u.timestamp.toDate(), day)).length;
+      const urgesOnDay = urgeDates.filter(date => isSameDay(date, day)).length;
       return {
         date: day,
         label: format(day, 'MMM d'),

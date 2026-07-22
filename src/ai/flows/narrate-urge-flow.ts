@@ -12,6 +12,10 @@ const narrateUrgePrompt = `Create a single first-person sentence about this smok
 Moods: before={{moodBefore}}, after={{moodAfter}}. Habit: {{habitType}}.
 Tone: Empathetic, non-judgmental, concise. No preamble.`;
 
+function renderPrompt(template: string, values: Record<string, string | undefined>) {
+  return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => values[key] ?? 'not set');
+}
+
 export async function narrateUrge(
   rawInput: NarrateUrgeInput
 ): Promise<string> {
@@ -21,8 +25,7 @@ export async function narrateUrge(
 
     const { text } = await ai.generate({
       model: MODEL_ID,
-      prompt: narrateUrgePrompt,
-      input: { ...input, language },
+      prompt: renderPrompt(narrateUrgePrompt, { ...input, language }),
       config: { temperature: 0.3, maxOutputTokens: 60 },
     });
 

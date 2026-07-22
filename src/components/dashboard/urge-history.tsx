@@ -17,6 +17,7 @@ import { UrgeNarrative } from "./urge-narrative";
 import { Info } from "lucide-react";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { timestampToDate } from "@/lib/timestamp";
 
 
 interface Urge {
@@ -79,8 +80,9 @@ export function UrgeHistory({ urges, isLoading, userProfile }: UrgeHistoryProps)
 
     const groupedUrges = useMemo(() => {
         return urges.reduce((acc, urge) => {
-            if (urge.timestamp) {
-                const dateStr = format(urge.timestamp.toDate(), "yyyy-MM-dd");
+            const date = timestampToDate(urge.timestamp);
+            if (date) {
+                const dateStr = format(date, "yyyy-MM-dd");
                 if (!acc[dateStr]) {
                     acc[dateStr] = [];
                 }

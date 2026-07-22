@@ -13,6 +13,7 @@ import { format, parse, isAfter, isToday, formatDistanceToNowStrict, subDays } f
 import type { User } from 'firebase/auth';
 import { SmokingPlan } from "./smoking-plan"; // Assuming smoking plan handles its own state now
 import { useTranslations } from "next-intl";
+import { timestampToDate, type TimestampLike } from "@/lib/timestamp";
 
 interface SmokingMoment {
     id: string;
@@ -27,7 +28,7 @@ interface UserProfile {
 }
 
 interface Urge {
-    timestamp: { toDate: () => Date };
+    timestamp: TimestampLike;
 }
 
 interface NextRiskWindowProps {
@@ -66,7 +67,10 @@ export function NextRiskWindow({ user, userProfile, urges, onReplace }: NextRisk
         } else {
             const yesterdayStr = format(subDays(new Date(), 1), 'yyyy-MM-dd');
             const missedYesterday = moments.some(m => m.completed?.[yesterdayStr] === undefined && !isAfter(parse(m.time, 'HH:mm', new Date()), new Date()));
-            const smokedToday = urges.some(u => u.timestamp && isToday(u.timestamp.toDate()));
+            const smokedToday = urges.some(u => {
+                const date = timestampToDate(u.timestamp);
+                return date != null && isToday(date);
+            });
             
             if (missedYesterday) {
                 descriptionKey = 'riskWindowMissedYesterday';

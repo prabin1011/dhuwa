@@ -7,6 +7,7 @@ import {
 } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
 import type { WithId } from '@/firebase';
+import { timestampToDate } from '@/lib/timestamp';
 
 interface Urge {
   timestamp: Timestamp;
@@ -94,7 +95,8 @@ export interface SummaryStats {
 }
 
 const byDesc = (a: Urge, b: Urge) =>
-  b.timestamp.toDate().getTime() - a.timestamp.toDate().getTime();
+  (timestampToDate(b.timestamp)?.getTime() ?? 0) -
+  (timestampToDate(a.timestamp)?.getTime() ?? 0);
 
 const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
 
@@ -118,7 +120,9 @@ export function getSummaryStats(
   const now = new Date();
 
   // 1) sort newest → oldest
-  const urges = [...rawUrges].sort(byDesc);
+  const urges = [...rawUrges]
+    .filter((urge) => timestampToDate(urge.timestamp) != null)
+    .sort(byDesc);
 
   // 2) date buckets
   const todayKey = ymd(now);
@@ -126,13 +130,13 @@ export function getSummaryStats(
   const sevenDaysAgo = subDays(now, 7);
 
   const todayUrges = urges.filter(
-    (u) => ymd(u.timestamp.toDate()) === todayKey
+    (u) => ymd(timestampToDate(u.timestamp)!) === todayKey
   );
   const yesterdayUrges = urges.filter(
-    (u) => ymd(u.timestamp.toDate()) === ymd(yesterday)
+    (u) => ymd(timestampToDate(u.timestamp)!) === ymd(yesterday)
   );
   const last7DaysUrges = urges.filter((u) =>
-    isAfter(u.timestamp.toDate(), sevenDaysAgo)
+    isAfter(timestampToDate(u.timestamp)!, sevenDaysAgo)
   );
 
   const todaySmokes = countCigs(todayUrges);
@@ -141,7 +145,7 @@ export function getSummaryStats(
   const last7DaysAverage = last7DaysTotal / 7;
 
   // 3) streaks
-  const newest = urges[0]?.timestamp?.toDate();
+  const newest = timestampToDate(urges[0]?.timestamp);
   const timeSinceLastSmoke =
     newest != null ? formatDistanceStrict(newest, now) : 'the beginning';
 
@@ -151,8 +155,8 @@ export function getSummaryStats(
   // longest streak == max gap between consecutive urges
   let longestGapMs = currentStreakMs; // include “now since last” as a candidate
   for (let i = 0; i < urges.length - 1; i++) {
-    const a = urges[i].timestamp.toDate(); // newer
-    const b = urges[i + 1].timestamp.toDate(); // older
+    const a = timestampToDate(urges[i].timestamp)!; // newer
+    const b = timestampToDate(urges[i + 1].timestamp)!; // older
     const gap = a.getTime() - b.getTime();
     if (gap > longestGapMs) longestGapMs = gap;
   }
@@ -163,15 +167,15 @@ export function getSummaryStats(
   const timeBetweenUrges =
     urges.length > 1
       ? formatDistanceStrict(
-          urges[0].timestamp.toDate(),
-          urges[1].timestamp.toDate()
+          timestampToDate(urges[0].timestamp)!,
+          timestampToDate(urges[1].timestamp)!
         )
       : 'your first one';
 
   // 4) reduction vs last 7-day average
   const reductionPercent =
     last7DaysAverage > 0
-      ? (((last7DaysAverage - todaySmokes) / last7DaysAverage) * 100).toFixed(0)
+      ? Math.max(0, ((last7DaysAverage - todaySmokes) / last7DaysAverage) * 100).toFixed(0)
       : '0';
 
   // 5) cost saved vs baseline
@@ -191,7 +195,7 @@ export function getSummaryStats(
 
   // 6) triggers (48h)
   const urges48h = urges.filter(
-    (u) => differenceInHours(now, u.timestamp.toDate()) <= 48
+    (u) => differenceInHours(now, timestampToDate(u.timestamp)!) <= 48
   );
   const triggerCounts: Record<string, number> = {};
   for (const u of urges48h) {

@@ -16,6 +16,7 @@ import type { Locale } from '@/i18n';
 import { togglePostLike } from "@/lib/community";
 import { useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { timestampToDate } from "@/lib/timestamp";
 
 interface CommunityPost {
     id: string;
@@ -85,7 +86,9 @@ function PostCard({ post, currentUserId, firestore }: {
                     <p className="text-sm font-semibold">{post.username}</p>
                     <p className="text-xs text-muted-foreground">
                         {post.momentLabel ? `Replaced "${post.momentLabel}"` : 'Shared a win'} •{' '}
-                        {post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : ''}
+                        {timestampToDate(post.createdAt)
+                            ? formatDistanceToNow(timestampToDate(post.createdAt)!, { addSuffix: true })
+                            : 'recently'}
                     </p>
                 </div>
             </CardHeader>

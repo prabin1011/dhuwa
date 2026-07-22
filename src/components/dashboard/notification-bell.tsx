@@ -13,6 +13,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { Trash2 } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
+import { timestampToDate } from '@/lib/timestamp';
 
 interface StoredNotification {
   id: string;
@@ -202,7 +203,7 @@ export function NotificationBell() {
   };
 
   const allNotifications = useMemo(() => {
-    return (storedNotifications || []).map(n => ({ ...n, timestamp: n.timestamp?.toDate() || new Date() }));
+    return (storedNotifications || []).map(n => ({ ...n, timestamp: timestampToDate(n.timestamp) || new Date() }));
   }, [storedNotifications]);
 
   return (

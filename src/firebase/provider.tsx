@@ -18,9 +18,9 @@ import {
 } from 'firebase/auth';
 
 type Ctx = {
-  firebaseApp: FirebaseApp | null;
-  firestore: Firestore | null;
-  auth: Auth | null;
+  firebaseApp: FirebaseApp;
+  firestore: Firestore;
+  auth: Auth;
   user: User | null;
   isUserLoading: boolean;
 };

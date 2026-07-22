@@ -12,6 +12,7 @@ import { Cigarette, Leaf, MinusCircle, Wind } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocale } from "next-intl";
 import { narrateUrge } from "@/ai/flows/narrate-urge-flow";
+import { timestampToDate } from "@/lib/timestamp";
 
 interface Urge {
     timestamp: Timestamp;
@@ -42,10 +43,16 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
 
         const generateAndSaveNarrative = async () => {
             if (!user || !firestore) return;
+            const timestamp = timestampToDate(urge.timestamp);
+            if (!timestamp) {
+                setNarrative(urge.moodBefore || 'Logged moment');
+                setIsLoading(false);
+                return;
+            }
             setIsLoading(true);
             try {
                 const generatedNarrative = await narrateUrge({
-                    timestamp: urge.timestamp.toDate().toISOString(),
+                    timestamp: timestamp.toISOString(),
                     moodBefore: urge.moodBefore,
                     moodAfter: urge.moodAfter,
                     habitType: urge.type,
@@ -97,7 +104,7 @@ export function UrgeNarrative({ urge }: UrgeNarrativeProps) {
             <div className="flex items-center gap-3">
               <HabitIcon />
               <time className="text-muted-foreground font-mono text-xs">
-                 {format(urge.timestamp.toDate(), 'h:mm a')}
+                 {format(timestampToDate(urge.timestamp) ?? new Date(), 'h:mm a')}
                  {countLabel}
               </time>
               <p className="text-left text-foreground/90 font-medium text-xs flex-1">

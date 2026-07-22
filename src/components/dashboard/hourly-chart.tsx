@@ -12,6 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '..
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { useTranslations } from 'next-intl';
+import { timestampToDate } from '@/lib/timestamp';
 
 interface Urge {
     timestamp: Timestamp;
@@ -35,7 +36,10 @@ export function HourlyChart({ urges, habits }: HourlyChartProps) {
 
     const { hourlyData, description } = useMemo(() => {
         const thirtyDaysAgo = subDays(new Date(), 30);
-        const recentUrges = urges.filter(u => u.timestamp && isAfter(u.timestamp.toDate(), thirtyDaysAgo));
+        const recentUrges = urges.flatMap((urge) => {
+            const date = timestampToDate(urge.timestamp);
+            return date && isAfter(date, thirtyDaysAgo) ? [{ ...urge, date }] : [];
+        });
 
         const data: { hour: string, [key: string]: number | string }[] = Array.from({ length: 24 }, (_, i) => ({
             hour: String(i).padStart(2, '0') + ':00',
@@ -43,8 +47,8 @@ export function HourlyChart({ urges, habits }: HourlyChartProps) {
         }));
 
         recentUrges.forEach(urge => {
-            if (urge.timestamp && urge.type && habits.includes(urge.type)) {
-                const hour = urge.timestamp.toDate().getHours();
+            if (urge.type && habits.includes(urge.type)) {
+                const hour = urge.date.getHours();
                 data[hour][urge.type] = (data[hour][urge.type] as number) + (urge.count || 1);
             }
         });

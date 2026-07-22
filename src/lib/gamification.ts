@@ -1,5 +1,6 @@
 
 // Core XP / Level / Achievement system for Dhuwa
+import { timestampToDate, type TimestampLike } from '@/lib/timestamp';
 
 export interface Level {
   level: number;
@@ -70,7 +71,7 @@ export interface GamificationStats {
 }
 
 // Compute streak data from sorted urges (newest first)
-export function computeStreaks(urges: { timestamp: { toDate?(): Date } | null }[]): {
+export function computeStreaks(urges: { timestamp: TimestampLike }[]): {
   currentStreakMs: number;
   currentStreakDays: number;
   longestStreakDays: number;
@@ -78,23 +79,23 @@ export function computeStreaks(urges: { timestamp: { toDate?(): Date } | null }[
   const now = new Date();
 
   // Drop pending serverTimestamp sentinels — they have no toDate() yet
-  const valid = urges.filter(
-    (u): u is { timestamp: { toDate(): Date } } =>
-      u.timestamp != null && typeof (u.timestamp as any).toDate === 'function'
-  );
+  const valid = urges
+    .map((u) => timestampToDate(u.timestamp))
+    .filter((date): date is Date => date != null)
+    .sort((a, b) => b.getTime() - a.getTime());
 
   if (valid.length === 0) {
     return { currentStreakMs: 0, currentStreakDays: 0, longestStreakDays: 0 };
   }
 
-  const lastUrge = valid[0].timestamp.toDate();
+  const lastUrge = valid[0];
   const currentStreakMs = Math.max(0, now.getTime() - lastUrge.getTime());
   const currentStreakDays = Math.floor(currentStreakMs / (1000 * 60 * 60 * 24));
 
   let longestGapMs = currentStreakMs;
   for (let i = 0; i < valid.length - 1; i++) {
-    const a = valid[i].timestamp.toDate();
-    const b = valid[i + 1].timestamp.toDate();
+    const a = valid[i];
+    const b = valid[i + 1];
     const gap = a.getTime() - b.getTime();
     if (gap > longestGapMs) longestGapMs = gap;
   }
@@ -145,7 +146,7 @@ export function getGamificationStats(params: {
   replacementCount: number;
   checkinCount: number;
   bonusXp: number;
-  urges: { timestamp: { toDate(): Date } }[];
+  urges: { timestamp: TimestampLike }[];
 }): GamificationStats {
   const { urges } = params;
   const { currentStreakMs, currentStreakDays, longestStreakDays } = computeStreaks(urges);

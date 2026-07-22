@@ -12,6 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '..
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { useTranslations } from 'next-intl';
+import { timestampToDate } from '@/lib/timestamp';
 
 interface Urge {
     timestamp: Timestamp;
@@ -25,17 +26,24 @@ interface DailyHabitChartProps {
     habits: string[];
 }
 
+type DailyHabitDatum = {
+    date: string;
+} & Record<string, string | number>;
+
 export function DailyHabitChart({ urges, selectedDate, habits }: DailyHabitChartProps) {
     const t = useTranslations('dashboard.trendChart');
 
     const { dailyData, description } = useMemo(() => {
-        const data = [];
+        const data: DailyHabitDatum[] = [];
         const today = new Date();
-        const safeUrges = urges.filter(urge => urge.timestamp?.toDate); // Ensure timestamp is valid
+        const safeUrges = urges.flatMap((urge) => {
+            const date = timestampToDate(urge.timestamp);
+            return date ? [{ ...urge, date }] : [];
+        });
 
         for (let i = 29; i >= 0; i--) {
             const date = subDays(today, i);
-            const dayUrges = safeUrges.filter(urge => isSameDay(urge.timestamp.toDate(), date));
+            const dayUrges = safeUrges.filter(urge => isSameDay(urge.date, date));
             
             const counts = habits.reduce((acc, habit) => {
                 acc[habit] = dayUrges
@@ -51,12 +59,12 @@ export function DailyHabitChart({ urges, selectedDate, habits }: DailyHabitChart
         }
         
         const totalSmokes = data.reduce((sum, day) => {
-            return sum + habits.reduce((daySum, habit) => daySum + (day[habit] || 0), 0);
+            return sum + habits.reduce((daySum, habit) => daySum + Number(day[habit] || 0), 0);
         }, 0);
         
         const avgSmokes = totalSmokes > 0 ? totalSmokes / 30 : 0;
         const selectedDayData = data.find(d => d.date === format(selectedDate || new Date(), 'MMM d'));
-        const selectedDayCount = selectedDayData ? habits.reduce((sum, habit) => sum + (selectedDayData[habit] || 0), 0) : 0;
+        const selectedDayCount = selectedDayData ? habits.reduce((sum, habit) => sum + Number(selectedDayData[habit] || 0), 0) : 0;
 
         let dynamicDescription = t('description_default', { avg: avgSmokes.toFixed(1) });
         if (selectedDate) {

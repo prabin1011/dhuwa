@@ -6,6 +6,7 @@ import { notificationTemplates } from '@/lib/notification-templates';
 import { differenceInHours, format } from 'date-fns';
 import { canSendNotification } from '@/lib/notify-guard';
 import { renderTemplate as renderTemplateInternal } from '@/lib/render-template';
+import { timestampToDate } from '@/lib/timestamp';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -132,11 +133,12 @@ async function generateNotificationsForUser(userId: string, userProfile: UserPro
       nextContent: rendered.body,
     });
     
-    if (guard.ok) {
-        toCreate.push({ key, rule, ...rendered, hash: guard.hash });
+    if (guard.ok && 'hash' in guard) {
+        const hash = guard.hash ?? rendered.body;
+        toCreate.push({ key, rule, ...rendered, hash });
         lastNotifiedUpdates[`lastNotified.${key}`] = true;
         lastNotifiedUpdates['meta.lastNotifAt'] = Date.now();
-        lastNotifiedUpdates['meta.lastNotifHash'] = guard.hash;
+        lastNotifiedUpdates['meta.lastNotifHash'] = hash;
     }
   };
 
@@ -149,8 +151,9 @@ async function generateNotificationsForUser(userId: string, userProfile: UserPro
 
   // --- Rule 2: Streaks since last urge (3h/8h/24h) — only once per day per tier
   const lastUrge = urges[0];
-  if (lastUrge?.timestamp) {
-    const hours = differenceInHours(now, lastUrge.timestamp.toDate());
+  const lastUrgeDate = timestampToDate(lastUrge?.timestamp);
+  if (lastUrgeDate) {
+    const hours = differenceInHours(now, lastUrgeDate);
     if (hours >= 3 && !lastNotified[`streak_3h_${todayStr}`]) add('streak_3h', `streak_3h_${todayStr}`, notificationTemplates.streakThreeHours, { hours: 3 });
     if (hours >= 8 && !lastNotified[`streak_8h_${todayStr}`]) add('streak_8h', `streak_8h_${todayStr}`, notificationTemplates.streakEightHours, { hours: 8 });
     if (hours >= 24 && !lastNotified[`streak_24h_${todayStr}`]) add('streak_24h', `streak_24h_${todayStr}`, notificationTemplates.streakOneDay, { hours: 24 });
@@ -170,7 +173,7 @@ async function generateNotificationsForUser(userId: string, userProfile: UserPro
 
   // --- Rule 5: Morning pattern today (>=2 urges before 9am)
   const morningCount = urges.filter(u => {
-    const dt = u.timestamp?.toDate();
+    const dt = timestampToDate(u.timestamp);
     return dt && format(dt, 'yyyy-MM-dd') === todayStr && dt.getHours() < 9;
   }).length;
   if (morningCount >= 2) {
@@ -186,7 +189,7 @@ async function generateNotificationsForUser(userId: string, userProfile: UserPro
     let total = 0;
     const weekId = format(now, "yyyy-'W'ww");
     urges.forEach(u => {
-      const dt = u.timestamp?.toDate();
+      const dt = timestampToDate(u.timestamp);
       if (!dt) return;
       if (format(dt, "yyyy-'W'ww") === weekId) {
         total += u.count ?? 1;

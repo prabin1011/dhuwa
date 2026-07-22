@@ -49,6 +49,7 @@ import { StreakHeatmap } from "./streak-heatmap";
 import { WeeklyChallengeCard } from "./weekly-challenge-card";
 import { Trophy } from "lucide-react";
 import { AppNav } from "./app-nav";
+import { timestampToDate } from "@/lib/timestamp";
 
 
 interface SmokingMoment {
@@ -132,7 +133,7 @@ export function Dashboard({ user, userProfile }: DashboardProps) {
     return sortedUrges.filter(urge => urge.type === activeHabit);
   }, [sortedUrges, activeHabit]);
   
-  const lastUrgeTime = sortedUrges?.[0]?.timestamp?.toDate();
+  const lastUrgeTime = timestampToDate(sortedUrges?.[0]?.timestamp) ?? undefined;
 
   // Gamification
   const gamification = useGamification(sortedUrges, userProfile);

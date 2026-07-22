@@ -322,7 +322,7 @@ export function Onboarding() {
                                         <span className="animate-pulse">|</span>
                                     </div>
                                     <NumberKeypad
-                                    value={field.value || ''}
+                                    value={String(field.value || '')}
                                     onValueChange={field.onChange}
                                     />
                                     </>

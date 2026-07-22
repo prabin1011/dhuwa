@@ -12,6 +12,7 @@ import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/analytics";
+import { timestampToDate } from "@/lib/timestamp";
 
 interface Urge {
     timestamp: Timestamp;
@@ -91,7 +92,10 @@ export function SavingsStats({ urges, userProfile, selectedDate, activeHabit }: 
             return parseItemsPerDay(details?.itemsPerDay);
         };
         
-        const mappedUrges = urges.map(u => ({ ...u, dt: u.timestamp?.toDate() })).filter(u => u.dt);
+        const mappedUrges = urges.flatMap((u) => {
+            const dt = timestampToDate(u.timestamp);
+            return dt ? [{ ...u, dt }] : [];
+        });
 
         const getUrgeCount = (filteredUrges: typeof mappedUrges) => {
             return filteredUrges.reduce((sum, urge) => sum + (urge.count || 1), 0);

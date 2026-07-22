@@ -8,6 +8,7 @@ import { getGamificationStats } from '@/lib/gamification';
 import { computeUnlockedAchievements, ACHIEVEMENTS } from '@/lib/achievements';
 import type { GamificationStats } from '@/lib/gamification';
 import type { Achievement } from '@/lib/achievements';
+import { timestampToDate } from '@/lib/timestamp';
 
 interface Urge {
   timestamp: Timestamp;
@@ -53,9 +54,10 @@ function computeMoneySaved(
     if (!packCost || !itemsPerPack || !itemsPerDay) continue;
 
     const costPerItem = packCost / itemsPerPack;
-    const weeklyUrges = urges.filter(
-      u => u.type === habit && u.timestamp.toDate() >= sevenDaysAgo
-    );
+    const weeklyUrges = urges.filter((u) => {
+      const date = timestampToDate(u.timestamp);
+      return u.type === habit && date != null && date >= sevenDaysAgo;
+    });
     const smoked = weeklyUrges.reduce((s, u) => s + (u.count ?? 1), 0);
     const expected = itemsPerDay * 7;
     if (expected > smoked) saved += (expected - smoked) * costPerItem;

@@ -11,6 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '..
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { useTranslations } from 'next-intl';
+import { timestampToDate } from '@/lib/timestamp';
 
 interface Urge {
     timestamp: Timestamp;
@@ -95,7 +96,10 @@ export function MoodReport({ urges, selectedDate }: MoodReportProps) {
         const moodsBeforeCount: Record<string, number> = {};
         const moodsAfterCount: Record<string, number> = {};
 
-        const todaysUrges = urges.filter(urge => urge.timestamp && isSameDay(urge.timestamp.toDate(), selectedDate));
+        const todaysUrges = urges.filter(urge => {
+            const date = timestampToDate(urge.timestamp);
+            return date != null && isSameDay(date, selectedDate);
+        });
         
         todaysUrges.forEach(urge => {
             if (urge.moodBefore) {
